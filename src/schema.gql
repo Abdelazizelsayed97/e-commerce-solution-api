@@ -1,0 +1,312 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Role {
+  id: String!
+  name: String!
+  permissions: [String!]!
+}
+
+type Address {
+  id: String!
+  state: String!
+  city: String!
+  address: String!
+  user: String!
+}
+
+type User {
+  id: String!
+  name: String!
+  email: String!
+  token: String!
+  role: Role!
+  address: [Address!]!
+  phoneNumber: String!
+}
+
+type Cart {
+  id: String!
+  userId: User!
+  createAt: Timestamp!
+  updateAt: Timestamp!
+}
+
+"""
+`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
+"""
+scalar Timestamp
+
+type Order {
+  id: String!
+  userId: User!
+  totalAmount: Float!
+  paymentStatus: OrderPaymentStatus!
+  paymentMethod: paymentMethod!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  shippingAddressId: String!
+  transactionId: String!
+}
+
+enum OrderPaymentStatus {
+  paid
+  pending
+  refunded
+}
+
+enum paymentMethod {
+  card
+  wallet
+  cash
+}
+
+type Vendor {
+  id: String!
+  user: String!
+  shopName: String!
+  balance: Int!
+  rating: Int!
+  isVerfied: Boolean!
+}
+
+type Notification {
+  id: String!
+  user: User!
+  title: String!
+  message: String!
+  isRead: Boolean!
+  createdAt: Timestamp!
+}
+
+type Product {
+  id: String!
+  name: String!
+  type: String!
+  vendor: Vendor!
+}
+
+type Fcm {
+  id: String!
+  user: User!
+  token: String!
+  device: Device!
+  createdAt: Timestamp!
+}
+
+enum Device {
+  iOS
+  Android
+  Web
+}
+
+type VendorOrder {
+  id: String!
+  order: Order!
+  vendor: Vendor!
+  subtotal: Int!
+  commission: Int!
+  payoutAmount: Int!
+  payoutStatus: VendorPaymentStatus!
+  shippingStatus: Shipping_Status!
+}
+
+enum VendorPaymentStatus {
+  paid
+  pending
+}
+
+enum Shipping_Status {
+  PENDING
+  PROCESSING
+  DELIVERED
+  CANCEL
+}
+
+type CartItem {
+  id: String!
+  cart: Cart!
+  product: Product!
+  vendor: Vendor!
+  quantity: Float!
+  totlePrice: Float!
+}
+
+type Query {
+  user(id: String!): User!
+  role(id: String!): Role!
+  address(id: Int!): Address!
+  cart(id: Int!): Cart!
+  order(id: Int!): Order!
+  vendor(id: Int!): Vendor!
+  notification(id: Int!): Notification!
+  fcm(id: Int!): Fcm!
+  vendorOrders: [VendorOrder!]!
+  vendorOrder(id: Int!): VendorOrder!
+  cartItem(id: Int!): CartItem!
+}
+
+type Mutation {
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  removeUser(id: String!): User!
+  createRole(createRoleInput: CreateRoleInput!): Role!
+  updateRole(updateRoleInput: UpdateRoleInput!): Role!
+  removeRole(id: Int!): Role!
+  createAddress(createAddressInput: CreateAddressInput!): Address!
+  updateAddress(updateAddressInput: UpdateAddressInput!): Address!
+  removeAddress(id: String!): Address!
+  createCart(createCartInput: CreateCartInput!): Cart!
+  updateCart(updateCartInput: UpdateCartInput!): Cart!
+  removeCart(id: Int!): Cart!
+  createOrder(createOrderInput: CreateOrderInput!): Order!
+  updateOrder(updateOrderInput: UpdateOrderInput!): Order!
+  removeOrder(id: Int!): Order!
+  createVendor(createVendorInput: CreateVendorInput!): Vendor!
+  updateVendor(updateVendorInput: UpdateVendorInput!): Vendor!
+  removeVendor(id: Int!): Vendor!
+  createNotification(createNotificationInput: CreateNotificationInput!): Notification!
+  updateNotification(updateNotificationInput: UpdateNotificationInput!): Notification!
+  removeNotification(id: Int!): Notification!
+  createFcm(createFcmInput: CreateFcmInput!): Fcm!
+  updateFcm(updateFcmInput: UpdateFcmInput!): Fcm!
+  removeFcm(id: Int!): Fcm!
+  createVendorOrder(createVendorOrderInput: CreateVendorOrderInput!): VendorOrder!
+  updateVendorOrder(updateVendorOrderInput: UpdateVendorOrderInput!): VendorOrder!
+  removeVendorOrder(id: Int!): VendorOrder!
+  createCartItem(createCartItemInput: CreateCartItemInput!): CartItem!
+  updateCartItem(updateCartItemInput: UpdateCartItemInput!): CartItem!
+  removeCartItem(id: Int!): CartItem!
+  login(loginInput: LoginInput!): User!
+  register(registerInput: RegisterInput!): User!
+}
+
+input UpdateUserInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: String!
+}
+
+input CreateRoleInput {
+  name: String!
+  permissions: [String!]!
+}
+
+input UpdateRoleInput {
+  name: String
+  permissions: [String!]
+  id: Int!
+}
+
+input CreateAddressInput {
+  id: String!
+  state: String!
+  city: String!
+  details: String!
+  userid: String!
+}
+
+input UpdateAddressInput {
+  id: String!
+  state: String
+  city: String
+  details: String
+  userid: String
+}
+
+input CreateCartInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateCartInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateOrderInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateOrderInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateVendorInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateVendorInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateNotificationInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateNotificationInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateFcmInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateFcmInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateVendorOrderInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateVendorOrderInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateCartItemInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateCartItemInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+  phone: String!
+  address: [CreateAddressInput!]!
+  role: role!
+}
+
+enum role {
+  superAdmin
+  client
+  vendor
+}

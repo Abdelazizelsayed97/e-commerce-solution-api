@@ -1,7 +1,12 @@
 import { InputType, Int, Field } from '@nestjs/graphql';
+import { IsAlphanumeric, IsNotEmpty } from 'class-validator';
 
 @InputType()
 export class CreateRoleInput {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+  @IsNotEmpty()
+  @IsAlphanumeric()
+  @Field(() => String)
+  name: string;
+  @Field(() => [String])
+  permissions: string[];
 }

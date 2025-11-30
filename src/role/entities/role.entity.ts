@@ -1,7 +1,8 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Column, PrimaryGeneratedColumn } from 'typeorm';
+import { ObjectType, Field } from '@nestjs/graphql';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @ObjectType()
+@Entity()
 export class Role {
   @Field()
   @PrimaryGeneratedColumn('uuid')
@@ -10,6 +11,6 @@ export class Role {
   @Column()
   name: string;
   @Field(() => [String])
-  @Column()
+  @Column('simple-array', { array: true })
   permissions: string[];
 }

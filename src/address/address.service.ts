@@ -1,11 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import { Repository } from 'typeorm';
+import { Address } from './entities/address.entity';
+import { S } from 'node_modules/graphql-ws/dist/common-DY-PBNYy.cjs';
 
 @Injectable()
 export class AddressService {
-  create(createAddressInput: CreateAddressInput) {
-    return 'This action adds a new address';
+  constructor(
+    @InjectRepository(Address)
+    private addressRepository: Repository<Address>,
+  ) {}
+
+  async create(createAddressInput: CreateAddressInput) {
+    const isExist = await this.addressRepository.findOne({
+      where: {
+        state: createAddressInput.state,
+        city: createAddressInput.city,
+        address: createAddressInput.details,
+      },
+    });
+    if (isExist) {
+      throw new Error('address already exist');
+    }
+    Object.create(createAddressInput);
+    return this.addressRepository.save({
+      ...createAddressInput,
+    });
   }
 
   findAll() {
@@ -16,11 +39,11 @@ export class AddressService {
     return `This action returns a #${id} address`;
   }
 
-  update(id: number, updateAddressInput: UpdateAddressInput) {
+  update(id: string, updateAddressInput: UpdateAddressInput) {
     return `This action updates a #${id} address`;
   }
 
-  remove(id: number) {
+  async remove(id: string) {
     return `This action removes a #${id} address`;
   }
 }

@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
 import { Role } from 'src/role/entities/role.entity';
 import {
   PrimaryGeneratedColumn,
@@ -39,3 +39,4 @@ export class User {
   @Column()
   phoneNumber: string;
 }
+  

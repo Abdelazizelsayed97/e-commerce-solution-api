@@ -19,8 +19,8 @@ export class Cart {
   userId: User;
   @Field(() => GraphQLTimestamp)
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createAt: Timestamp;
+  createAt: number;
   @Field(() => GraphQLTimestamp)
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  updateAt: Timestamp;
+  updateAt: number;
 }

@@ -1,19 +1,20 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
-import { Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @ObjectType()
+@Entity()
 export class Product {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
   id: string;
   @Field(() => String)
-  @Column()
+  @Column('text')
   name: string;
   @Field(() => String)
-  @Column()
+  @Column('text')
   type: string;
-  @Field(() => String)
+  @Field(() => Vendor)
   @ManyToOne(() => Vendor, (vendor) => vendor.id)
   vendor: Vendor;
 }

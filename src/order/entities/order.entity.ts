@@ -1,4 +1,9 @@
-import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import {
+  ObjectType,
+  Field,
+  Float,
+  GraphQLTimestamp,
+} from '@nestjs/graphql';
 import { paymentMethod } from 'src/core/enums/payment.method.enum';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 import { User } from 'src/user/entities/user.entity';
@@ -22,19 +27,19 @@ export class Order {
   userId: User;
   @Field(() => Float)
   @Column()
-  totalAmount: Double;
+  totalAmount: number;
   @Field(() => OrderPaymentStatus)
   @Column('enum', { enum: OrderPaymentStatus })
   paymentStatus: OrderPaymentStatus;
   @Field(() => paymentMethod)
   @Column('enum', { enum: paymentMethod })
   paymentMethod: paymentMethod;
-  @Field(() => String)
+  @Field(() => GraphQLTimestamp)
   @Column()
-  createdAt: Timestamp;
-  @Field(() => String)
+  createdAt: number;
+  @Field(() => GraphQLTimestamp)
   @Column()
-  updatedAt: Timestamp;
+  updatedAt: number;
   @Field(() => String)
   @Column()
   shippingAddressId: string;
