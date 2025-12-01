@@ -9,8 +9,10 @@ export class CartItemResolver {
   constructor(private readonly cartItemService: CartItemService) {}
 
   @Mutation(() => CartItem)
-  createCartItem(@Args('createCartItemInput') createCartItemInput: CreateCartItemInput) {
-    return this.cartItemService.create(createCartItemInput);
+  createCartItem(
+    @Args('createCartItemInput') createCartItemInput: CreateCartItemInput,
+  ) {
+    return this.cartItemService.addItemToCart(createCartItemInput);
   }
 
   @Query(() => [CartItem], { name: 'cartItem' })
@@ -24,8 +26,13 @@ export class CartItemResolver {
   }
 
   @Mutation(() => CartItem)
-  updateCartItem(@Args('updateCartItemInput') updateCartItemInput: UpdateCartItemInput) {
-    return this.cartItemService.update(updateCartItemInput.id, updateCartItemInput);
+  updateCartItem(
+    @Args('updateCartItemInput') updateCartItemInput: UpdateCartItemInput,
+  ) {
+    return this.cartItemService.update(
+      updateCartItemInput.id,
+      updateCartItemInput,
+    );
   }
 
   @Mutation(() => CartItem)

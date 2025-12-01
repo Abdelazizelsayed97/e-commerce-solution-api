@@ -1,26 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCartInput } from './dto/create-cart.input';
 import { UpdateCartInput } from './dto/update-cart.input';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Cart } from './entities/cart.entity';
+import { Repository } from 'typeorm';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class CartService {
-  create(createCartInput: CreateCartInput) {
-    return 'This action adds a new cart';
+  constructor(
+    @InjectRepository(Cart)
+    private readonly cartRepository: Repository<Cart>,
+    private readonly userService: UserService,
+  ) {}
+  async create(createCartInput: CreateCartInput): Promise<Cart> {
+    const isCartExist = await this.cartRepository.findOne({
+      where: { id: createCartInput.userId },
+    });
+    if (isCartExist) {
+      return isCartExist;
+    } else {
+      const cart = this.cartRepository.create({
+        userId: await this.userService.findOne(createCartInput.userId),
+        createAt: createCartInput.createAt,
+        updateAt: createCartInput.updateAt,
+      });
+      return await this.cartRepository.save(cart);
+    }
   }
 
-  findAll() {
-    return `This action returns all cart`;
+  async findOne(id: string) {
+    const cart = await this.cartRepository.findOne({ where: { id: id } });
+    if (!cart) {
+      throw new NotFoundException('cart not found');
+    }
+    return cart;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} cart`;
+  async update(id: string, updateCartInput: UpdateCartInput) {
+    const isExist = await this.findOne(id);
+    if (!isExist) {
+      throw new NotFoundException('cart not found');
+    }
+    Object.assign(isExist, updateCartInput);
+    return this.cartRepository.save(isExist);
   }
 
-  update(id: number, updateCartInput: UpdateCartInput) {
-    return `This action updates a #${id} cart`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} cart`;
+  async remove(id: string) {
+    return await this.cartRepository.delete(id);
   }
 }
