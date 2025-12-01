@@ -16,28 +16,6 @@ type Address {
   user: String!
 }
 
-type User {
-  id: String!
-  name: String!
-  email: String!
-  token: String!
-  role: Role!
-  address: [Address!]!
-  phoneNumber: String!
-}
-
-type Cart {
-  id: String!
-  userId: User!
-  createAt: Timestamp!
-  updateAt: Timestamp!
-}
-
-"""
-`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
-"""
-scalar Timestamp
-
 type Order {
   id: String!
   userId: User!
@@ -62,44 +40,10 @@ enum paymentMethod {
   cash
 }
 
-type Vendor {
-  id: String!
-  user: String!
-  shopName: String!
-  balance: Int!
-  rating: Int!
-  isVerfied: Boolean!
-}
-
-type Notification {
-  id: String!
-  user: User!
-  title: String!
-  message: String!
-  isRead: Boolean!
-  createdAt: Timestamp!
-}
-
-type Product {
-  id: String!
-  name: String!
-  type: String!
-  vendor: Vendor!
-}
-
-type Fcm {
-  id: String!
-  user: User!
-  token: String!
-  device: Device!
-  createdAt: Timestamp!
-}
-
-enum Device {
-  iOS
-  Android
-  Web
-}
+"""
+`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
+"""
+scalar Timestamp
 
 type VendorOrder {
   id: String!
@@ -124,6 +68,75 @@ enum Shipping_Status {
   CANCEL
 }
 
+type Vendor {
+  id: String!
+  user: User!
+  shopName: String!
+  balance: Float!
+  rating: Float!
+  isVerfied: Boolean!
+  vendorOrders: [VendorOrder!]!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  followers: [Follower!]!
+}
+
+type Follower {
+  id: String!
+  vendor: Vendor!
+  follower: User!
+}
+
+type User {
+  id: String!
+  name: String!
+  email: String!
+  token: String!
+  role: Role!
+  address: [Address!]!
+  phoneNumber: String!
+  isVendor: Boolean!
+  followingVendor: [Follower!]!
+}
+
+type Cart {
+  id: String!
+  userId: User!
+  createAt: Timestamp
+  updateAt: Timestamp
+}
+
+type Notification {
+  id: String!
+  user: User!
+  title: String!
+  message: String!
+  isRead: Boolean!
+  createdAt: Timestamp!
+}
+
+type Product {
+  id: String!
+  name: String!
+  type: String!
+  vendor: Vendor!
+  price: Float!
+}
+
+type Fcm {
+  id: String!
+  user: User!
+  token: String!
+  device: Device!
+  createdAt: Timestamp!
+}
+
+enum Device {
+  iOS
+  Android
+  Web
+}
+
 type CartItem {
   id: String!
   cart: Cart!
@@ -133,21 +146,46 @@ type CartItem {
   totlePrice: Float!
 }
 
+type RequestVendor {
+  id: String!
+  status: String!
+  vendor: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
+type RatingAndReview {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 type Query {
   user(id: String!): User!
   role(id: String!): Role!
-  address(id: Int!): Address!
-  cart(id: Int!): Cart!
+  address(id: String!): Address!
+  notification: [Notification!]!
+  cartById(id: String!): Cart!
   order(id: Int!): Order!
-  vendor(id: Int!): Vendor!
-  notification(id: Int!): Notification!
+  vendors: [Vendor!]!
+  vendor(id: String!): Vendor!
   fcm(id: Int!): Fcm!
   vendorOrders: [VendorOrder!]!
   vendorOrder(id: Int!): VendorOrder!
   cartItem(id: Int!): CartItem!
+  ratingAndReview(id: Int!): RatingAndReview!
+  userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
+  vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
+  follower(id: Int!): Follower!
+}
+
+input PaginationInput {
+  page: Int! = 1
+  limit: Int! = 10
 }
 
 type Mutation {
+  login(loginInput: LoginInput!): User!
+  register(registerInput: RegisterInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: String!): User!
   createRole(createRoleInput: CreateRoleInput!): Role!
@@ -156,18 +194,17 @@ type Mutation {
   createAddress(createAddressInput: CreateAddressInput!): Address!
   updateAddress(updateAddressInput: UpdateAddressInput!): Address!
   removeAddress(id: String!): Address!
+  createNotification(sendNotification: CreateNotificationInput!): Notification!
+  removeNotification(id: Int!): Notification!
   createCart(createCartInput: CreateCartInput!): Cart!
   updateCart(updateCartInput: UpdateCartInput!): Cart!
-  removeCart(id: Int!): Cart!
+  removeCart(id: String!): Cart!
   createOrder(createOrderInput: CreateOrderInput!): Order!
   updateOrder(updateOrderInput: UpdateOrderInput!): Order!
   removeOrder(id: Int!): Order!
   createVendor(createVendorInput: CreateVendorInput!): Vendor!
   updateVendor(updateVendorInput: UpdateVendorInput!): Vendor!
   removeVendor(id: Int!): Vendor!
-  createNotification(createNotificationInput: CreateNotificationInput!): Notification!
-  updateNotification(updateNotificationInput: UpdateNotificationInput!): Notification!
-  removeNotification(id: Int!): Notification!
   createFcm(createFcmInput: CreateFcmInput!): Fcm!
   updateFcm(updateFcmInput: UpdateFcmInput!): Fcm!
   removeFcm(id: Int!): Fcm!
@@ -177,8 +214,41 @@ type Mutation {
   createCartItem(createCartItemInput: CreateCartItemInput!): CartItem!
   updateCartItem(updateCartItemInput: UpdateCartItemInput!): CartItem!
   removeCartItem(id: Int!): CartItem!
-  login(loginInput: LoginInput!): User!
-  register(registerInput: RegisterInput!): User!
+  createRequestVendor(createRequestVendorInput: CreateRequestVendorInput!): RequestVendor!
+  createRatingAndReview(createRatingAndReviewInput: CreateRatingAndReviewInput!): RatingAndReview!
+  updateRatingAndReview(updateRatingAndReviewInput: UpdateRatingAndReviewInput!): RatingAndReview!
+  removeRatingAndReview(id: Int!): RatingAndReview!
+  followVendor(followVendor: CreateFollowerInput!): Follower!
+  updateFollower(updateFollowerInput: UpdateFollowerInput!): Follower!
+  removeFollower(id: Int!): Follower!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+  phone: String!
+  address: [CreateAddressInput!]!
+  role: role!
+}
+
+input CreateAddressInput {
+  id: String!
+  state: String!
+  city: String!
+  details: String!
+  userid: String!
+}
+
+enum role {
+  superAdmin
+  client
+  vendor
 }
 
 input UpdateUserInput {
@@ -198,14 +268,6 @@ input UpdateRoleInput {
   id: Int!
 }
 
-input CreateAddressInput {
-  id: String!
-  state: String!
-  city: String!
-  details: String!
-  userid: String!
-}
-
 input UpdateAddressInput {
   id: String!
   state: String
@@ -214,15 +276,22 @@ input UpdateAddressInput {
   userid: String
 }
 
-input CreateCartInput {
+input CreateNotificationInput {
   """Example field (placeholder)"""
   exampleField: Int!
 }
 
+input CreateCartInput {
+  userId: String!
+  createAt: Timestamp
+  updateAt: Timestamp
+}
+
 input UpdateCartInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  userId: String
+  createAt: Timestamp
+  updateAt: Timestamp
+  id: String!
 }
 
 input CreateOrderInput {
@@ -237,25 +306,20 @@ input UpdateOrderInput {
 }
 
 input CreateVendorInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  user_id: String!
+  shopName: String!
+  balance: Int!
+  rating: Int!
+  isVerfied: Boolean!
 }
 
 input UpdateVendorInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
-}
-
-input CreateNotificationInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateNotificationInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  user_id: String
+  shopName: String
+  balance: Int
+  rating: Int
+  isVerfied: Boolean
+  id: String!
 }
 
 input CreateFcmInput {
@@ -281,32 +345,47 @@ input UpdateVendorOrderInput {
 }
 
 input CreateCartItemInput {
+  cartId: String!
+  productId: String!
+  vendorId: String!
+  quantity: Float!
+  totlePrice: Float!
+  userId: String!
+}
+
+input UpdateCartItemInput {
+  cartId: String
+  productId: String
+  vendorId: String
+  quantity: Float
+  totlePrice: Float
+  userId: String
+  id: Int!
+}
+
+input CreateRequestVendorInput {
+  shopName: String!
+  user_id: String!
+}
+
+input CreateRatingAndReviewInput {
   """Example field (placeholder)"""
   exampleField: Int!
 }
 
-input UpdateCartItemInput {
+input UpdateRatingAndReviewInput {
   """Example field (placeholder)"""
   exampleField: Int
   id: Int!
 }
 
-input LoginInput {
-  email: String!
-  password: String!
+input CreateFollowerInput {
+  vendorId: String!
+  followerId: String!
 }
 
-input RegisterInput {
-  name: String!
-  email: String!
-  password: String!
-  phone: String!
-  address: [CreateAddressInput!]!
-  role: role!
-}
-
-enum role {
-  superAdmin
-  client
-  vendor
+input UpdateFollowerInput {
+  vendorId: String
+  followerId: String
+  id: Int!
 }

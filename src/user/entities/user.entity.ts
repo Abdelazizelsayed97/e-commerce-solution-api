@@ -9,6 +9,7 @@ import {
   Entity,
 } from 'typeorm';
 import { Address } from 'src/address/entities/address.entity';
+import { Follower } from 'src/followers/entities/follower.entity';
 
 @ObjectType()
 @Entity({ synchronize: true })
@@ -38,5 +39,10 @@ export class User {
   @Field(() => String)
   @Column()
   phoneNumber: string;
+  @Field(() => Boolean)
+  @Column()
+  isVendor: boolean;
+  @Field(()=>[Follower])
+  @OneToMany(()=>Follower,(follower)=>follower.follower)
+  followingVendor:Follower[]
 }
-  

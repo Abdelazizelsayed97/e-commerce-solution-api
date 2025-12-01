@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
@@ -16,28 +16,27 @@ import { join } from 'path';
 import { ApolloDriver } from '@nestjs/apollo';
 import { AuthModule } from './auth/auth.module';
 import { QueueModule } from './queue/queue.module';
+import { EmailModule } from './email/email.module';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { RequestVendorModule } from './request_vendor/request_vendor.module';
+import { RatingAndReviewModule } from './rating-and-review/rating-and-review.module';
+import { UserInspectorMiddleware } from './core/middlwares/user.middleware';
+import { FollowersModule } from './followers/followers.module';
 
 @Module({
   imports: [
-    UserModule,
-    CartModule,
-    OrderModule,
-    VendorModule,
-    NotificationModule,
-    ProductModule,
-    FcmModule,
-    VendorOrdersModule,
-    CartItemModule,
-    RoleModule,
-    AddressModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'KareemAlsayed1997@#',
-      database: 'e-comerce-db',
-      // entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
     }),
@@ -46,8 +45,43 @@ import { QueueModule } from './queue/queue.module';
       playground: true,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
+
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '7d', algorithm: 'HS256' },
+    }),
     AuthModule,
+    EmailModule,
+    NotificationModule,
     QueueModule,
+    UserModule,
+    CartModule,
+    OrderModule,
+    VendorModule,
+    ProductModule,
+    FcmModule,
+    VendorOrdersModule,
+    CartItemModule,
+    RoleModule,
+    AddressModule,
+    RequestVendorModule,
+    RatingAndReviewModule,
+    FollowersModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(UserInspectorMiddleware).forRoutes('*');
+  }
+  constructor() {
+    console.log('Database connection details:', [
+      process.env.DB_HOST,
+      process.env.DB_PORT,
+      process.env.DB_USERNAME,
+      process.env.DB_PASSWORD,
+      process.env.DB_NAME,
+    ]);
+  }
+}

@@ -22,25 +22,32 @@ export class ProductService {
   }
 
   async findOne(id: string) {
-const isExist = await this.productsRepository.findOne({
-  where:{
-    id
-  }
-})
- if(isExist){
-  return isExist
- } else {
-   throw new NotFoundException("product not found");
- }
-
-
+    const isExist = await this.productsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    if (isExist) {
+      return isExist;
+    } else {
+      throw new NotFoundException('product not found');
+    }
   }
 
-  update(id: number, updateProductInput: UpdateProductInput) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductInput: UpdateProductInput) {
+    const isExist = await this.findOne(id);
+    if (!isExist) {
+      throw new NotFoundException('product not found');
+    }
+    Object.assign(isExist, updateProductInput);
+    return await this.productsRepository.save(isExist);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    await this.productsRepository.delete(id);
+    return {
+      success: true,
+      message: `This action removes a #${id} product`,
+    };
   }
 }

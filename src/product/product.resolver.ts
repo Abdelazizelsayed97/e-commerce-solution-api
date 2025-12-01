@@ -12,7 +12,6 @@ export class ProductResolver {
   async createProduct(
     @Args('createProductInput') createProductInput: CreateProductInput,
   ) {
-
     return await this.productService.AddProduct(createProductInput);
   }
 
@@ -24,7 +23,6 @@ export class ProductResolver {
   @Query(() => Product, { name: 'product' })
   findOne(@Args('id', { type: () => String }) id: string) {
     return this.productService.findOne(id);
-
   }
 
   @Mutation(() => Product)
@@ -38,7 +36,7 @@ export class ProductResolver {
   }
 
   @Mutation(() => Product)
-  removeProduct(@Args('id', { type: () => Int }) id: number) {
+  removeProduct(@Args('id', { type: () => String }) id: string) {
     return this.productService.remove(id);
   }
 }

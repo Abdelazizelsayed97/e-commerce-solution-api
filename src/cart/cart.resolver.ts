@@ -9,27 +9,22 @@ export class CartResolver {
   constructor(private readonly cartService: CartService) {}
 
   @Mutation(() => Cart)
-  createCart(@Args('createCartInput') createCartInput: CreateCartInput) {
-    return this.cartService.create(createCartInput);
+ async createCart(@Args('createCartInput') createCartInput: CreateCartInput) {
+    return await this.cartService.create(createCartInput);
   }
 
-  @Query(() => [Cart], { name: 'cart' })
-  findAll() {
-    return this.cartService.findAll();
-  }
-
-  @Query(() => Cart, { name: 'cart' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.cartService.findOne(id);
+  @Query(() => Cart, { name: 'cartById' })
+  async findOne(@Args('id', { type: () => String }) id: string) {
+    return await this.cartService.findOne(id);
   }
 
   @Mutation(() => Cart)
-  updateCart(@Args('updateCartInput') updateCartInput: UpdateCartInput) {
-    return this.cartService.update(updateCartInput.id, updateCartInput);
+ async updateCart(@Args('updateCartInput') updateCartInput: UpdateCartInput) {
+    return await this.cartService.update(updateCartInput.id, updateCartInput);
   }
 
   @Mutation(() => Cart)
-  removeCart(@Args('id', { type: () => Int }) id: number) {
-    return this.cartService.remove(id);
+ async removeCart(@Args('id', { type: () => String }) id: string) {
+    return await this.cartService.remove(id);
   }
 }

@@ -10,6 +10,6 @@ export class CreateAddressInput {
   city: string;
   @Field(() => String)
   details: string;
-  @Field()
+  @Field(() => String)
   userid: string;
 }

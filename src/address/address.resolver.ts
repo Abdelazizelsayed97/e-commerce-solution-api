@@ -9,7 +9,10 @@ export class AddressResolver {
   constructor(private readonly addressService: AddressService) {}
 
   @Mutation(() => Address)
-  createAddress(@Args('createAddressInput') createAddressInput: CreateAddressInput) {
+  createAddress(
+    @Args('createAddressInput') createAddressInput: CreateAddressInput,
+    
+  ) {
     return this.addressService.create(createAddressInput);
   }
 
@@ -19,13 +22,18 @@ export class AddressResolver {
   }
 
   @Query(() => Address, { name: 'address' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  findOne(@Args('id', { type: () => String }) id: string) {
     return this.addressService.findOne(id);
   }
 
   @Mutation(() => Address)
-  updateAddress(@Args('updateAddressInput') updateAddressInput: UpdateAddressInput) {
-    return this.addressService.update(updateAddressInput.id, updateAddressInput);
+  updateAddress(
+    @Args('updateAddressInput') updateAddressInput: UpdateAddressInput,
+  ) {
+    return this.addressService.update(
+      updateAddressInput.id,
+      updateAddressInput,
+    );
   }
 
   @Mutation(() => Address)

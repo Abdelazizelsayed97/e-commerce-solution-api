@@ -4,7 +4,6 @@ import { NotificationResolver } from './notification.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 
-
 @Module({
   providers: [NotificationResolver, NotificationService],
   exports: [NotificationService],

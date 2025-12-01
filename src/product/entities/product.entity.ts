@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -17,4 +17,7 @@ export class Product {
   @Field(() => Vendor)
   @ManyToOne(() => Vendor, (vendor) => vendor.id)
   vendor: Vendor;
+  @Field(() => Float)
+  @Column('float')
+  price: number;
 }

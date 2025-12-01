@@ -32,18 +32,26 @@ export class AddressService {
   }
 
   findAll() {
-    return `This action returns all address`;
+    return this.addressRepository.find();
+    }
+
+  findOne(id: string) {
+    if (!id || id.length === 0) {
+      throw new Error('id is required');
+    }
+    return this.addressRepository.findOneBy({ id });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} address`;
-  }
-
-  update(id: string, updateAddressInput: UpdateAddressInput) {
-    return `This action updates a #${id} address`;
+  async update(id: string, updateAddressInput: UpdateAddressInput) {
+    const address = await this.addressRepository.findOneBy({ id });
+    if (!address) {
+      throw new Error('address not found');
+    }
+    Object.assign(address, updateAddressInput);
+    return await this.addressRepository.save(address);
   }
 
   async remove(id: string) {
-    return `This action removes a #${id} address`;
+    return await this.addressRepository.delete(id);
   }
 }
