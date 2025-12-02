@@ -58,3 +58,4 @@ export class User {
   @Column({ nullable: true })
   OtpCode?: string;
 }
+

@@ -10,6 +10,14 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { VendorOrder } from 'src/vendor_orders/entities/vendor_order.entity';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @ObjectType()
 @Entity()
@@ -18,18 +26,22 @@ export class Vendor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
   @Field(() => User)
+  @Field(() => User)
   @OneToOne(() => User, (user) => user.id)
   user: User;
   @Field(() => String)
   @Column()
   shopName: string;
   @Field(() => Float)
+  @Field(() => Float)
   @Column()
   balance: number;
+  @Field(() => Float)
   @Field(() => Float)
   @Column()
   rating: number;
   @Field(() => Boolean)
+  @Column('boolean', { default: false })
   @Column('boolean', { default: false })
   isVerfied: boolean;
   @Field(() => [VendorOrder])

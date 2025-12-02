@@ -73,7 +73,10 @@ enum Shipping_Status {
 type Vendor {
   id: String!
   user: User!
+  user: User!
   shopName: String!
+  balance: Float!
+  rating: Float!
   balance: Float!
   rating: Float!
   isVerfied: Boolean!
@@ -133,6 +136,7 @@ type Product {
   type: String!
   vendor: Vendor!
   price: Float!
+  price: Float!
 }
 
 type Fcm {
@@ -186,6 +190,8 @@ type Query {
   order(id: Int!): Order!
   vendors: [Vendor!]!
   vendor(id: String!): Vendor!
+  vendors: [Vendor!]!
+  vendor(id: String!): Vendor!
   fcm(id: Int!): Fcm!
   vendorOrders: [VendorOrder!]!
   vendorOrder(id: Int!): VendorOrder!
@@ -211,6 +217,8 @@ input SearchInput {
 type Mutation {
   login(loginInput: LoginInput!): User!
   register(registerInput: RegisterInput!): User!
+  login(loginInput: LoginInput!): User!
+  register(registerInput: RegisterInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: String!): User!
   createAddress(createAddressInput: CreateAddressInput!): Address!
@@ -218,8 +226,11 @@ type Mutation {
   removeAddress(id: String!): Address!
   createNotification(sendNotification: CreateNotificationInput!): Notification!
   removeNotification(id: Int!): Notification!
+  createNotification(sendNotification: CreateNotificationInput!): Notification!
+  removeNotification(id: Int!): Notification!
   createCart(createCartInput: CreateCartInput!): Cart!
   updateCart(updateCartInput: UpdateCartInput!): Cart!
+  removeCart(id: String!): Cart!
   removeCart(id: String!): Cart!
   createOrder(createOrderInput: CreateOrderInput!): Order!
   updateOrder(updateOrderInput: UpdateOrderInput!): Order!
@@ -283,6 +294,7 @@ input UpdateAddressInput {
 }
 
 input CreateNotificationInput {
+input CreateNotificationInput {
   """Example field (placeholder)"""
   exampleField: Int!
 }
@@ -293,7 +305,17 @@ input CreateCartInput {
   updateAt: Timestamp
 }
 
+input CreateCartInput {
+  userId: String!
+  createAt: Timestamp
+  updateAt: Timestamp
+}
+
 input UpdateCartInput {
+  userId: String
+  createAt: Timestamp
+  updateAt: Timestamp
+  id: String!
   userId: String
   createAt: Timestamp
   updateAt: Timestamp
@@ -317,9 +339,20 @@ input CreateVendorInput {
   balance: Int!
   rating: Int!
   isVerfied: Boolean!
+  user_id: String!
+  shopName: String!
+  balance: Int!
+  rating: Int!
+  isVerfied: Boolean!
 }
 
 input UpdateVendorInput {
+  user_id: String
+  shopName: String
+  balance: Int
+  rating: Int
+  isVerfied: Boolean
+  id: String!
   user_id: String
   shopName: String
   balance: Int
@@ -383,6 +416,7 @@ input CreateRatingAndReviewInput {
 }
 
 input UpdateRatingAndReviewInput {
+input UpdateRatingAndReviewInput {
   """Example field (placeholder)"""
   exampleField: Int
   id: Int!
@@ -391,8 +425,15 @@ input UpdateRatingAndReviewInput {
 input CreateFollowerInput {
   vendorId: String!
   followerId: String!
+input CreateFollowerInput {
+  vendorId: String!
+  followerId: String!
 }
 
+input UpdateFollowerInput {
+  vendorId: String
+  followerId: String
+  id: Int!
 input UpdateFollowerInput {
   vendorId: String
   followerId: String
