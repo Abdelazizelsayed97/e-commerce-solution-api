@@ -48,17 +48,10 @@ export class AddressService {
     }
     Object.assign(address, updateAddressInput);
     return await this.addressRepository.save(address);
-  async update(id: string, updateAddressInput: UpdateAddressInput) {
-    const address = await this.addressRepository.findOneBy({ id });
-    if (!address) {
-      throw new Error('address not found');
-    }
-    Object.assign(address, updateAddressInput);
-    return await this.addressRepository.save(address);
   }
 
   async remove(id: string) {
     return await this.addressRepository.delete(id);
-    return await this.addressRepository.delete(id);
+
   }
 }

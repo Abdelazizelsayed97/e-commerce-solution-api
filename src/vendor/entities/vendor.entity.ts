@@ -2,7 +2,7 @@ import { ObjectType, Field, GraphQLTimestamp, Float } from '@nestjs/graphql';
 import { Follower } from 'src/followers/entities/follower.entity';
 import { RequestVendor } from 'src/request_vendor/entities/request_vendor.entity';
 import { User } from 'src/user/entities/user.entity';
-import { VendorOrder } from 'src/vendor_orders/entities/vendor_order.entity';
+
 import {
   Column,
   Entity,
@@ -11,13 +11,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { VendorOrder } from 'src/vendor_orders/entities/vendor_order.entity';
-import {
-  Column,
-  Entity,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
 
 @ObjectType()
 @Entity()
