@@ -5,14 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RequestVendor } from './entities/request_vendor.entity';
 import { VendorModule } from 'src/vendor/vendor.module';
 import { UserModule } from 'src/user/user.module';
+import { Vendor } from 'src/vendor/entities/vendor.entity';
 
 @Module({
   providers: [RequestVendorResolver, RequestVendorService],
   exports: [RequestVendorService],
-  imports: [
-    TypeOrmModule.forFeature([RequestVendor]),
-    UserModule,
-    VendorModule,
-  ],
+  imports: [TypeOrmModule.forFeature([RequestVendor, Vendor]), UserModule],
 })
 export class RequestVendorModule {}

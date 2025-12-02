@@ -16,15 +16,16 @@ export class RequestVendor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
   @Field()
-  @Column()
+  @Column('enum',{ enum: RequestVendorEnum })
   status: RequestVendorEnum;
   @Field(() => Vendor)
+  @JoinColumn()
   @OneToOne(() => Vendor, (vendor) => vendor.request)
   vendor: Vendor;
   @Field(() => GraphQLTimestamp)
-  @Column('timestamp')
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: number;
   @Field(() => GraphQLTimestamp)
-  @Column('timestamp')
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: number;
 }

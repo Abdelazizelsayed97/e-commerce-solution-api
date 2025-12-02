@@ -6,6 +6,7 @@ import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   Entity,
+  JoinColumn,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -19,7 +20,7 @@ export class Vendor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
   @Field(() => User)
-  @Field(() => User)
+  @JoinColumn()
   @OneToOne(() => User, (user) => user.id)
   user: User;
   @Field(() => String)
