@@ -4,6 +4,8 @@ import { UpdateProductInput } from './dto/update-product.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
+import { PaginatedProduct } from './entities/paginated.product';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Injectable()
 export class ProductService {
@@ -17,8 +19,27 @@ export class ProductService {
     return await this.productsRepository.save(product);
   }
 
-  async findAll() {
-    return await this.productsRepository.find({});
+  async findAll(
+    paginate: PaginationInput,
+  ): Promise<PaginatedProduct> {
+    const skip = (paginate.page - 1) * paginate.limit;
+
+    const [items, totalItems] = await this.productsRepository.findAndCount({
+      skip,
+      take: paginate.limit,
+    });
+
+    return {
+      items,
+      pagination: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+        currentPage: paginate.page,
+      },
+    };
+
   }
 
   async findOne(id: string) {

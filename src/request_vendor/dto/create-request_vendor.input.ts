@@ -1,8 +1,9 @@
-import { InputType, Field } from '@nestjs/graphql';
+import { InputType, Field, PartialType } from '@nestjs/graphql';
 import { IsAlphanumeric, IsNotEmpty, IsString } from 'class-validator';
+import { CreateVendorInput } from 'src/vendor/dto/create-vendor.input';
 
 @InputType()
-export class CreateRequestVendorInput {
+export class CreateRequestVendorInput extends PartialType(CreateVendorInput) {
   @IsAlphanumeric()
   @IsNotEmpty()
   @Field(() => String)

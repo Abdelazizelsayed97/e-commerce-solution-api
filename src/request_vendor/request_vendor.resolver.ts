@@ -2,7 +2,7 @@ import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { RequestVendorService } from './request_vendor.service';
 import { RequestVendor } from './entities/request_vendor.entity';
 import { CreateRequestVendorInput } from './dto/create-request_vendor.input';
-import { RequestVendorEnum } from 'src/core/enums/request.vendor.status';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Resolver(() => RequestVendor)
 export class RequestVendorResolver {
@@ -13,9 +13,24 @@ export class RequestVendorResolver {
     @Args('createRequestVendorInput')
     createRequestVendorInput: CreateRequestVendorInput,
   ) {
-    return this.requestVendorService.aproveRequestVendor(
-      createRequestVendorInput.user_id,
-      RequestVendorEnum.pending,
-    );
+    return this.requestVendorService.requestBeVendor(createRequestVendorInput);
+  }
+  @Mutation(() => RequestVendor)
+  aproveRequestVendor(@Args('id') id: string) {
+    return this.requestVendorService.aproveRequestVendor(id);
+  }
+  @Mutation(() => RequestVendor)
+  rejectRequestVendor(
+    @Args('id') id: string,
+    @Args('message') message: string,
+  ) {
+    return this.requestVendorService.rejectRequestVendor(id, message);
+  }
+  @Mutation(() => [RequestVendor])
+  findAll(
+    @Args('paginate', { type: () => PaginationInput, nullable: true })
+    paginate: PaginationInput,
+  ) {
+    return this.requestVendorService.findAll(paginate);
   }
 }

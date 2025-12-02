@@ -1,8 +1,7 @@
-import { ObjectType, Field } from '@nestjs/graphql';
-import { Role } from 'src/role/entities/role.entity';
+import { ObjectType, Field, GraphQLTimestamp } from '@nestjs/graphql';
+
 import {
   PrimaryGeneratedColumn,
-  OneToOne,
   JoinColumn,
   OneToMany,
   Column,
@@ -10,9 +9,10 @@ import {
 } from 'typeorm';
 import { Address } from 'src/address/entities/address.entity';
 import { Follower } from 'src/followers/entities/follower.entity';
+import { RoleEnum } from 'src/core/enums/role.enum';
 
 @ObjectType()
-@Entity({ synchronize: true })
+@Entity()
 export class User {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
@@ -28,21 +28,33 @@ export class User {
   @Field(() => String)
   @Column()
   token: string;
-  @Field(() => Role)
-  @OneToOne(() => Role)
+  @Field(() => RoleEnum)
+  @Column('enum', { enum: RoleEnum })
+  role: RoleEnum;
+  @Field(() => [Address], { nullable: true })
+  @OneToMany(() => Address, (address) => address.id, { nullable: true })
   @JoinColumn()
-  role: Role;
-  @Field(() => [Address])
-  @OneToMany(() => Address, (address) => address.id)
-  @JoinColumn()
-  address: Address[];
+  address?: Address[];
   @Field(() => String)
   @Column()
   phoneNumber: string;
-  @Field(() => Boolean)
-  @Column()
+  @Field(() => Boolean, { defaultValue: false })
+  @Column({ default: false })
   isVendor: boolean;
-  @Field(()=>[Follower])
-  @OneToMany(()=>Follower,(follower)=>follower.follower)
-  followingVendor:Follower[]
+  @Field(() => [Follower])
+  @OneToMany(() => Follower, (follower) => follower.follower, {
+    nullable: true,
+  })
+  followers?: Follower[];
+  @Field(() => [Follower], { nullable: true })
+  @OneToMany(() => Follower, (follower) => follower.vendor, { nullable: true })
+  followingVendor?: Follower[];
+  @Field(() => GraphQLTimestamp, { nullable: true })
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+  createAt: number;
+  @Field(() => GraphQLTimestamp, { nullable: true })
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+  updateAt: number;
+  @Column({ nullable: true })
+  OtpCode?: string;
 }

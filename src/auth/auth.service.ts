@@ -8,10 +8,11 @@ export class AuthService {
   constructor(private readonly userService: UserService) {}
 
   async login(loginInput: LoginInput) {
-    return this.userService.findOne(loginInput.email);
+    return await this.userService.verifyUser(loginInput);
   }
 
-  register(registerInput: RegisterInput) {
-    return this.userService.create(registerInput);
+  async register(registerInput: RegisterInput) {
+    console.log('registerInput', registerInput);
+    return await this.userService.create(registerInput);
   }
 }

@@ -1,14 +1,7 @@
 import { ObjectType, Field, GraphQLTimestamp } from '@nestjs/graphql';
 import { Device } from 'src/core/enums/device.type';
-
 import { User } from 'src/user/entities/user.entity';
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  Timestamp,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @ObjectType()
 @Entity()
@@ -26,6 +19,6 @@ export class Fcm {
   @Column('enum', { enum: Device })
   device: Device;
   @Field(() => GraphQLTimestamp)
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Timestamp;
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP'})
+  createdAt: number;
 }

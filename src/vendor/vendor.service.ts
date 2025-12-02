@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { Vendor } from './entities/vendor.entity';
 import { EmailService } from 'src/email/email.service';
 import { UserService } from 'src/user/user.service';
-import { cond } from 'lodash';
 
 @Injectable()
 export class VendorService {

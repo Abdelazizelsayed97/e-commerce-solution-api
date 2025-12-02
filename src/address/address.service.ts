@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
 import { Address } from './entities/address.entity';
-import { S } from 'node_modules/graphql-ws/dist/common-DY-PBNYy.cjs';
 
 @Injectable()
 export class AddressService {
@@ -19,27 +18,27 @@ export class AddressService {
       where: {
         state: createAddressInput.state,
         city: createAddressInput.city,
-        address: createAddressInput.details,
+        details: createAddressInput.details,
       },
     });
     if (isExist) {
       throw new Error('address already exist');
     }
     Object.create(createAddressInput);
-    return this.addressRepository.save({
+    return await this.addressRepository.save({
       ...createAddressInput,
     });
   }
 
-  findAll() {
-    return this.addressRepository.find();
-    }
+  async findAll() {
+    return await this.addressRepository.find();
+  }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (!id || id.length === 0) {
       throw new Error('id is required');
     }
-    return this.addressRepository.findOneBy({ id });
+    return await this.addressRepository.findOneBy({ id });
   }
 
   async update(id: string, updateAddressInput: UpdateAddressInput) {

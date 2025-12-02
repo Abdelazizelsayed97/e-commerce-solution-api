@@ -2,19 +2,26 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Role {
-  id: String!
-  name: String!
-  permissions: [String!]!
-}
-
 type Address {
   id: String!
   state: String!
   city: String!
-  address: String!
+  details: String!
   user: String!
 }
+
+type RequestVendor {
+  id: String!
+  status: String!
+  vendor: Vendor!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
+"""
+`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
+"""
+scalar Timestamp
 
 type Order {
   id: String!
@@ -39,11 +46,6 @@ enum paymentMethod {
   wallet
   cash
 }
-
-"""
-`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
-"""
-scalar Timestamp
 
 type VendorOrder {
   id: String!
@@ -79,6 +81,7 @@ type Vendor {
   createdAt: Timestamp!
   updatedAt: Timestamp!
   followers: [Follower!]!
+  request: RequestVendor!
 }
 
 type Follower {
@@ -92,11 +95,20 @@ type User {
   name: String!
   email: String!
   token: String!
-  role: Role!
-  address: [Address!]!
+  role: role!
+  address: [Address!]
   phoneNumber: String!
   isVendor: Boolean!
-  followingVendor: [Follower!]!
+  followers: [Follower!]!
+  followingVendor: [Follower!]
+  createAt: Timestamp
+  updateAt: Timestamp
+}
+
+enum role {
+  superAdmin
+  client
+  vendor
 }
 
 type Cart {
@@ -146,22 +158,28 @@ type CartItem {
   totlePrice: Float!
 }
 
-type RequestVendor {
-  id: String!
-  status: String!
-  vendor: String!
-  createdAt: Timestamp!
-  updatedAt: Timestamp!
-}
-
 type RatingAndReview {
   """Example field (placeholder)"""
   exampleField: Int!
 }
 
+type PaginationMeta {
+  totalItems: Int!
+  itemCount: Int!
+  itemsPerPage: Int!
+  totalPages: Int!
+  currentPage: Int!
+}
+
+type PaginatedSearch {
+  items: [SearchResultUnion!]!
+  pagination: PaginationMeta!
+}
+
+union SearchResultUnion = Product | Vendor
+
 type Query {
   user(id: String!): User!
-  role(id: String!): Role!
   address(id: String!): Address!
   notification: [Notification!]!
   cartById(id: String!): Cart!
@@ -176,6 +194,7 @@ type Query {
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
   vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
   follower(id: Int!): Follower!
+  search(searchInput: SearchInput!): PaginatedSearch!
 }
 
 input PaginationInput {
@@ -183,14 +202,17 @@ input PaginationInput {
   limit: Int! = 10
 }
 
+input SearchInput {
+  page: Int! = 1
+  limit: Int! = 10
+  searchKey: String!
+}
+
 type Mutation {
   login(loginInput: LoginInput!): User!
   register(registerInput: RegisterInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: String!): User!
-  createRole(createRoleInput: CreateRoleInput!): Role!
-  updateRole(updateRoleInput: UpdateRoleInput!): Role!
-  removeRole(id: Int!): Role!
   createAddress(createAddressInput: CreateAddressInput!): Address!
   updateAddress(updateAddressInput: UpdateAddressInput!): Address!
   removeAddress(id: String!): Address!
@@ -215,6 +237,9 @@ type Mutation {
   updateCartItem(updateCartItemInput: UpdateCartItemInput!): CartItem!
   removeCartItem(id: Int!): CartItem!
   createRequestVendor(createRequestVendorInput: CreateRequestVendorInput!): RequestVendor!
+  aproveRequestVendor(id: String!): RequestVendor!
+  rejectRequestVendor(id: String!, message: String!): RequestVendor!
+  findAll(paginate: PaginationInput): [RequestVendor!]!
   createRatingAndReview(createRatingAndReviewInput: CreateRatingAndReviewInput!): RatingAndReview!
   updateRatingAndReview(updateRatingAndReviewInput: UpdateRatingAndReviewInput!): RatingAndReview!
   removeRatingAndReview(id: Int!): RatingAndReview!
@@ -232,23 +257,8 @@ input RegisterInput {
   name: String!
   email: String!
   password: String!
-  phone: String!
-  address: [CreateAddressInput!]!
+  phoneNumber: String!
   role: role!
-}
-
-input CreateAddressInput {
-  id: String!
-  state: String!
-  city: String!
-  details: String!
-  userid: String!
-}
-
-enum role {
-  superAdmin
-  client
-  vendor
 }
 
 input UpdateUserInput {
@@ -257,23 +267,19 @@ input UpdateUserInput {
   id: String!
 }
 
-input CreateRoleInput {
-  name: String!
-  permissions: [String!]!
-}
-
-input UpdateRoleInput {
-  name: String
-  permissions: [String!]
-  id: Int!
+input CreateAddressInput {
+  state: String!
+  city: String!
+  details: String!
+  userid: String!
 }
 
 input UpdateAddressInput {
-  id: String!
   state: String
   city: String
   details: String
   userid: String
+  id: String!
 }
 
 input CreateNotificationInput {
@@ -364,8 +370,11 @@ input UpdateCartItemInput {
 }
 
 input CreateRequestVendorInput {
-  shopName: String!
   user_id: String!
+  shopName: String!
+  balance: Int
+  rating: Int
+  isVerfied: Boolean
 }
 
 input CreateRatingAndReviewInput {

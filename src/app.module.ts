@@ -8,13 +8,13 @@ import { ProductModule } from './product/product.module';
 import { FcmModule } from './fcm/fcm.module';
 import { VendorOrdersModule } from './vendor_orders/vendor_orders.module';
 import { CartItemModule } from './cart_item/cart_item.module';
-import { RoleModule } from './role/role.module';
+
 import { AddressModule } from './address/address.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { ApolloDriver } from '@nestjs/apollo';
-import { AuthModule } from './auth/auth.module';
+
 import { QueueModule } from './queue/queue.module';
 import { EmailModule } from './email/email.module';
 import { ConfigModule } from '@nestjs/config';
@@ -23,6 +23,10 @@ import { RequestVendorModule } from './request_vendor/request_vendor.module';
 import { RatingAndReviewModule } from './rating-and-review/rating-and-review.module';
 import { UserInspectorMiddleware } from './core/middlwares/user.middleware';
 import { FollowersModule } from './followers/followers.module';
+
+import { User } from './user/entities/user.entity';
+import { AuthModule } from './auth/auth.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -39,6 +43,7 @@ import { FollowersModule } from './followers/followers.module';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
+      // dropSchema: true,
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
@@ -60,28 +65,22 @@ import { FollowersModule } from './followers/followers.module';
     OrderModule,
     VendorModule,
     ProductModule,
+    TypeOrmModule.forFeature([User]),
     FcmModule,
     VendorOrdersModule,
     CartItemModule,
-    RoleModule,
+
     AddressModule,
     RequestVendorModule,
+
     RatingAndReviewModule,
     FollowersModule,
+    SearchModule,
   ],
 })
 export class AppModule implements NestModule {
-  
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(UserInspectorMiddleware).forRoutes('*');
   }
-  constructor() {
-    console.log('Database connection details:', [
-      process.env.DB_HOST,
-      process.env.DB_PORT,
-      process.env.DB_USERNAME,
-      process.env.DB_PASSWORD,
-      process.env.DB_NAME,
-    ]);
-  }
+  constructor() {}
 }
