@@ -77,17 +77,28 @@ type Vendor {
   balance: Float!
   rating: Float!
   isVerfied: Boolean!
-  vendorOrders: [VendorOrder!]!
+  vendorOrders: [VendorOrder!]
   createdAt: Timestamp!
   updatedAt: Timestamp!
-  followers: [Follower!]!
-  request: RequestVendor!
+  followers: [Follower!]
+  request: RequestVendor
 }
 
 type Follower {
   id: String!
   vendor: Vendor!
   follower: User!
+}
+
+type Wallet {
+  id: String!
+  balance: Int!
+  pendingBalance: Int!
+  currency: String!
+  type: String!
+  lastUpdated: Int!
+  transactionids: [String!]!
+  user: User!
 }
 
 type User {
@@ -103,6 +114,8 @@ type User {
   followingVendor: [Follower!]
   createAt: Timestamp
   updateAt: Timestamp
+  vendor: Vendor
+  wallet: Wallet
 }
 
 enum role {
@@ -158,17 +171,22 @@ type CartItem {
   totlePrice: Float!
 }
 
-type RatingAndReview {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
 type PaginationMeta {
   totalItems: Int!
   itemCount: Int!
   itemsPerPage: Int!
   totalPages: Int!
   currentPage: Int!
+}
+
+type PaginatedRequestVendor {
+  items: [RequestVendor!]!
+  pagination: PaginationMeta!
+}
+
+type RatingAndReview {
+  """Example field (placeholder)"""
+  exampleField: Int!
 }
 
 type PaginatedSearch {
@@ -178,7 +196,13 @@ type PaginatedSearch {
 
 union SearchResultUnion = Product | Vendor
 
+type Transaction {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 type Query {
+  users(paginate: PaginationInput): [User!]!
   user(id: String!): User!
   address(id: String!): Address!
   notification: [Notification!]!
@@ -190,21 +214,24 @@ type Query {
   vendorOrders: [VendorOrder!]!
   vendorOrder(id: Int!): VendorOrder!
   cartItem(id: Int!): CartItem!
+  getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
   ratingAndReview(id: Int!): RatingAndReview!
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
   vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
   follower(id: Int!): Follower!
   search(searchInput: SearchInput!): PaginatedSearch!
+  transaction(id: Int!): Transaction!
+  wallet(id: Int!): Wallet!
 }
 
 input PaginationInput {
-  page: Int! = 1
-  limit: Int! = 10
+  page: Int
+  limit: Int
 }
 
 input SearchInput {
-  page: Int! = 1
-  limit: Int! = 10
+  page: Int
+  limit: Int
   searchKey: String!
 }
 
@@ -239,13 +266,18 @@ type Mutation {
   createRequestVendor(createRequestVendorInput: CreateRequestVendorInput!): RequestVendor!
   aproveRequestVendor(id: String!): RequestVendor!
   rejectRequestVendor(id: String!, message: String!): RequestVendor!
-  findAll(paginate: PaginationInput): [RequestVendor!]!
   createRatingAndReview(createRatingAndReviewInput: CreateRatingAndReviewInput!): RatingAndReview!
   updateRatingAndReview(updateRatingAndReviewInput: UpdateRatingAndReviewInput!): RatingAndReview!
   removeRatingAndReview(id: Int!): RatingAndReview!
   followVendor(followVendor: CreateFollowerInput!): Follower!
   updateFollower(updateFollowerInput: UpdateFollowerInput!): Follower!
   removeFollower(id: Int!): Follower!
+  createTransaction(createTransactionInput: CreateTransactionInput!): Transaction!
+  updateTransaction(updateTransactionInput: UpdateTransactionInput!): Transaction!
+  removeTransaction(id: Int!): Transaction!
+  createWallet(createWalletInput: CreateWalletInput!): Wallet!
+  updateWallet(updateWalletInput: UpdateWalletInput!): Wallet!
+  removeWallet(id: Int!): Wallet!
 }
 
 input LoginInput {
@@ -262,8 +294,6 @@ input RegisterInput {
 }
 
 input UpdateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int
   id: String!
 }
 
@@ -396,5 +426,27 @@ input CreateFollowerInput {
 input UpdateFollowerInput {
   vendorId: String
   followerId: String
+  id: Int!
+}
+
+input CreateTransactionInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateTransactionInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateWalletInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateWalletInput {
+  """Example field (placeholder)"""
+  exampleField: Int
   id: Int!
 }

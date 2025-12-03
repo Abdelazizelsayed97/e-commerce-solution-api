@@ -9,11 +9,12 @@ import { UpdateUserInput } from './dto/update-user.input';
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query(() => [User], { name: 'user' })
+  @Query(() => [User], { name: 'users' })
   findAll(
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,
   ) {
+    console.log('paginate', paginate);
     return this.userService.findAll(paginate);
   }
 

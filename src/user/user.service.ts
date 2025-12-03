@@ -3,12 +3,10 @@ import { UpdateUserInput } from './dto/update-user.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { RegisterInput } from 'src/auth/dto/register.input';
 import { LoginInput } from 'src/auth/dto/login-input';
 import { hashSync, compare } from 'bcrypt';
-
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
 
@@ -58,6 +56,7 @@ export class UserService {
       take: limit,
       relations: {
         address: true,
+        vendor: true,
       },
     });
   }
@@ -114,6 +113,7 @@ export class UserService {
     });
     return token;
   }
+
   async verifyUserEmail(userId: string, code: string): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
@@ -122,14 +122,12 @@ export class UserService {
     if (user.OtpCode! !== code) {
       throw new Error('Invalid verification code');
     }
-
     return user;
   }
+
   private async sendNotificationToNewUserWithVerificationCode(user: User) {
     const codde = Math.floor(100000 + Math.random() * 900000).toString();
-
     await this.emailService.sendVerificationEmail(user, codde);
-
     return codde;
   }
 }

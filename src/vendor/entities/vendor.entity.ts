@@ -19,38 +19,49 @@ export class Vendor {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
   @Field(() => User)
-  @JoinColumn()
-  @OneToOne(() => User, (user) => user.id)
+  @OneToOne(() => User, (user) => user.vendor)
   user: User;
+
   @Field(() => String)
   @Column()
   shopName: string;
+
   @Field(() => Float)
-  @Field(() => Float)
-  @Column()
+  @Column({ default: 0 })
   balance: number;
+
   @Field(() => Float)
-  @Field(() => Float)
-  @Column()
+  @Column({ default: 0 })
   rating: number;
+
   @Field(() => Boolean)
   @Column('boolean', { default: false })
-  @Column('boolean', { default: false })
   isVerfied: boolean;
-  @Field(() => [VendorOrder])
-  @OneToMany(() => VendorOrder, (vendorOrder) => vendorOrder.vendor)
-  vendorOrders: VendorOrder[];
+
+  @Field(() => [VendorOrder], { nullable: true, defaultValue: [] })
+  @OneToMany(() => VendorOrder, (vendorOrder) => vendorOrder.vendor, {
+    nullable: true,
+  })
+  vendorOrders?: VendorOrder[];
+
   @Field(() => GraphQLTimestamp)
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: number;
+  createdAt: Date;
+
   @Field(() => GraphQLTimestamp)
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  updatedAt: number;
-  @Field(() => [Follower])
-  @OneToMany(() => Follower, (follower) => follower.vendor)
-  followers: Follower[];
-  @OneToOne(() => RequestVendor, (request) => request.vendor)
-  @Field(() => RequestVendor)
-  request: RequestVendor;
+  updatedAt: Date;
+
+  @Field(() => [Follower], { nullable: true })
+  @OneToMany(() => Follower, (follower) => follower.vendor, { nullable: true })
+  followers?: Follower[];
+
+  @JoinColumn()
+  @OneToOne(() => RequestVendor, (request) => request.vendor, {
+    nullable: true,
+  })
+  @Field(() => RequestVendor, { nullable: true })
+  request?: RequestVendor;
 }

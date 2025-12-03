@@ -11,15 +11,11 @@ import { VendorService } from './vendor.service';
 import { Vendor } from './entities/vendor.entity';
 import { CreateVendorInput } from './dto/create-vendor.input';
 import { UpdateVendorInput } from './dto/update-vendor.input';
-import { DataSource } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 
 @Resolver(() => Vendor)
 export class VendorResolver {
-  constructor(
-    private readonly vendorService: VendorService,
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(private readonly vendorService: VendorService) {}
 
   @Mutation(() => Vendor)
   createVendor(

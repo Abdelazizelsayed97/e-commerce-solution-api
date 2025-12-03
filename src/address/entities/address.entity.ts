@@ -16,8 +16,11 @@ export class Address {
   city: string;
   @Field(() => String)
   @Column({})
-  details : string;
+  details: string;
   @Field(() => String)
-  @ManyToOne(() => User, (user) => user.id, { nullable: true, cascade: true })
+  @ManyToOne(() => User, (user) => user.address, {
+    nullable: true,
+    cascade: true,
+  })
   user: User;
 }

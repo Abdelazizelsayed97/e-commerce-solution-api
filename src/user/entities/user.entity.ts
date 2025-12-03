@@ -1,15 +1,17 @@
 import { ObjectType, Field, GraphQLTimestamp } from '@nestjs/graphql';
-
 import {
   PrimaryGeneratedColumn,
   JoinColumn,
   OneToMany,
   Column,
   Entity,
+  OneToOne,
 } from 'typeorm';
 import { Address } from 'src/address/entities/address.entity';
 import { Follower } from 'src/followers/entities/follower.entity';
 import { RoleEnum } from 'src/core/enums/role.enum';
+import { Vendor } from 'src/vendor/entities/vendor.entity';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
 
 @ObjectType()
 @Entity()
@@ -32,7 +34,7 @@ export class User {
   @Column('enum', { enum: RoleEnum })
   role: RoleEnum;
   @Field(() => [Address], { nullable: true })
-  @OneToMany(() => Address, (address) => address.id, { nullable: true })
+  @OneToMany(() => Address, (address) => address.user, { nullable: true })
   @JoinColumn()
   address?: Address[];
   @Field(() => String)
@@ -57,5 +59,12 @@ export class User {
   updateAt: number;
   @Column({ nullable: true })
   OtpCode?: string;
+  @Field(() => Vendor, { nullable: true })
+  @OneToOne(() => Vendor, (vendor) => vendor.user, { nullable: true })
+  @JoinColumn()
+  vendor?: Vendor;
+  @Field(() => Wallet, { nullable: true })
+  @Field(() => Wallet, { nullable: true })
+  @OneToOne(() => Wallet, (wallet) => wallet.user, { nullable: true })
+  wallet: Wallet;
 }
-

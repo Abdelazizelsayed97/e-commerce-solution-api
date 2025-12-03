@@ -8,6 +8,8 @@ import { VendorService } from 'src/vendor/vendor.service';
 import { CreateRequestVendorInput } from './dto/create-request_vendor.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
+import { PaginatedRequestVendor } from './entities/request.vendor.paginate';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class RequestVendorService {
@@ -16,6 +18,8 @@ export class RequestVendorService {
     private requestVendorRepository: Repository<RequestVendor>,
     @InjectRepository(Vendor)
     private vendorRepository: Repository<Vendor>,
+    // @InjectRepository(User)
+    // private userRepository: Repository<User>,
 
     private readonly userService: UserService,
   ) {}
@@ -35,23 +39,25 @@ export class RequestVendorService {
         },
       },
     });
-    console.log('vendorvendorvendor');
+    console.log('vendorvendorvendor', user);
 
     if (vendor) {
       throw new NotFoundException('vendor already exist');
     }
-    const nv = this.vendorRepository.create({
+
+    const nv = await this.vendorRepository.create({
       rating: 0,
       balance: 0,
       isVerfied: false,
       shopName: createRequestVendorInput.shopName,
       user: user,
     });
-    console.log('nvnvnvn', nv);
+    const newNv = await this.vendorRepository.save(nv);
+    console.log('nvnvnvn', newNv);
 
     const request = this.requestVendorRepository.create({
       status: RequestVendorEnum.pending,
-      vendor: nv,
+      vendor: newNv,
     });
     console.log('requestrequest', request);
 
@@ -59,7 +65,6 @@ export class RequestVendorService {
       ...request,
       status: RequestVendorEnum.pending,
       vendor: nv,
-      
     });
   }
   async aproveRequestVendor(id: string) {
@@ -90,14 +95,29 @@ export class RequestVendorService {
       status: RequestVendorEnum.reject,
     };
   }
-  async findAll(paginate: PaginationInput) {
-    return await this.requestVendorRepository.find({
-      relations: {
-        vendor: true,
+  async findAll(paginate: PaginationInput): Promise<PaginatedRequestVendor> {
+    console.log('paginate', paginate);
+    const skip = (paginate.page - 1) * paginate.limit;
+    const take = paginate.limit;
+    const [items, totalItems] = await this.requestVendorRepository.findAndCount(
+      {
+        skip: skip,
+        take: take,
+        relations: {
+          vendor: true,
+        },
       },
-      skip: (paginate.page - 1) * paginate.limit,
-      take: paginate.limit,
-    });
+    );
+    return {
+      items,
+      pagination: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: take,
+        totalPages: totalItems / take,
+        currentPage: paginate.page,
+      },
+    };
   }
   private async removeRequest(id: string) {
     return await this.requestVendorRepository.delete(id);
