@@ -2,34 +2,32 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { TransactionService } from './transaction.service';
 import { Transaction } from './entities/transaction.entity';
 import { CreateTransactionInput } from './dto/create-transaction.input';
-import { UpdateTransactionInput } from './dto/update-transaction.input';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Resolver(() => Transaction)
 export class TransactionResolver {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Mutation(() => Transaction)
-  createTransaction(@Args('createTransactionInput') createTransactionInput: CreateTransactionInput) {
+  createTransaction(
+    @Args('createTransactionInput')
+    createTransactionInput: CreateTransactionInput,
+  ) {
     return this.transactionService.create(createTransactionInput);
   }
 
   @Query(() => [Transaction], { name: 'transaction' })
-  findAll() {
-    return this.transactionService.findAll();
+  async findAll(@Args('paginationInput') paginationInput: PaginationInput) {
+    return this.transactionService.findAll(paginationInput);
   }
 
   @Query(() => Transaction, { name: 'transaction' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  findOne(@Args('id', { type: () => String }) id: string) {
     return this.transactionService.findOne(id);
   }
 
   @Mutation(() => Transaction)
-  updateTransaction(@Args('updateTransactionInput') updateTransactionInput: UpdateTransactionInput) {
-    return this.transactionService.update(updateTransactionInput.id, updateTransactionInput);
-  }
-
-  @Mutation(() => Transaction)
-  removeTransaction(@Args('id', { type: () => Int }) id: number) {
+  removeTransaction(@Args('id', { type: () => String }) id: string) {
     return this.transactionService.remove(id);
   }
 }

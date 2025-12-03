@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
-import { DataSource, ILike, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { SearchInput } from './dto/search.input';
 import { PaginatedSearch } from './entities/search.entity';
 

@@ -25,7 +25,7 @@ scalar Timestamp
 
 type Order {
   id: String!
-  userId: User!
+  user: User!
   totalAmount: Float!
   paymentStatus: OrderPaymentStatus!
   paymentMethod: paymentMethod!
@@ -197,8 +197,20 @@ type PaginatedSearch {
 union SearchResultUnion = Product | Vendor
 
 type Transaction {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  id: String!
+  type: transactionType!
+  amount: Int!
+  balanceAfter: Float!
+  orderId: Order!
+  createdAt: Timestamp!
+}
+
+enum transactionType {
+  ORDER_INCOME
+  MARKETPLACE_COMMISSION
+  PAYOUT
+  REFUND
+  ADJUSTMENT
 }
 
 type Query {

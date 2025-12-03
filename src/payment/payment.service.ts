@@ -1,26 +1,51 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePaymentInput } from './dto/create-payment.input';
-import { UpdatePaymentInput } from './dto/update-payment.input';
+
+import stripe from 'stripe';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Order } from 'src/order/entities/order.entity';
+import { Repository } from 'typeorm';
+
+const istripe = new stripe(process.env.STRIPE_API_KEY!);
 
 @Injectable()
 export class PaymentService {
-  create(createPaymentInput: CreatePaymentInput) {
-    return 'This action adds a new payment';
-  }
+  constructor(
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
+  ) {}
+  async createPayment(orderId: string) {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['user'],
+    });
+    if (!order) {
+      throw new Error('Order not found');
+    }
+    const session = await istripe.checkout.sessions.create({
+      line_items: [
+        {
+          price_data: {
+            currency: 'egp',
+            unit_amount: Math.floor(order.totalAmount * 100),
+            product_data: {
+              name: 'New business',
+              images: [
+                'https://www.bigfootdigital.co.uk/wp-content/uploads/2020/07/image-optimisation-scaled.jpg',
+              ],
+            },
+          },
+          price: `${order.totalAmount}`,
 
-  findAll() {
-    return `This action returns all payment`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} payment`;
-  }
-
-  update(id: number, updatePaymentInput: UpdatePaymentInput) {
-    return `This action updates a #${id} payment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} payment`;
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: 'https://zayedcoffee.com',
+      cancel_url: 'https://zayedcoffee.com/login',
+      client_reference_id: order.user.id,
+      customer_email: order.user.email,
+    });
+    return session;
   }
 }

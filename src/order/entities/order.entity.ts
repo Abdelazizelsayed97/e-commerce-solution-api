@@ -1,9 +1,4 @@
-import {
-  ObjectType,
-  Field,
-  Float,
-  GraphQLTimestamp,
-} from '@nestjs/graphql';
+import { ObjectType, Field, Float, GraphQLTimestamp } from '@nestjs/graphql';
 import { paymentMethod } from 'src/core/enums/payment.method.enum';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 import { User } from 'src/user/entities/user.entity';
@@ -24,12 +19,15 @@ export class Order {
   id: string;
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.id)
-  userId: User;
+  user: User;
   @Field(() => Float)
   @Column()
   totalAmount: number;
   @Field(() => OrderPaymentStatus)
-  @Column('enum', { enum: OrderPaymentStatus })
+  @Column('enum', {
+    enum: OrderPaymentStatus,
+    default: OrderPaymentStatus.pending,
+  })
   paymentStatus: OrderPaymentStatus;
   @Field(() => paymentMethod)
   @Column('enum', { enum: paymentMethod })

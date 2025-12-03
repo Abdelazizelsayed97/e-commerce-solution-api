@@ -1,7 +1,17 @@
-import { InputType, Int, Field } from '@nestjs/graphql';
+import { Field } from '@nestjs/graphql';
+import { TransactionTypeEnum } from 'src/core/enums/transaction.enum';
 
-@InputType()
 export class CreateTransactionInput {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+  @Field({
+    defaultValue: TransactionTypeEnum.ADJUSTMENT,
+  })
+  type: TransactionTypeEnum;
+  @Field()
+  amount: number;
+  @Field()
+  balanceAfter: number;
+  @Field()
+  orderId: string;
+  @Field()
+  createdAt: Date;
 }

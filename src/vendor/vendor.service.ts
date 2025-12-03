@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateVendorInput } from './dto/create-vendor.input';
 import { UpdateVendorInput } from './dto/update-vendor.input';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Vendor } from './entities/vendor.entity';
 import { EmailService } from 'src/email/email.service';
 import { UserService } from 'src/user/user.service';

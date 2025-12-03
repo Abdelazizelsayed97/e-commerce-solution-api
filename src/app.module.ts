@@ -42,7 +42,7 @@ import { WalletModule } from './wallet/wallet.module';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
-      // dropSchema: true,
+      dropSchema: true,
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
