@@ -5,13 +5,13 @@ export class TransactionHistory {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
   id: string;
-   @Field(() => String)
-     @Column()
-   type: string;
-   @Field(() => String)
-     @Column()
+  @Field(() => String)
+  @Column()
+  type: string;
+  @Field(() => String)
+  @Column()
   amount: string;
-   @Field(() => String)
-     @Column()
+  @Field(() => String)
+  @Column()
   createdAt: string;
 }

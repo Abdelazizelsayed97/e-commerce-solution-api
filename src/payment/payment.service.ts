@@ -42,7 +42,7 @@ export class PaymentService {
       mode: 'payment',
       success_url: 'https://zayedcoffee.com',
       cancel_url: 'https://zayedcoffee.com/login',
-      client_reference_id: order.client.id,
+      client_reference_id: order.id,
       customer_email: order.client.email,
     });
     return session;

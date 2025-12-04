@@ -26,6 +26,7 @@ import { SearchModule } from './search/search.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { WalletModule } from './wallet/wallet.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -88,5 +89,9 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(UserInspectorMiddleware).forRoutes('*');
   }
-  constructor() {}
+  constructor() {
+    console.log(
+      'this is port console log ' + process.env.STRIPE_WEBHOOK_SECRET,
+    );
+  }
 }
