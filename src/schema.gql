@@ -10,12 +10,31 @@ type Address {
   user: String!
 }
 
-type RequestVendor {
+type Product {
   id: String!
-  status: String!
+  name: String!
+  type: String!
   vendor: Vendor!
-  createdAt: Timestamp!
-  updatedAt: Timestamp!
+  price: Int!
+  inStock: Int!
+}
+
+type CartItem {
+  id: String!
+  cart: Cart!
+  product: Product!
+  vendor: Vendor!
+  quantity: Float!
+  totlePrice: Float!
+}
+
+type Cart {
+  id: String!
+  userId: User!
+  createAt: Timestamp
+  updateAt: Timestamp
+  orders: [Order!]!
+  cartItems: [CartItem!]!
 }
 
 """
@@ -25,7 +44,7 @@ scalar Timestamp
 
 type Order {
   id: String!
-  user: User!
+  client: User!
   totalAmount: Float!
   paymentStatus: OrderPaymentStatus!
   paymentMethod: paymentMethod!
@@ -33,6 +52,7 @@ type Order {
   updatedAt: Timestamp!
   shippingAddressId: String!
   transactionId: String!
+  cart: Cart!
 }
 
 enum OrderPaymentStatus {
@@ -47,27 +67,12 @@ enum paymentMethod {
   cash
 }
 
-type VendorOrder {
+type RequestVendor {
   id: String!
-  order: Order!
+  status: String!
   vendor: Vendor!
-  subtotal: Int!
-  commission: Int!
-  payoutAmount: Int!
-  payoutStatus: VendorPaymentStatus!
-  shippingStatus: Shipping_Status!
-}
-
-enum VendorPaymentStatus {
-  paid
-  pending
-}
-
-enum Shipping_Status {
-  PENDING
-  PROCESSING
-  DELIVERED
-  CANCEL
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
 }
 
 type Vendor {
@@ -77,7 +82,7 @@ type Vendor {
   balance: Float!
   rating: Float!
   isVerfied: Boolean!
-  vendorOrders: [VendorOrder!]
+  vendorOrders: [Order!]
   createdAt: Timestamp!
   updatedAt: Timestamp!
   followers: [Follower!]
@@ -97,7 +102,7 @@ type Wallet {
   currency: String!
   type: String!
   lastUpdated: Int!
-  transactionids: [String!]!
+  transactionHistory: [String!]!
   user: User!
 }
 
@@ -116,19 +121,13 @@ type User {
   updateAt: Timestamp
   vendor: Vendor
   wallet: Wallet
+  order: [Order!]!
 }
 
 enum role {
   superAdmin
   client
   vendor
-}
-
-type Cart {
-  id: String!
-  userId: User!
-  createAt: Timestamp
-  updateAt: Timestamp
 }
 
 type Notification {
@@ -138,14 +137,6 @@ type Notification {
   message: String!
   isRead: Boolean!
   createdAt: Timestamp!
-}
-
-type Product {
-  id: String!
-  name: String!
-  type: String!
-  vendor: Vendor!
-  price: Float!
 }
 
 type Fcm {
@@ -160,15 +151,6 @@ enum Device {
   iOS
   Android
   Web
-}
-
-type CartItem {
-  id: String!
-  cart: Cart!
-  product: Product!
-  vendor: Vendor!
-  quantity: Float!
-  totlePrice: Float!
 }
 
 type PaginationMeta {
@@ -219,12 +201,10 @@ type Query {
   address(id: String!): Address!
   notification: [Notification!]!
   cartById(id: String!): Cart!
-  order(id: Int!): Order!
+  order(orderid: String!): Order!
   vendors: [Vendor!]!
   vendor(id: String!): Vendor!
   fcm(id: Int!): Fcm!
-  vendorOrders: [VendorOrder!]!
-  vendorOrder(id: Int!): VendorOrder!
   cartItem(id: Int!): CartItem!
   getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
   ratingAndReview(id: Int!): RatingAndReview!
@@ -232,7 +212,7 @@ type Query {
   vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
   follower(id: Int!): Follower!
   search(searchInput: SearchInput!): PaginatedSearch!
-  transaction(id: Int!): Transaction!
+  transaction(id: String!): Transaction!
   wallet(id: Int!): Wallet!
 }
 
@@ -258,20 +238,16 @@ type Mutation {
   createNotification(sendNotification: CreateNotificationInput!): Notification!
   removeNotification(id: Int!): Notification!
   createCart(createCartInput: CreateCartInput!): Cart!
-  updateCart(updateCartInput: UpdateCartInput!): Cart!
+  addToCart(addTocartInput: addToCartInput!): Cart!
   removeCart(id: String!): Cart!
   createOrder(createOrderInput: CreateOrderInput!): Order!
-  updateOrder(updateOrderInput: UpdateOrderInput!): Order!
-  removeOrder(id: Int!): Order!
+  cancelOrder(updateOrderInput: UpdateOrderInput!): Order!
   createVendor(createVendorInput: CreateVendorInput!): Vendor!
   updateVendor(updateVendorInput: UpdateVendorInput!): Vendor!
   removeVendor(id: Int!): Vendor!
   createFcm(createFcmInput: CreateFcmInput!): Fcm!
   updateFcm(updateFcmInput: UpdateFcmInput!): Fcm!
   removeFcm(id: Int!): Fcm!
-  createVendorOrder(createVendorOrderInput: CreateVendorOrderInput!): VendorOrder!
-  updateVendorOrder(updateVendorOrderInput: UpdateVendorOrderInput!): VendorOrder!
-  removeVendorOrder(id: Int!): VendorOrder!
   createCartItem(createCartItemInput: CreateCartItemInput!): CartItem!
   updateCartItem(updateCartItemInput: UpdateCartItemInput!): CartItem!
   removeCartItem(id: Int!): CartItem!
@@ -283,10 +259,9 @@ type Mutation {
   removeRatingAndReview(id: Int!): RatingAndReview!
   followVendor(followVendor: CreateFollowerInput!): Follower!
   updateFollower(updateFollowerInput: UpdateFollowerInput!): Follower!
-  removeFollower(id: Int!): Follower!
+  removeFollower(id: String!): Follower!
   createTransaction(createTransactionInput: CreateTransactionInput!): Transaction!
-  updateTransaction(updateTransactionInput: UpdateTransactionInput!): Transaction!
-  removeTransaction(id: Int!): Transaction!
+  removeTransaction(id: String!): Transaction!
   createWallet(createWalletInput: CreateWalletInput!): Wallet!
   updateWallet(updateWalletInput: UpdateWalletInput!): Wallet!
   removeWallet(id: Int!): Wallet!
@@ -331,25 +306,35 @@ input CreateNotificationInput {
 
 input CreateCartInput {
   userId: String!
-  createAt: Timestamp
-  updateAt: Timestamp
 }
 
-input UpdateCartInput {
-  userId: String
-  createAt: Timestamp
-  updateAt: Timestamp
-  id: String!
+input addToCartInput {
+  cartId: String!
+  cartItemId: String!
 }
 
 input CreateOrderInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  clientId: String!
+  totalAmount: Float!
+  paymentStatus: OrderPaymentStatus!
+  paymentMethod: paymentMethod!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  shippingAddressId: String!
+  transactionId: String!
+  cartId: String!
 }
 
 input UpdateOrderInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  clientId: String
+  totalAmount: Float
+  paymentStatus: OrderPaymentStatus
+  paymentMethod: paymentMethod
+  createdAt: Timestamp
+  updatedAt: Timestamp
+  shippingAddressId: String
+  transactionId: String
+  cartId: String
   id: Int!
 }
 
@@ -376,17 +361,6 @@ input CreateFcmInput {
 }
 
 input UpdateFcmInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
-}
-
-input CreateVendorOrderInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateVendorOrderInput {
   """Example field (placeholder)"""
   exampleField: Int
   id: Int!
@@ -438,19 +412,21 @@ input CreateFollowerInput {
 input UpdateFollowerInput {
   vendorId: String
   followerId: String
-  id: Int!
+  id: String!
 }
 
 input CreateTransactionInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  type: String! = "ADJUSTMENT"
+  amount: Float!
+  balanceAfter: Float!
+  orderId: String!
+  createdAt: DateTime!
 }
 
-input UpdateTransactionInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
-}
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 input CreateWalletInput {
   """Example field (placeholder)"""

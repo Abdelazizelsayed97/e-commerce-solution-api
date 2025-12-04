@@ -30,19 +30,19 @@ export class SearchService {
     });
 
     const allItems = [...products, ...vendors];
-    const totalItems = productsCount + vendorsCount;
+    const totalItemsCount = productsCount + vendorsCount;
 
     const paginatedItems = allItems.slice(skip, skip + limit);
 
     return {
       items: paginatedItems,
       pagination: {
-        totalItems,
+        totalItems: totalItemsCount,
         itemCount: paginatedItems.length,
         itemsPerPage: limit,
-        totalPages: Math.ceil(totalItems / limit),
+        totalPages: Math.ceil(totalItemsCount / limit),
         currentPage: page,
       },
     };
   }
-}
+} 

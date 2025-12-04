@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { OrderService } from './order.service';
 import { Order } from './entities/order.entity';
 import { CreateOrderInput } from './dto/create-order.input';
@@ -10,26 +10,21 @@ export class OrderResolver {
 
   @Mutation(() => Order)
   createOrder(@Args('createOrderInput') createOrderInput: CreateOrderInput) {
-    return this.orderService.create(createOrderInput);
+    return this.orderService.createOrder(createOrderInput);
   }
 
   @Query(() => [Order], { name: 'order' })
-  findAll() {
-    return this.orderService.findAll();
+  findAll(@Args('userId', { type: () => String }) userId: string) {
+    return this.orderService.getAllUserOrders(userId);
   }
 
   @Query(() => Order, { name: 'order' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.orderService.findOne(id);
+  findOne(@Args('orderid', { type: () => String }) id: string) {
+    return this.orderService.getOrderById(id);
   }
 
-  @Mutation(() => Order)
-  updateOrder(@Args('updateOrderInput') updateOrderInput: UpdateOrderInput) {
-    return this.orderService.update(updateOrderInput.id, updateOrderInput);
-  }
-
-  @Mutation(() => Order)
-  removeOrder(@Args('id', { type: () => Int }) id: number) {
-    return this.orderService.remove(id);
+  @Mutation(() => Order, { name: 'cancelOrder' })
+  cancelOrder(@Args('updateOrderInput') updateOrderInput: UpdateOrderInput) {
+    return this.orderService.cancelOrder(updateOrderInput);
   }
 }

@@ -1,10 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCartInput } from './dto/create-cart.input';
-import { UpdateCartInput } from './dto/update-cart.input';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
+import { CartItemService } from 'src/cart_item/cart_item.service';
+import { addToCartInput } from './dto/add-to-cart';
+import { CartItem } from 'src/cart_item/entities/cart_item.entity';
 
 @Injectable()
 export class CartService {
@@ -12,6 +15,8 @@ export class CartService {
     @InjectRepository(Cart)
     private readonly cartRepository: Repository<Cart>,
     private readonly userService: UserService,
+    @InjectRepository(CartItem)
+    private readonly cartItemRepository: Repository<CartItem>,
   ) {}
   async create(createCartInput: CreateCartInput): Promise<Cart> {
     const isCartExist = await this.cartRepository.findOne({
@@ -22,11 +27,20 @@ export class CartService {
     } else {
       const cart = this.cartRepository.create({
         userId: await this.userService.findOne(createCartInput.userId),
-        createAt: createCartInput.createAt,
-        updateAt: createCartInput.updateAt,
       });
       return await this.cartRepository.save(cart);
     }
+  }
+  async addTocart(addToCart: addToCartInput) {
+    const isExist = await this.findOne(addToCart.cartId);
+    if (!isExist) {
+      throw new NotFoundException('cart not found');
+    }
+    Object.assign(isExist, addToCart);
+    return this.cartRepository.save(isExist);
+  }
+  async findAll() {
+    return await this.cartRepository.find();
   }
 
   async findOne(id: string) {
@@ -35,15 +49,6 @@ export class CartService {
       throw new NotFoundException('cart not found');
     }
     return cart;
-  }
-
-  async update(id: string, updateCartInput: UpdateCartInput) {
-    const isExist = await this.findOne(id);
-    if (!isExist) {
-      throw new NotFoundException('cart not found');
-    }
-    Object.assign(isExist, updateCartInput);
-    return this.cartRepository.save(isExist);
   }
 
   async remove(id: string) {

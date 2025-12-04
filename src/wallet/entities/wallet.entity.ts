@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Entity, JoinColumn, OneToOne } from 'typeorm';
 import { PrimaryGeneratedColumn } from 'typeorm/decorator/columns/PrimaryGeneratedColumn.js';
@@ -21,7 +22,7 @@ export class Wallet {
   @Field(() => Int)
   lastUpdated: number;
   @Field(() => [String])
-  transactionids: string[];
+  transactionHistory: Transaction[];
   @Field(() => User)
   @OneToOne(() => User, (user) => user.wallet)
   @JoinColumn()

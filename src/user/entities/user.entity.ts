@@ -12,6 +12,7 @@ import { Follower } from 'src/followers/entities/follower.entity';
 import { RoleEnum } from 'src/core/enums/role.enum';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { Order } from 'src/order/entities/order.entity';
 
 @ObjectType()
 @Entity()
@@ -67,4 +68,7 @@ export class User {
   @Field(() => Wallet, { nullable: true })
   @OneToOne(() => Wallet, (wallet) => wallet.user, { nullable: true })
   wallet: Wallet;
+  @Field(() => [Order])
+  @OneToMany(() => Order, (order) => order.client)
+  order: Order[];
 }

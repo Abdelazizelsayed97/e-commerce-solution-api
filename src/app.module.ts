@@ -6,7 +6,6 @@ import { VendorModule } from './vendor/vendor.module';
 import { NotificationModule } from './notification/notification.module';
 import { ProductModule } from './product/product.module';
 import { FcmModule } from './fcm/fcm.module';
-import { VendorOrdersModule } from './vendor_orders/vendor_orders.module';
 import { CartItemModule } from './cart_item/cart_item.module';
 import { AddressModule } from './address/address.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -42,7 +41,7 @@ import { WalletModule } from './wallet/wallet.module';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
-      dropSchema: true,
+      // dropSchema: true,
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
@@ -74,12 +73,10 @@ import { WalletModule } from './wallet/wallet.module';
     ProductModule,
     TypeOrmModule.forFeature([User]),
     FcmModule,
-    VendorOrdersModule,
-    CartItemModule,
 
+    CartItemModule,
     AddressModule,
     RequestVendorModule,
-
     RatingAndReviewModule,
     FollowersModule,
     SearchModule,

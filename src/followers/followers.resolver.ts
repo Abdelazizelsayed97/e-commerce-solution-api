@@ -16,18 +16,21 @@ export class FollowersResolver {
     return this.followersService.followVendor(createFollowerInput);
   }
   @Query(() => [Follower], { name: 'userFollowing' })
-  getFollowingList(@Args('userId', { type: () => String }) userId: string,
-    @Args('paginate', { type: () => PaginationInput, nullable: true }) paginate: PaginationInput
+  getFollowingList(
+    @Args('userId', { type: () => String }) userId: string,
+    @Args('paginate', { type: () => PaginationInput, nullable: true })
+    paginate: PaginationInput,
   ) {
-    return this.followersService.getFollowingList(userId,paginate);
+    return this.followersService.getFollowingList(userId, paginate);
   }
 
   @Query(() => [Follower], { name: 'vendorFollowers' })
   findAll(
     @Args('vendorId', { type: () => String }) vendorId: string,
-    @Args('paginate', { type: () => PaginationInput, nullable: true }) paginate: PaginationInput,
+    @Args('paginate', { type: () => PaginationInput, nullable: true })
+    paginate: PaginationInput,
   ) {
-    return this.followersService.getFollowersList(vendorId,paginate);
+    return this.followersService.getFollowersList(vendorId, paginate);
   }
 
   @Query(() => Follower, { name: 'follower' })
@@ -46,7 +49,7 @@ export class FollowersResolver {
   }
 
   @Mutation(() => Follower)
-  removeFollower(@Args('id', { type: () => Int }) id: number) {
+  removeFollower(@Args('id', { type: () => String }) id: string) {
     return this.followersService.remove(id);
   }
 }

@@ -25,7 +25,6 @@ export class Paginator {
       skip,
       take: limit,
     });
-
     return {
       items,
       meta: {

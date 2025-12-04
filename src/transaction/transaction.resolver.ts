@@ -18,7 +18,7 @@ export class TransactionResolver {
 
   @Query(() => [Transaction], { name: 'transaction' })
   async findAll(@Args('paginationInput') paginationInput: PaginationInput) {
-    return this.transactionService.findAll(paginationInput);
+    return this.transactionService.findAll(paginationInput); 
   }
 
   @Query(() => Transaction, { name: 'transaction' })
@@ -28,6 +28,7 @@ export class TransactionResolver {
 
   @Mutation(() => Transaction)
   removeTransaction(@Args('id', { type: () => String }) id: string) {
+
     return this.transactionService.remove(id);
   }
 }

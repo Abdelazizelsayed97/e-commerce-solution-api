@@ -62,7 +62,7 @@ export class FollowersService {
   }
 
   getFollowingList(id: string, PaginationInput: PaginationInput) {
-        const skip = (PaginationInput.page - 1) * PaginationInput.limit;
+    const skip = (PaginationInput.page - 1) * PaginationInput.limit;
 
     return this.followersRepository.find({
       where: {
@@ -73,8 +73,8 @@ export class FollowersService {
       relations: {
         vendor: true,
       },
-      skip: skip
-      ,take: PaginationInput.limit
+      skip: skip,
+      take: PaginationInput.limit,
     });
   }
   async findOne(id: string) {
@@ -82,11 +82,23 @@ export class FollowersService {
       return await this.followersRepository.findOneBy({ id });
     }
   }
-  update(id: number, updateFollowerInput: UpdateFollowerInput) {
-    return `This action updates a #${id} follower`;
+  async update(id: string, updateFollowerInput: UpdateFollowerInput) {
+    const follower = this.followersRepository.findOneBy({ id });
+    if (!follower) {
+      throw new Error('follower not found');
+    }
+    Object.assign(follower, updateFollowerInput);
+    return await this.followersRepository.save({
+      id,
+      ...follower,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} follower`;
+  async remove(id: string) {
+    await this.followersRepository.delete(id);
+    return {
+      success: true,
+      message: `This action removes a #${id} follower`,
+    };
   }
 }

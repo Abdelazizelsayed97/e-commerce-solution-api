@@ -17,7 +17,10 @@ export class Product {
   @Field(() => Vendor)
   @ManyToOne(() => Vendor, (vendor) => vendor.id)
   vendor: Vendor;
-  @Field(() => Float)
-  @Column('float')
+  @Field(() => Int)
+  @Column()
   price: number;
+  @Field(() => Int)
+  @Column()
+  inStock: number;
 }

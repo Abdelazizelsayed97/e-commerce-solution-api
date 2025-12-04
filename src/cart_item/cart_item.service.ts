@@ -11,17 +11,17 @@ export class CartItemService {
   constructor(
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
-    private readonly cartService: CartService,
+    // private readonly cartService: CartService,
   ) {}
   async addItemToCart(createCartItemInput: CreateCartItemInput) {
-    const cart = this.cartService.findOne(createCartItemInput.cartId);
-    if (!cart) {
-      const cart = await this.cartService.create({
-        userId: createCartItemInput.userId,
-      });
-      createCartItemInput.cartId = cart.id;
-    }
-    return await this.cartItemRepository.save(createCartItemInput);
+    // const cart = this.cartService.findOne(createCartItemInput.cartId);
+    // if (!cart) {
+    //   const cart = await this.cartService.create({
+    //     userId: createCartItemInput.userId,
+    //   });
+    //   createCartItemInput.cartId = cart.id;
+    // }
+    // return await this.cartItemRepository.save(createCartItemInput);
   }
 
   findAll() {

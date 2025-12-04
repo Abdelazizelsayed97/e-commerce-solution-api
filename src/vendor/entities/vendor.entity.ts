@@ -1,5 +1,6 @@
 import { ObjectType, Field, GraphQLTimestamp, Float } from '@nestjs/graphql';
 import { Follower } from 'src/followers/entities/follower.entity';
+import { Order } from 'src/order/entities/order.entity';
 import { RequestVendor } from 'src/request_vendor/entities/request_vendor.entity';
 import { User } from 'src/user/entities/user.entity';
 
@@ -11,7 +12,6 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { VendorOrder } from 'src/vendor_orders/entities/vendor_order.entity';
 
 @ObjectType()
 @Entity()
@@ -40,11 +40,11 @@ export class Vendor {
   @Column('boolean', { default: false })
   isVerfied: boolean;
 
-  @Field(() => [VendorOrder], { nullable: true, defaultValue: [] })
-  @OneToMany(() => VendorOrder, (vendorOrder) => vendorOrder.vendor, {
+  @Field(() => [Order], { nullable: true, defaultValue: [] })
+  @OneToMany(() => Order, (order) => order.id, {
     nullable: true,
   })
-  vendorOrders?: VendorOrder[];
+  vendorOrders?: Order[];
 
   @Field(() => GraphQLTimestamp)
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
