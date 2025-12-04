@@ -7,14 +7,17 @@ import { Order } from 'src/order/entities/order.entity';
 import { Repository } from 'typeorm';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 
-const stripeInstance = new stripe(process.env.STRIPE_API_KEY!);
 
 @Injectable()
+  
 export class PaymentService {
+  private stripeInstance: stripe;
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-  ) {}
+  ) {
+    this.stripeInstance = new stripe(process.env.STRIPE_API_KEY!);
+  }
   async createPayment(orderId: string) {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
@@ -23,7 +26,7 @@ export class PaymentService {
     if (!order) {
       throw new Error('Order not found');
     }
-    const session = await stripeInstance.checkout.sessions.create({
+    const session = await this.stripeInstance.checkout.sessions.create({
       line_items: [
         {
           price_data: {

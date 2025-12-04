@@ -25,7 +25,8 @@ import { AuthModule } from './auth/auth.module';
 import { SearchModule } from './search/search.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { WalletModule } from './wallet/wallet.module';
-
+import { PaymentController } from './payment/payment.controller';
+import { PaymentService } from './payment/payment.service';
 
 @Module({
   imports: [
@@ -74,7 +75,6 @@ import { WalletModule } from './wallet/wallet.module';
     ProductModule,
     TypeOrmModule.forFeature([User]),
     FcmModule,
-
     CartItemModule,
     AddressModule,
     RequestVendorModule,
@@ -84,6 +84,8 @@ import { WalletModule } from './wallet/wallet.module';
     TransactionModule,
     WalletModule,
   ],
+  controllers: [PaymentController],
+  providers: [],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

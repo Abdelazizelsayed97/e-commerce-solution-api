@@ -13,7 +13,7 @@ export class OrderService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    private readonly paymentService: PaymentService,
+    // private readonly paymentService: PaymentService,
   ) {}
   async createOrder(createOrderInput: CreateOrderInput) {
     const isExist = await this.orderRepository.findOne({
