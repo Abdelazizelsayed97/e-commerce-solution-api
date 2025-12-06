@@ -14,10 +14,10 @@ export class Transaction {
   @Column('enum', { enum: TransactionTypeEnum })
   type: TransactionTypeEnum;
   @Field(() => Int)
-  @Column('float', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 })
   amount: number;
   @Field()
-  @Column('float', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 })
   balanceAfter: number;
   @Field(() => Order, { nullable: true })
   @ManyToOne(() => Order, { nullable: true })
