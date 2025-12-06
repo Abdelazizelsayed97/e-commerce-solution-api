@@ -1,8 +1,7 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Float } from '@nestjs/graphql';
 import { CartService } from './cart.service';
 import { Cart } from './entities/cart.entity';
 import { CreateCartInput } from './dto/create-cart.input';
-import { addToCartInput } from './dto/add-to-cart';
 
 @Resolver(() => Cart)
 export class CartResolver {
@@ -18,12 +17,14 @@ export class CartResolver {
     return await this.cartService.findOne(id);
   }
 
-  @Mutation(() => Cart, { name: 'addToCart' })
-  async addTocart(@Args('addTocartInput') updateCartInput: addToCartInput) {
-    return await this.cartService.addTocart(updateCartInput);
+  @Query(() => [Cart], { name: 'allCarts' })
+  async findAll() {
+    return await this.cartService.findAll();
+  }
 
-
-    
+  @Query(() => Float, { name: 'cartTotal' })
+  async getCartTotal(@Args('id', { type: () => String }) id: string) {
+    return await this.cartService.getCartTotal(id);
   }
 
   @Mutation(() => Cart)

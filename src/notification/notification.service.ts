@@ -4,6 +4,8 @@ import { CreateNotificationInput } from './dto/create-notification.input';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
+import { PaginatedResponse } from 'src/core/helper/pagination/pagination.output';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Injectable()
 export class NotificationService {
@@ -16,8 +18,24 @@ export class NotificationService {
     return this.notificationRepository.save(notification);
   }
 
-  async findAllNotification() {
-    return await this.notificationRepository.find();
+  async getAllnotifications(
+    paginate: PaginationInput,
+  ): Promise<PaginatedResponse<Notification>> {
+    const skip = paginate.limit * (paginate.page - 1);
+    const [items, totalItems] = await this.notificationRepository.findAndCount({
+      skip,
+      take: paginate.limit,
+    });
+    return {
+      items: await this.notificationRepository.find(),
+      PaginationMeta: {
+        totalItems: totalItems,
+        itemCount: items.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+        currentPage: paginate.page,
+      },
+    };
   }
 
   async remove(id: number) {

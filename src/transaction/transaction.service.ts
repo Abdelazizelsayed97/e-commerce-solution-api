@@ -26,9 +26,7 @@ export class TransactionService {
     }
     const wallet = await this.walletRepository.findOne({
       where: {
-        user: {
-           
-        },
+        user: {},
       },
     });
 
@@ -47,7 +45,7 @@ export class TransactionService {
     });
     return {
       items: items,
-      meta: {
+      PaginationMeta: {
         itemCount,
         itemsPerPage: paginationInput.limit,
         totalItems: itemCount,

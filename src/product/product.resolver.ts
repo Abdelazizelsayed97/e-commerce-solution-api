@@ -9,8 +9,8 @@ import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 export class ProductResolver {
   constructor(private readonly productService: ProductService) {}
 
-  @Mutation(() => Product)
-  async createProduct(
+  @Mutation(() => Product, { name: 'addProduct' })
+  async addProduct(
     @Args('createProductInput') createProductInput: CreateProductInput,
   ) {
     return await this.productService.AddProduct(createProductInput);

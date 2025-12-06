@@ -4,12 +4,11 @@ import { Repository } from 'typeorm';
 import { RequestVendor } from './entities/request_vendor.entity';
 import { RequestVendorEnum } from 'src/core/enums/request.vendor.status';
 import { UserService } from 'src/user/user.service';
-import { VendorService } from 'src/vendor/vendor.service';
+
 import { CreateRequestVendorInput } from './dto/create-request_vendor.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { PaginatedRequestVendor } from './entities/request.vendor.paginate';
-import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class RequestVendorService {
@@ -56,6 +55,7 @@ export class RequestVendorService {
     console.log('nvnvnvn', newNv);
 
     const request = this.requestVendorRepository.create({
+      ...createRequestVendorInput,
       status: RequestVendorEnum.pending,
       vendor: newNv,
     });
@@ -67,17 +67,29 @@ export class RequestVendorService {
       vendor: nv,
     });
   }
-  async aproveRequestVendor(id: string) {
+  async approveRequestVendor(id: string) {
     const request = await this.requestVendorRepository.findOne({
       where: { id },
+      relations: {
+        vendor: {
+          user: true,
+        },
+      },
     });
+    console.log('requestrequest', request);
     if (!request) {
       throw new NotFoundException('request not found');
     }
-
-    return await this.requestVendorRepository.update(id, {
-      status: RequestVendorEnum.aprovel,
-    });
+    Object.assign(request.vendor, { isVerfied: true });
+    await this.vendorRepository.save(request.vendor);
+    const updaterequest = await this.requestVendorRepository.update(
+      request.id,
+      {
+        id: id,
+        status: RequestVendorEnum.approve,
+      },
+    );
+    return updaterequest;
   }
   async rejectRequestVendor(id: string, message: string) {
     const request = await this.requestVendorRepository.findOne({
@@ -86,7 +98,8 @@ export class RequestVendorService {
     if (!request) {
       throw new NotFoundException('request not found');
     }
-    await this.requestVendorRepository.update(id, {
+
+    await this.requestVendorRepository.update(request.id, {
       status: RequestVendorEnum.reject,
     });
     this.removeRequest(id);
@@ -114,7 +127,7 @@ export class RequestVendorService {
         totalItems,
         itemCount: items.length,
         itemsPerPage: take,
-        totalPages: totalItems / take,
+        totalPages: Math.ceil(totalItems / take),
         currentPage: paginate.page,
       },
     };

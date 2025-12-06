@@ -2,6 +2,7 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { NotificationService } from './notification.service';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationInput } from './dto/create-notification.input';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Resolver(() => Notification)
 export class NotificationResolver {
@@ -14,9 +15,12 @@ export class NotificationResolver {
     return this.notificationService.sendNotification(createNotificationInput);
   }
 
-  @Query(() => [Notification], { name: 'notification' })
-  findAll() {
-    return this.notificationService.findAllNotification();
+  @Query(() => [Notification], { name: 'notifications' })
+  findAll(
+    @Args('paginationInput', { type: () => Int, nullable: true })
+    paginationInput: PaginationInput,
+  ) {
+    return this.notificationService.getAllnotifications(paginationInput);
   }
 
   @Mutation(() => Notification)

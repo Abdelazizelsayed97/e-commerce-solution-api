@@ -1,7 +1,7 @@
 import { registerEnumType } from '@nestjs/graphql';
 
 export enum RequestVendorEnum {
-  aprovel = 'aprovel',
+  approve = 'approve',
   reject = 'reject',
   pending = 'pending',
 }

@@ -3,7 +3,8 @@ import { Cart } from 'src/cart/entities/cart.entity';
 import { paymentMethod } from 'src/core/enums/payment.method.enum';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { OrderItem } from './order-item.entity';
 
 @ObjectType()
 @Entity({ synchronize: true })
@@ -27,18 +28,21 @@ export class Order {
   @Column('enum', { enum: paymentMethod })
   paymentMethod: paymentMethod;
   @Field(() => GraphQLTimestamp)
-  @Column()
+  @Column({ type: 'bigint' })
   createdAt: number;
   @Field(() => GraphQLTimestamp)
-  @Column()
+  @Column({ type: 'bigint' })
   updatedAt: number;
   @Field(() => String)
   @Column()
   shippingAddressId: string;
-  @Field(() => String)
-  @Column()
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
   transactionId: string;
   @Field(() => Cart)
   @ManyToOne(() => Cart, (cart) => cart.id)
   cart: Cart;
+  @Field(() => [OrderItem], { nullable: true })
+  @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
+  orderItems?: OrderItem[];
 }

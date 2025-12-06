@@ -4,10 +4,10 @@ import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @ObjectType()
-@Entity()
+@Entity({ synchronize: true })
 export class RequestVendor {
   @Field()
-@PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
   @Field()
   @Column('enum', { enum: RequestVendorEnum })

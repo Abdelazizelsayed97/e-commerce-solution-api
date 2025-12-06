@@ -25,8 +25,7 @@ import { AuthModule } from './auth/auth.module';
 import { SearchModule } from './search/search.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { WalletModule } from './wallet/wallet.module';
-import { PaymentController } from './payment/payment.controller';
-import { PaymentService } from './payment/payment.service';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -83,9 +82,8 @@ import { PaymentService } from './payment/payment.service';
     SearchModule,
     TransactionModule,
     WalletModule,
+    PaymentModule,
   ],
-  controllers: [PaymentController],
-  providers: [],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

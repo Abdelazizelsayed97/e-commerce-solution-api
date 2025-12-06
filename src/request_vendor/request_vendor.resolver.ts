@@ -18,7 +18,7 @@ export class RequestVendorResolver {
   }
   @Mutation(() => RequestVendor)
   aproveRequestVendor(@Args('id') id: string) {
-    return this.requestVendorService.aproveRequestVendor(id);
+    return this.requestVendorService.approveRequestVendor(id);
   }
   @Mutation(() => RequestVendor)
   rejectRequestVendor(

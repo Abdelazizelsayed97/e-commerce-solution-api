@@ -14,6 +14,14 @@ export class ProductService {
     private productsRepository: Repository<Product>,
   ) {}
   async AddProduct(createProductInput: CreateProductInput) {
+    const isExist = await this.productsRepository.findOne({
+      where: {
+        name: createProductInput.name,
+      },
+    });
+    if (isExist) {
+      throw new NotFoundException('product already exist');
+    }
     const product = this.productsRepository.create(createProductInput);
 
     return await this.productsRepository.save(product);
@@ -28,7 +36,6 @@ export class ProductService {
       skip,
       take: paginate.limit,
     });
-
     return {
       items,
       pagination: {

@@ -1,12 +1,8 @@
 import { ObjectType, Field, Int, GraphQLTimestamp } from '@nestjs/graphql';
 import { TransactionTypeEnum } from 'src/core/enums/transaction.enum';
 import { Order } from 'src/order/entities/order.entity';
-import {
-  Column,
-  Entity,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
 
 @ObjectType()
 @Entity()
@@ -18,14 +14,20 @@ export class Transaction {
   @Column('enum', { enum: TransactionTypeEnum })
   type: TransactionTypeEnum;
   @Field(() => Int)
-  @Column()
+  @Column('float', { precision: 10, scale: 2 })
   amount: number;
   @Field()
-  @Column()
+  @Column('float', { precision: 10, scale: 2 })
   balanceAfter: number;
-  @Field(() => Order)
-  @OneToOne(() => Order, (order) => order.id)
-  orderId: Order;
+  @Field(() => Order, { nullable: true })
+  @ManyToOne(() => Order, { nullable: true })
+  order: Order;
+  @Field(() => User, { nullable: true })
+  @ManyToOne(() => User, { nullable: true })
+  user: User;
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  description: string;
   @Field(() => GraphQLTimestamp)
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

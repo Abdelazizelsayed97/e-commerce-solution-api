@@ -24,5 +24,5 @@ export class PaginatedResponse<T> {
   items: T[];
 
   @Field(() => PaginationMeta)
-  meta: PaginationMeta;
+  PaginationMeta: PaginationMeta;
 }

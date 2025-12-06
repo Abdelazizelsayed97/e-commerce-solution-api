@@ -42,6 +42,17 @@ type Cart {
 """
 scalar Timestamp
 
+type OrderItem {
+  id: String!
+  order: Order!
+  product: Product!
+  vendor: Vendor!
+  quantity: Float!
+  unitPrice: Float!
+  totalPrice: Float!
+  status: String!
+}
+
 type Order {
   id: String!
   client: User!
@@ -51,8 +62,9 @@ type Order {
   createdAt: Timestamp!
   updatedAt: Timestamp!
   shippingAddressId: String!
-  transactionId: String!
+  transactionId: String
   cart: Cart!
+  orderItems: [OrderItem!]
 }
 
 enum OrderPaymentStatus {
@@ -130,6 +142,30 @@ enum role {
   vendor
 }
 
+type CreateOrderResponse {
+  order: Order!
+  paymentUrl: String
+}
+
+type Transaction {
+  id: String!
+  type: transactionType!
+  amount: Int!
+  balanceAfter: Float!
+  order: Order
+  user: User
+  description: String
+  createdAt: Timestamp!
+}
+
+enum transactionType {
+  ORDER_INCOME
+  MARKETPLACE_COMMISSION
+  PAYOUT
+  REFUND
+  ADJUSTMENT
+}
+
 type Notification {
   id: String!
   user: User!
@@ -178,34 +214,22 @@ type PaginatedSearch {
 
 union SearchResultUnion = Product | Vendor
 
-type Transaction {
-  id: String!
-  type: transactionType!
-  amount: Int!
-  balanceAfter: Float!
-  orderId: Order!
-  createdAt: Timestamp!
-}
-
-enum transactionType {
-  ORDER_INCOME
-  MARKETPLACE_COMMISSION
-  PAYOUT
-  REFUND
-  ADJUSTMENT
-}
-
 type Query {
   users(paginate: PaginationInput): [User!]!
   user(id: String!): User!
   address(id: String!): Address!
-  notification: [Notification!]!
+  notifications(paginationInput: Int): [Notification!]!
   cartById(id: String!): Cart!
-  order(orderid: String!): Order!
+  allCarts: [Cart!]!
+  cartTotal(id: String!): Float!
+  userOrders(userId: String!): [Order!]!
+  order(orderId: String!): Order!
   vendors: [Vendor!]!
   vendor(id: String!): Vendor!
+  product(id: String!): Product!
   fcm(id: Int!): Fcm!
-  cartItem(id: Int!): CartItem!
+  cartItems(cartId: String!): [CartItem!]!
+  cartItem(id: String!): CartItem!
   getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
   ratingAndReview(id: Int!): RatingAndReview!
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
@@ -238,19 +262,22 @@ type Mutation {
   createNotification(sendNotification: CreateNotificationInput!): Notification!
   removeNotification(id: Int!): Notification!
   createCart(createCartInput: CreateCartInput!): Cart!
-  addToCart(addTocartInput: addToCartInput!): Cart!
   removeCart(id: String!): Cart!
-  createOrder(createOrderInput: CreateOrderInput!): Order!
+  createOrder(createOrderInput: CreateOrderInput!): CreateOrderResponse!
   cancelOrder(updateOrderInput: UpdateOrderInput!): Order!
   createVendor(createVendorInput: CreateVendorInput!): Vendor!
   updateVendor(updateVendorInput: UpdateVendorInput!): Vendor!
   removeVendor(id: Int!): Vendor!
+  addProduct(createProductInput: CreateProductInput!): Product!
+  updateProduct(updateProductInput: UpdateProductInput!): Product!
+  removeProduct(id: String!): Product!
   createFcm(createFcmInput: CreateFcmInput!): Fcm!
   updateFcm(updateFcmInput: UpdateFcmInput!): Fcm!
   removeFcm(id: Int!): Fcm!
-  createCartItem(createCartItemInput: CreateCartItemInput!): CartItem!
-  updateCartItem(updateCartItemInput: UpdateCartItemInput!): CartItem!
-  removeCartItem(id: Int!): CartItem!
+  addToCart(createCartItemInput: CreateCartItemInput!): CartItem!
+  updateCartItem(id: String!, updateCartItemInput: UpdateCartItemInput!): CartItem!
+  removeCartItem(id: String!): CartItem!
+  clearCart(cartId: String!): String!
   createRequestVendor(createRequestVendorInput: CreateRequestVendorInput!): RequestVendor!
   aproveRequestVendor(id: String!): RequestVendor!
   rejectRequestVendor(id: String!, message: String!): RequestVendor!
@@ -308,11 +335,6 @@ input CreateCartInput {
   userId: String!
 }
 
-input addToCartInput {
-  cartId: String!
-  cartItemId: String!
-}
-
 input CreateOrderInput {
   clientId: String!
   totalAmount: Float!
@@ -335,7 +357,7 @@ input UpdateOrderInput {
   shippingAddressId: String
   transactionId: String
   cartId: String
-  id: Int!
+  id: String!
 }
 
 input CreateVendorInput {
@@ -352,6 +374,19 @@ input UpdateVendorInput {
   balance: Int
   rating: Int
   isVerfied: Boolean
+  id: String!
+}
+
+input CreateProductInput {
+  name: String!
+  type: String!
+  vendorId: String!
+}
+
+input UpdateProductInput {
+  name: String
+  type: String
+  vendorId: String
   id: String!
 }
 
@@ -382,7 +417,7 @@ input UpdateCartItemInput {
   quantity: Float
   totlePrice: Float
   userId: String
-  id: Int!
+  id: String!
 }
 
 input CreateRequestVendorInput {
