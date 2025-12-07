@@ -92,6 +92,9 @@ export class UserService {
   async verifyUser(input: LoginInput): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { email: input.email },
+      relations: {
+        vendor: true,
+      },
     });
     if (!user) {
       throw new Error("This user doesn't exist");

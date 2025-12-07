@@ -24,13 +24,21 @@ export class TransactionService {
     if (isExist) {
       throw new Error('transaction already exist');
     }
+    const transaction = this.transactionRepository.create(
+      createTransactionInput,
+    );
+
     const wallet = await this.walletRepository.findOne({
       where: {
-        user: {},
+        user: {
+          id: transaction.user.id,
+        },
       },
     });
-
-    return this.transactionRepository.save({});
+    wallet!.balance += transaction.amount;
+    await this.walletRepository.save(wallet!);
+    await this.transactionRepository.save(transaction);
+    return transaction;
   }
 
   async findAll(
@@ -55,8 +63,8 @@ export class TransactionService {
     };
   }
 
-  findOne(id: string) {
-    const isExist = this.transactionRepository.findOne({
+  async findOne(id: string) {
+    const isExist = await this.transactionRepository.findOne({
       where: {
         id: id,
       },

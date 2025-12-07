@@ -3,33 +3,52 @@ import { RatingAndReviewService } from './rating-and-review.service';
 import { RatingAndReview } from './entities/rating-and-review.entity';
 import { CreateRatingAndReviewInput } from './dto/create-rating-and-review.input';
 import { UpdateRatingAndReviewInput } from './dto/update-rating-and-review.input';
+import type { Request } from 'express';
+import { CurrentUser } from 'src/core/helper/decorators/current.user';
 
 @Resolver(() => RatingAndReview)
 export class RatingAndReviewResolver {
-  constructor(private readonly ratingAndReviewService: RatingAndReviewService) {}
+  constructor(
+    private readonly ratingAndReviewService: RatingAndReviewService,
+  ) {}
 
   @Mutation(() => RatingAndReview)
-  createRatingAndReview(@Args('createRatingAndReviewInput') createRatingAndReviewInput: CreateRatingAndReviewInput) {
-    return this.ratingAndReviewService.create(createRatingAndReviewInput);
+  createRatingAndReview(
+    request: Request,
+    @Args('createRatingAndReviewInput')
+    createRatingAndReviewInput: CreateRatingAndReviewInput,
+    @CurrentUser() user: any,
+  ) {
+    return this.ratingAndReviewService.addReview(
+      user.id,
+      createRatingAndReviewInput.productId,
+      createRatingAndReviewInput,
+    );
   }
 
   @Query(() => [RatingAndReview], { name: 'ratingAndReview' })
-  findAll() {
-    return this.ratingAndReviewService.findAll();
-  }
-
-  @Query(() => RatingAndReview, { name: 'ratingAndReview' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.ratingAndReviewService.findOne(id);
+  findAll(@Args('productId', { type: () => String }) productId: string) {
+    return this.ratingAndReviewService.getProductReviews(productId);
   }
 
   @Mutation(() => RatingAndReview)
-  updateRatingAndReview(@Args('updateRatingAndReviewInput') updateRatingAndReviewInput: UpdateRatingAndReviewInput) {
-    return this.ratingAndReviewService.update(updateRatingAndReviewInput.id, updateRatingAndReviewInput);
+  updateRatingAndReview(
+    @Args('updateRatingAndReviewInput')
+    updateRatingAndReviewInput: UpdateRatingAndReviewInput,
+    @CurrentUser() user: any,
+  ) {
+    return this.ratingAndReviewService.updateReview(
+      user.id,
+      updateRatingAndReviewInput.id,
+      updateRatingAndReviewInput,
+    );
   }
 
   @Mutation(() => RatingAndReview)
-  removeRatingAndReview(@Args('id', { type: () => Int }) id: number) {
-    return this.ratingAndReviewService.remove(id);
+  removeRatingAndReview(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.ratingAndReviewService.deleteReview(user.id, id);
   }
 }

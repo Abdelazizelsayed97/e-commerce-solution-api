@@ -1,7 +1,18 @@
-import { InputType, Int, Field } from '@nestjs/graphql';
+import { InputType, Int, Field, Float } from '@nestjs/graphql';
 
 @InputType()
 export class CreateWalletInput {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+  @Field(() => Float)
+  balance: number;
+  @Field(() => Float)
+  pendingBalance: number;
+  @Field(() => String)
+  currency: string;
+  @Field(() => String)
+  type: string;
+
+  @Field(() => [String])
+  transactionHistory: string[];
+  @Field(() => String)
+  userId: string;
 }

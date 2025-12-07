@@ -1,5 +1,6 @@
 import { Field } from '@nestjs/graphql';
-import { Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 export class TransactionHistory {
   @Field(() => String)
@@ -14,4 +15,7 @@ export class TransactionHistory {
   @Field(() => String)
   @Column()
   createdAt: string;
+  @Field(() => Wallet)
+  @ManyToOne(() => Wallet, (wallet) => wallet.transactionHistory)
+  wallet: Wallet;
 }

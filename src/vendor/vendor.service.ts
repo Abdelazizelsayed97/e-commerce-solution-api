@@ -45,7 +45,7 @@ export class VendorService {
         user: true,
       },
     });
-    console.log('vendors', vendors);
+    console.log('vendors', vendors.map((v) => v.user));
     return vendors;
   }
 

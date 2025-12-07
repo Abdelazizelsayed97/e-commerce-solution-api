@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { UpdateUserInput } from './dto/update-user.input';
+import { CurrentUser } from 'src/core/helper/decorators/current.user';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -31,5 +32,11 @@ export class UserResolver {
   @Mutation(() => User)
   removeUser(@Args('id', { type: () => String }) id: string) {
     return this.userService.remove(id);
+  }
+  @Query(() => User)
+  async me(@CurrentUser() user: User) {
+    if (user !== null || user !== undefined) {
+      return user;
+    }
   }
 }

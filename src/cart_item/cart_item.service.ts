@@ -43,10 +43,9 @@ export class CartItemService {
     }
     if (product.inStock < createCartItemInput.quantity) {
       throw new BadRequestException(
-        `Insufficient stock. Available: ${product.inStock}`,
+        `Insufficient stock.`,
       );
     }
-
 
     const vendor = await this.vendorRepository.findOne({
       where: { id: createCartItemInput.vendorId },
@@ -54,7 +53,6 @@ export class CartItemService {
     if (!vendor) {
       throw new NotFoundException('Vendor not found');
     }
-
 
     const existingItem = await this.cartItemRepository.findOne({
       where: {
@@ -66,11 +64,10 @@ export class CartItemService {
     });
 
     if (existingItem) {
-
       const newQuantity = existingItem.quantity + createCartItemInput.quantity;
       if (product.inStock < newQuantity) {
         throw new BadRequestException(
-          `Insufficient stock for this quantity. Available: ${product.inStock}, Current in cart: ${existingItem.quantity}`,
+          `Insufficient stock for this quantity.`,
         );
       }
 
@@ -78,7 +75,6 @@ export class CartItemService {
       existingItem.totlePrice = existingItem.quantity * product.price;
       return await this.cartItemRepository.save(existingItem);
     }
-
 
     const cartItem = this.cartItemRepository.create({
       cart: { id: createCartItemInput.cartId },
@@ -124,11 +120,8 @@ export class CartItemService {
         return await this.cartItemRepository.remove(item);
       }
 
-
       if (product.inStock < updateCartItemInput.quantity) {
-        throw new BadRequestException(
-          `Insufficient stock. Available: ${product.inStock}`,
-        );
+        throw new BadRequestException(`Insufficient stock.`);
       }
 
       item.quantity = updateCartItemInput.quantity;
@@ -154,19 +147,18 @@ export class CartItemService {
     });
   }
 
-
   async reduceProductStock(cartItem: CartItem): Promise<void> {
     const product = await this.productRepository.findOne({
       where: { id: cartItem.product.id },
     });
 
     if (!product) {
-      throw new NotFoundException(`Product ${cartItem.product.id} not found`);
+      throw new NotFoundException(`Productnot found`);
     }
 
     if (product.inStock < cartItem.quantity) {
       throw new BadRequestException(
-        `Cannot complete order: insufficient stock for ${product.name}`,
+        `Cannot complete order: insufficient stock`,
       );
     }
 
@@ -174,14 +166,13 @@ export class CartItemService {
     await this.productRepository.save(product);
   }
 
-
   async restoreProductStock(cartItem: CartItem): Promise<void> {
     const product = await this.productRepository.findOne({
       where: { id: cartItem.product.id },
     });
 
     if (!product) {
-      throw new NotFoundException(`Product ${cartItem.product.id} not found`);
+      throw new NotFoundException(`Product not found`);
     }
 
     product.inStock += cartItem.quantity;

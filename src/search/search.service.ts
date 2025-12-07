@@ -18,6 +18,7 @@ export class SearchService {
   async search(searchInput: SearchInput): Promise<PaginatedSearch> {
     const { searchKey, page, limit } = searchInput;
     const skip = (page - 1) * limit;
+    console.log('searchKey', searchKey);
 
     const [products, productsCount] = await this.productRepository.findAndCount(
       {
@@ -45,4 +46,4 @@ export class SearchService {
       },
     };
   }
-} 
+}

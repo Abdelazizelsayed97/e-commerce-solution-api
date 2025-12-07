@@ -3,6 +3,7 @@ import { TransactionTypeEnum } from 'src/core/enums/transaction.enum';
 import { Order } from 'src/order/entities/order.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
 
 @ObjectType()
 @Entity()
@@ -31,4 +32,7 @@ export class Transaction {
   @Field(() => GraphQLTimestamp)
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+  @Field(() => Wallet)
+  @ManyToOne(() => Wallet, (wallet) => wallet.transactionHistory)
+  wallet: Wallet;
 }

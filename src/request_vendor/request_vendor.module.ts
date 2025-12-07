@@ -3,7 +3,6 @@ import { RequestVendorService } from './request_vendor.service';
 import { RequestVendorResolver } from './request_vendor.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RequestVendor } from './entities/request_vendor.entity';
-import { VendorModule } from 'src/vendor/vendor.module';
 import { UserModule } from 'src/user/user.module';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 

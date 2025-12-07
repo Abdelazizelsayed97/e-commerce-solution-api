@@ -1,7 +1,7 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { PrimaryGeneratedColumn } from 'typeorm/decorator/columns/PrimaryGeneratedColumn.js';
 
 @ObjectType()
@@ -9,19 +9,25 @@ import { PrimaryGeneratedColumn } from 'typeorm/decorator/columns/PrimaryGenerat
 export class Wallet {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
-  
   id: string;
-  @Field(() => Int)
+  @Field(() => Float)
+  @Column('float')
   balance: number;
-  @Field(() => Int)
+  @Field(() => Float)
+  @Column('float', { default: 0 })
   pendingBalance: number;
-  @Field(() => String)
+  @Field(() => String, { defaultValue: 'EGP' })
+  @Column({ default: 'EGP' })
   currency: string;
   @Field(() => String)
+  @Column()
   type: string;
-  @Field(() => Int)
-  lastUpdated: number;
-  @Field(() => [String])
+  @Field(() => [Transaction],{
+    nullable: true,
+  })
+  @OneToMany(() => Transaction, (transaction) => transaction.wallet, {
+    nullable: true,
+  })
   transactionHistory: Transaction[];
   @Field(() => User)
   @OneToOne(() => User, (user) => user.wallet)

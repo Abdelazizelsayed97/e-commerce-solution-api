@@ -1,9 +1,24 @@
-import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import {
+  ObjectType,
+  Field,
+  Int,
+  Float,
+  GraphQLTimestamp,
+} from '@nestjs/graphql';
+import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column, 
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @ObjectType()
-@Entity()
+@Entity({
+  synchronize: true,
+})
 export class Product {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
@@ -20,7 +35,22 @@ export class Product {
   @Field(() => Int)
   @Column()
   price: number;
+
   @Field(() => Int)
   @Column()
   inStock: number;
+
+  @Field(() => [RatingAndReview], {
+    nullable: true,
+  })
+  @OneToMany(() => RatingAndReview, (review) => review.product, {
+    nullable: true,
+  })
+  reviews: RatingAndReview[];
+  @Field(() => GraphQLTimestamp)
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  addedAt: number;
+  @Field(() => GraphQLTimestamp)
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: number;
 }

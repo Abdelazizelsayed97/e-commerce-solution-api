@@ -10,6 +10,14 @@ type Address {
   user: String!
 }
 
+type RatingAndReview {
+  id: String!
+  rating: Int!
+  comment: String!
+  user: User!
+  product: Product!
+}
+
 type Product {
   id: String!
   name: String!
@@ -17,7 +25,15 @@ type Product {
   vendor: Vendor!
   price: Int!
   inStock: Int!
+  reviews: [RatingAndReview!]
+  addedAt: Timestamp!
+  updatedAt: Timestamp!
 }
+
+"""
+`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
+"""
+scalar Timestamp
 
 type CartItem {
   id: String!
@@ -36,11 +52,6 @@ type Cart {
   orders: [Order!]!
   cartItems: [CartItem!]!
 }
-
-"""
-`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
-"""
-scalar Timestamp
 
 type OrderItem {
   id: String!
@@ -107,14 +118,33 @@ type Follower {
   follower: User!
 }
 
+type Transaction {
+  id: String!
+  type: transactionType!
+  amount: Int!
+  balanceAfter: Float!
+  order: Order
+  user: User
+  description: String
+  createdAt: Timestamp!
+  wallet: Wallet!
+}
+
+enum transactionType {
+  ORDER_INCOME
+  MARKETPLACE_COMMISSION
+  PAYOUT
+  REFUND
+  ADJUSTMENT
+}
+
 type Wallet {
   id: String!
-  balance: Int!
-  pendingBalance: Int!
+  balance: Float!
+  pendingBalance: Float!
   currency: String!
   type: String!
-  lastUpdated: Int!
-  transactionHistory: [String!]!
+  transactionHistory: [Transaction!]
   user: User!
 }
 
@@ -134,6 +164,7 @@ type User {
   vendor: Vendor
   wallet: Wallet
   order: [Order!]!
+  reviews: [RatingAndReview!]!
 }
 
 enum role {
@@ -145,25 +176,6 @@ enum role {
 type CreateOrderResponse {
   order: Order!
   paymentUrl: String
-}
-
-type Transaction {
-  id: String!
-  type: transactionType!
-  amount: Int!
-  balanceAfter: Float!
-  order: Order
-  user: User
-  description: String
-  createdAt: Timestamp!
-}
-
-enum transactionType {
-  ORDER_INCOME
-  MARKETPLACE_COMMISSION
-  PAYOUT
-  REFUND
-  ADJUSTMENT
 }
 
 type Notification {
@@ -202,11 +214,6 @@ type PaginatedRequestVendor {
   pagination: PaginationMeta!
 }
 
-type RatingAndReview {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
 type PaginatedSearch {
   items: [SearchResultUnion!]!
   pagination: PaginationMeta!
@@ -217,6 +224,7 @@ union SearchResultUnion = Product | Vendor
 type Query {
   users(paginate: PaginationInput): [User!]!
   user(id: String!): User!
+  me: User!
   address(id: String!): Address!
   notifications(paginationInput: Int): [Notification!]!
   cartById(id: String!): Cart!
@@ -231,13 +239,13 @@ type Query {
   cartItems(cartId: String!): [CartItem!]!
   cartItem(id: String!): CartItem!
   getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
-  ratingAndReview(id: Int!): RatingAndReview!
+  ratingAndReview(productId: String!): [RatingAndReview!]!
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
   vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
   follower(id: Int!): Follower!
   search(searchInput: SearchInput!): PaginatedSearch!
   transaction(id: String!): Transaction!
-  wallet(id: Int!): Wallet!
+  wallet(id: String!): Wallet!
 }
 
 input PaginationInput {
@@ -283,7 +291,7 @@ type Mutation {
   rejectRequestVendor(id: String!, message: String!): RequestVendor!
   createRatingAndReview(createRatingAndReviewInput: CreateRatingAndReviewInput!): RatingAndReview!
   updateRatingAndReview(updateRatingAndReviewInput: UpdateRatingAndReviewInput!): RatingAndReview!
-  removeRatingAndReview(id: Int!): RatingAndReview!
+  removeRatingAndReview(id: String!): RatingAndReview!
   followVendor(followVendor: CreateFollowerInput!): Follower!
   updateFollower(updateFollowerInput: UpdateFollowerInput!): Follower!
   removeFollower(id: String!): Follower!
@@ -291,7 +299,6 @@ type Mutation {
   removeTransaction(id: String!): Transaction!
   createWallet(createWalletInput: CreateWalletInput!): Wallet!
   updateWallet(updateWalletInput: UpdateWalletInput!): Wallet!
-  removeWallet(id: Int!): Wallet!
 }
 
 input LoginInput {
@@ -429,14 +436,16 @@ input CreateRequestVendorInput {
 }
 
 input CreateRatingAndReviewInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  rating: Int!
+  comment: String!
+  productId: String!
 }
 
 input UpdateRatingAndReviewInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  rating: Int
+  comment: String
+  productId: String
+  id: String!
 }
 
 input CreateFollowerInput {
@@ -464,12 +473,20 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 input CreateWalletInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  balance: Float!
+  pendingBalance: Float!
+  currency: String!
+  type: String!
+  transactionHistory: [String!]!
+  userId: String!
 }
 
 input UpdateWalletInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  balance: Float
+  pendingBalance: Float
+  currency: String
+  type: String
+  transactionHistory: [String!]
+  userId: String
+  id: String!
 }

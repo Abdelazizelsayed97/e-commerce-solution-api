@@ -9,6 +9,7 @@ import { CreateRequestVendorInput } from './dto/create-request_vendor.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { PaginatedRequestVendor } from './entities/request.vendor.paginate';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class RequestVendorService {
@@ -17,8 +18,6 @@ export class RequestVendorService {
     private requestVendorRepository: Repository<RequestVendor>,
     @InjectRepository(Vendor)
     private vendorRepository: Repository<Vendor>,
-    // @InjectRepository(User)
-    // private userRepository: Repository<User>,
 
     private readonly userService: UserService,
   ) {}
@@ -44,7 +43,7 @@ export class RequestVendorService {
       throw new NotFoundException('vendor already exist');
     }
 
-    const nv = await this.vendorRepository.create({
+    const nv = this.vendorRepository.create({
       rating: 0,
       balance: 0,
       isVerfied: false,
@@ -76,7 +75,7 @@ export class RequestVendorService {
         },
       },
     });
-    console.log('requestrequest', request);
+
     if (!request) {
       throw new NotFoundException('request not found');
     }
@@ -89,6 +88,12 @@ export class RequestVendorService {
         status: RequestVendorEnum.approve,
       },
     );
+    const user = await this.userService.findOne(request.vendor.user.id);
+    user.isVendor = true;
+    user.vendor = request.vendor;
+    console.log('updaterequest', updaterequest);
+    await this.userService.update(user.id, user);
+
     return updaterequest;
   }
   async rejectRequestVendor(id: string, message: string) {
