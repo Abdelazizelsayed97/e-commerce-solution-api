@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transaction } from './entities/transaction.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { User } from 'src/user/entities/user.entity';
+import { Order } from 'src/order/entities/order.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { PaginatedResponse } from 'src/core/helper/pagination/pagination.output';
 
@@ -14,31 +16,51 @@ export class TransactionService {
     private transactionRepository: Repository<Transaction>,
     @InjectRepository(Wallet)
     private walletRepository: Repository<Wallet>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(Order)
+    private orderRepository: Repository<Order>,
   ) {}
   async create(createTransactionInput: CreateTransactionInput) {
-    const isExist = await this.transactionRepository.findOne({
-      where: {
-        id: createTransactionInput.orderId,
-      },
+    const user = await this.userRepository.findOne({
+      where: { id: createTransactionInput.userId },
     });
-    if (isExist) {
-      throw new Error('transaction already exist');
+    if (!user) {
+      throw new Error('User not found');
     }
-    const transaction = this.transactionRepository.create(
-      createTransactionInput,
-    );
+
+    const order = await this.orderRepository.findOne({
+      where: { id: createTransactionInput.orderId },
+    });
+    if (!order) {
+      throw new Error('Order not found');
+    }
 
     const wallet = await this.walletRepository.findOne({
-      where: {
-        user: {
-          id: transaction.user.id,
-        },
-      },
+      where: { user: { id: createTransactionInput.userId } },
     });
-    wallet!.balance += transaction.amount;
-    await this.walletRepository.save(wallet!);
-    await this.transactionRepository.save(transaction);
-    return transaction;
+    if (!wallet) {
+      throw new Error('Wallet not found');
+    }
+
+    wallet.balance += createTransactionInput.amount;
+
+    const transaction = this.transactionRepository.create({
+      ...createTransactionInput,
+      user,
+      order,
+      wallet,
+      balanceAfter: wallet.balance,
+    });
+
+    await this.walletRepository.save(wallet);
+    const savedTransaction = await this.transactionRepository.save(transaction);
+
+    order.transactionId = savedTransaction.id;
+
+    await this.orderRepository.save(order);
+
+    return savedTransaction;
   }
 
   async findAll(

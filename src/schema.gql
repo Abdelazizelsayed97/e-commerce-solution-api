@@ -235,7 +235,7 @@ type Query {
   vendors: [Vendor!]!
   vendor(id: String!): Vendor!
   product(id: String!): Product!
-  fcm(id: Int!): Fcm!
+  fcm(id: String!): Fcm!
   cartItems(cartId: String!): [CartItem!]!
   cartItem(id: String!): CartItem!
   getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
@@ -281,7 +281,7 @@ type Mutation {
   removeProduct(id: String!): Product!
   createFcm(createFcmInput: CreateFcmInput!): Fcm!
   updateFcm(updateFcmInput: UpdateFcmInput!): Fcm!
-  removeFcm(id: Int!): Fcm!
+  removeFcm(id: String!): Fcm!
   addToCart(createCartItemInput: CreateCartItemInput!): CartItem!
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemInput!): CartItem!
   removeCartItem(id: String!): CartItem!
@@ -398,14 +398,18 @@ input UpdateProductInput {
 }
 
 input CreateFcmInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  userId: String!
+  token: String!
+  device: Device!
+  createdAt: Timestamp!
 }
 
 input UpdateFcmInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  userId: String
+  token: String
+  device: Device
+  createdAt: Timestamp
+  id: String!
 }
 
 input CreateCartItemInput {
@@ -462,15 +466,10 @@ input UpdateFollowerInput {
 input CreateTransactionInput {
   type: String! = "ADJUSTMENT"
   amount: Float!
-  balanceAfter: Float!
   orderId: String!
-  createdAt: DateTime!
+  userId: String!
+  description: String
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 input CreateWalletInput {
   balance: Float!

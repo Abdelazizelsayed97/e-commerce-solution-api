@@ -3,6 +3,7 @@ import { FcmService } from './fcm.service';
 import { Fcm } from './entities/fcm.entity';
 import { CreateFcmInput } from './dto/create-fcm.input';
 import { UpdateFcmInput } from './dto/update-fcm.input';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Resolver(() => Fcm)
 export class FcmResolver {
@@ -14,12 +15,12 @@ export class FcmResolver {
   }
 
   @Query(() => [Fcm], { name: 'fcm' })
-  findAll() {
-    return this.fcmService.findAll();
+  findAll(@Args('paginateInput') paginateInput: PaginationInput) {
+    return this.fcmService.findAll(paginateInput);
   }
 
   @Query(() => Fcm, { name: 'fcm' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  findOne(@Args('id', { type: () => String }) id: string) {
     return this.fcmService.findOne(id);
   }
 
@@ -29,7 +30,7 @@ export class FcmResolver {
   }
 
   @Mutation(() => Fcm)
-  removeFcm(@Args('id', { type: () => Int }) id: number) {
+  removeFcm(@Args('id', { type: () => String }) id: string) {
     return this.fcmService.remove(id);
   }
 }

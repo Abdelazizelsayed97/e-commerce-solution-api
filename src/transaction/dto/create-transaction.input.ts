@@ -10,9 +10,9 @@ export class CreateTransactionInput {
   @Field()
   amount: number;
   @Field()
-  balanceAfter: number;
-  @Field()
   orderId: string;
   @Field()
-  createdAt: Date;
+  userId: string;
+  @Field({ nullable: true })
+  description?: string;
 }
