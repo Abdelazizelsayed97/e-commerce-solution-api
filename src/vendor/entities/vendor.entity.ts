@@ -1,6 +1,7 @@
 import { ObjectType, Field, GraphQLTimestamp, Float } from '@nestjs/graphql';
 import { Follower } from 'src/followers/entities/follower.entity';
 import { Order } from 'src/order/entities/order.entity';
+import { Product } from 'src/product/entities/product.entity';
 import { RequestVendor } from 'src/request_vendor/entities/request_vendor.entity';
 import { User } from 'src/user/entities/user.entity';
 
@@ -64,4 +65,7 @@ export class Vendor {
   })
   @Field(() => RequestVendor, { nullable: true })
   request?: RequestVendor;
+  @Field(() => [Product])
+  @OneToMany(() => Product, (product) => product.vendor)
+  products: Product[];
 }

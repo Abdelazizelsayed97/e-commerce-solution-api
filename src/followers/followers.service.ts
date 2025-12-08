@@ -30,7 +30,7 @@ export class FollowersService {
       return isFollowed;
     }
 
-    const followerUser = await this.userService.findOne(
+    const followerUser = await this.userService.findOneById(
       createFollowerInput.followerId,
     );
     const followedVendor = await this.vendorService.findOne(

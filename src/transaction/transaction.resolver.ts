@@ -5,10 +5,11 @@ import { CreateTransactionInput } from './dto/create-transaction.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { UseGuards } from '@nestjs/common';
 import { RolesGuard } from 'src/auth/guards/role.guard';
-import { roleDecorator } from 'src/core/helper/decorators/role.mata.decorator';
-import { RoleEnum } from 'src/core/enums/role.enum';
 
-@roleDecorator(RoleEnum.superAdmin)
+import { RoleEnum } from 'src/core/enums/role.enum';
+import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
+
+@Roles(RoleEnum.superAdmin)
 @UseGuards(RolesGuard)
 @Resolver(() => Transaction)
 export class TransactionResolver {

@@ -42,13 +42,15 @@ export class CartItemService {
       throw new NotFoundException('Product not found');
     }
     if (product.inStock < createCartItemInput.quantity) {
-      throw new BadRequestException(
-        `Insufficient stock.`,
-      );
+      throw new BadRequestException(`Insufficient stock.`);
     }
 
     const vendor = await this.vendorRepository.findOne({
-      where: { id: createCartItemInput.vendorId },
+      where: {
+        user: {
+          id: createCartItemInput.userId,
+        },
+      },
     });
     if (!vendor) {
       throw new NotFoundException('Vendor not found');
@@ -58,7 +60,11 @@ export class CartItemService {
       where: {
         cart: { id: createCartItemInput.cartId },
         product: { id: createCartItemInput.productId },
-        vendor: { id: createCartItemInput.vendorId },
+        vendor: {
+          user: {
+            id: createCartItemInput.userId,
+          },
+        },
       },
       relations: ['product'],
     });
@@ -66,9 +72,7 @@ export class CartItemService {
     if (existingItem) {
       const newQuantity = existingItem.quantity + createCartItemInput.quantity;
       if (product.inStock < newQuantity) {
-        throw new BadRequestException(
-          `Insufficient stock for this quantity.`,
-        );
+        throw new BadRequestException(`Insufficient stock for this quantity.`);
       }
 
       existingItem.quantity = newQuantity;
@@ -81,7 +85,7 @@ export class CartItemService {
       product,
       vendor,
       quantity: createCartItemInput.quantity,
-      totlePrice: createCartItemInput.totlePrice,
+      totlePrice: createCartItemInput.quantity * product.price,
     });
     return await this.cartItemRepository.save(cartItem);
   }

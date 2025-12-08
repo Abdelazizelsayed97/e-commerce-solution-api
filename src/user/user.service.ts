@@ -9,6 +9,8 @@ import { LoginInput } from 'src/auth/dto/login-input';
 import { hashSync, compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
+import { Fcm } from 'src/fcm/entities/fcm.entity';
+import { RoleEnum } from 'src/core/enums/role.enum';
 
 @Injectable()
 export class UserService {
@@ -16,6 +18,8 @@ export class UserService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
+    @InjectRepository(Fcm)
+    private fcmRepository: Repository<Fcm>,
     private emailService: EmailService,
   ) {}
 
@@ -30,21 +34,25 @@ export class UserService {
     }
 
     console.log('this service is running', registerInput);
-    const user = await this.usersRepository.create({
+    const user = this.usersRepository.create({
       email: registerInput.email,
       password: registerInput.password,
       name: registerInput.name,
       phoneNumber: registerInput.phoneNumber,
-
-      role: registerInput.role,
+      role: RoleEnum.client,
     });
     const code = await this.sendNotificationToNewUserWithVerificationCode(user);
 
     user.OtpCode = code;
     user.token = await this.generateToken(user.id);
-
     const result = await this.usersRepository.save(user);
+    this.fcmRepository.create({
+      user: result,
+      token: registerInput.token,
+      device: registerInput.device,
+    });
     console.log('log from service', result);
+
     return result;
   }
 
@@ -61,7 +69,7 @@ export class UserService {
     });
   }
 
-  async findOne(id: string) {
+  async findOneById(id: string) {
     const user = await this.usersRepository.findOne({
       where: {
         id,
@@ -74,11 +82,19 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-    return `This action returns a #${email} user`;
+    const user = this.usersRepository.findOne({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException("user doesn't exist");
+    }
+    return user;
   }
 
   async update(id: string, updateUserInput: UpdateUserInput) {
-    const user = await this.findOne(id);
+    const user = await this.findOneById(id);
     if (!user) {
       throw new NotFoundException("user doesn't exist");
     }

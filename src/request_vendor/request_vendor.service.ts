@@ -23,8 +23,8 @@ export class RequestVendorService {
   ) {}
 
   async requestBeVendor(createRequestVendorInput: CreateRequestVendorInput) {
-    const user = await this.userService.findOne(
-      createRequestVendorInput.user_id,
+    const user = await this.userService.findOneById(
+      createRequestVendorInput.user_id as string,
     );
     if (!user) {
       throw new NotFoundException('user not found');
@@ -88,7 +88,7 @@ export class RequestVendorService {
         status: RequestVendorEnum.approve,
       },
     );
-    const user = await this.userService.findOne(request.vendor.user.id);
+    const user = await this.userService.findOneById(request.vendor.user.id);
     user.isVendor = true;
     user.vendor = request.vendor;
     console.log('updaterequest', updaterequest);

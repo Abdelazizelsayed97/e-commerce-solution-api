@@ -93,7 +93,6 @@ enum paymentMethod {
 type RequestVendor {
   id: String!
   status: String!
-  vendor: Vendor!
   createdAt: Timestamp!
   updatedAt: Timestamp!
 }
@@ -110,6 +109,7 @@ type Vendor {
   updatedAt: Timestamp!
   followers: [Follower!]
   request: RequestVendor
+  products: [Product!]!
 }
 
 type Follower {
@@ -173,20 +173,6 @@ enum role {
   vendor
 }
 
-type CreateOrderResponse {
-  order: Order!
-  paymentUrl: String
-}
-
-type Notification {
-  id: String!
-  user: User!
-  title: String!
-  message: String!
-  isRead: Boolean!
-  createdAt: Timestamp!
-}
-
 type Fcm {
   id: String!
   user: User!
@@ -201,12 +187,31 @@ enum Device {
   Web
 }
 
+type CreateOrderResponse {
+  order: Order!
+  paymentUrl: String
+}
+
+type Notification {
+  id: String!
+  user: User!
+  title: String!
+  message: String!
+  isRead: Boolean!
+  createdAt: Timestamp!
+}
+
 type PaginationMeta {
   totalItems: Int!
   itemCount: Int!
   itemsPerPage: Int!
   totalPages: Int!
   currentPage: Int!
+}
+
+type PaginatedProduct {
+  items: [Product!]!
+  pagination: PaginationMeta!
 }
 
 type PaginatedRequestVendor {
@@ -234,6 +239,7 @@ type Query {
   order(orderId: String!): Order!
   vendors: [Vendor!]!
   vendor(id: String!): Vendor!
+  products(paginate: PaginationInput): PaginatedProduct!
   product(id: String!): Product!
   fcm(id: String!): Fcm!
   cartItems(cartId: String!): [CartItem!]!
@@ -311,7 +317,8 @@ input RegisterInput {
   email: String!
   password: String!
   phoneNumber: String!
-  role: role!
+  device: Device!
+  token: String!
 }
 
 input UpdateUserInput {
@@ -388,12 +395,16 @@ input CreateProductInput {
   name: String!
   type: String!
   vendorId: String!
+  stock: Int!
+  price: Int!
 }
 
 input UpdateProductInput {
   name: String
   type: String
   vendorId: String
+  stock: Int
+  price: Int
   id: String!
 }
 
@@ -415,25 +426,21 @@ input UpdateFcmInput {
 input CreateCartItemInput {
   cartId: String!
   productId: String!
-  vendorId: String!
   quantity: Float!
-  totlePrice: Float!
   userId: String!
 }
 
 input UpdateCartItemInput {
   cartId: String
   productId: String
-  vendorId: String
   quantity: Float
-  totlePrice: Float
   userId: String
   id: String!
 }
 
 input CreateRequestVendorInput {
-  user_id: String!
-  shopName: String!
+  user_id: String
+  shopName: String
   balance: Int
   rating: Int
   isVerfied: Boolean

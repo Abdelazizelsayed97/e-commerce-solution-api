@@ -4,7 +4,6 @@ import { UpdateVendorInput } from './dto/update-vendor.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vendor } from './entities/vendor.entity';
-import { EmailService } from 'src/email/email.service';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -12,7 +11,6 @@ export class VendorService {
   constructor(
     @InjectRepository(Vendor)
     private readonly vendorRepository: Repository<Vendor>,
-    private readonly emailService: EmailService,
     private readonly userService: UserService,
   ) {}
   async create(createVendorInput: CreateVendorInput) {
@@ -27,7 +25,7 @@ export class VendorService {
     if (isExist) {
       throw new Error('vendor already exist');
     }
-    const user = await this.userService.findOne(createVendorInput.user_id);
+    const user = await this.userService.findOneById(createVendorInput.user_id);
     if (!user) {
       throw new Error('user not found');
     }
@@ -45,7 +43,10 @@ export class VendorService {
         user: true,
       },
     });
-    console.log('vendors', vendors.map((v) => v.user));
+    console.log(
+      'vendors',
+      vendors.map((v) => v.user),
+    );
     return vendors;
   }
 

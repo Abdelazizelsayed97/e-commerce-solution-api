@@ -77,6 +77,6 @@ export class FcmService {
   }
 
   async remove(id: string) {
-await this.fcmRepository.delete(id)
+    await this.fcmRepository.delete(id);
   }
 }

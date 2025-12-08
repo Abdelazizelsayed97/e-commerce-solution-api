@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateCartInput } from './dto/create-cart.input';
-
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
@@ -23,8 +22,8 @@ export class CartService {
     });
     if (isCartExist) {
       return isCartExist;
-    } else {
-      const user = await this.userService.findOne(createCartInput.userId);
+    } else {  
+      const user = await this.userService.findOneById(createCartInput.userId);
       if (!user) {
         throw new NotFoundException('User not found');
       }

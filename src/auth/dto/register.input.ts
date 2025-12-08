@@ -1,10 +1,10 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty } from 'class-validator';
-import { RoleEnum } from 'src/core/enums/role.enum';
+import { Device } from 'src/core/enums/device.type';
+
 
 @InputType()
 export class RegisterInput {
-
   @IsNotEmpty()
   @Field(() => String)
   name: string;
@@ -21,7 +21,9 @@ export class RegisterInput {
   @IsNotEmpty()
   phoneNumber: string;
 
-  @IsNotEmpty()
-  @Field(() => RoleEnum)
-  role: RoleEnum;
+
+  @Field(() => Device)
+  device: Device;
+  @Field(() => String)
+  token: string;
 }

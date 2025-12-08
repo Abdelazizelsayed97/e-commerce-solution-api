@@ -23,7 +23,7 @@ export class RatingAndReviewService {
     productId: string,
     createReviewDto: CreateRatingAndReviewInput,
   ): Promise<RatingAndReview> {
-    const user = await this.usersService.findOne(userId);
+    const user = await this.usersService.findOneById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }

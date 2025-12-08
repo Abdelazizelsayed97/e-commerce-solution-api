@@ -4,7 +4,6 @@ import { UpdateWalletInput } from './dto/update-wallet.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wallet } from './entities/wallet.entity';
-import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -12,14 +11,13 @@ export class WalletService {
   constructor(
     @InjectRepository(Wallet)
     private walletRepository: Repository<Wallet>,
-    // @InjectRepository(User)
-    // private userReposuitory: Repository<User>,
+
     private readonly userService: UserService,
   ) {}
   async create(createWalletInput: CreateWalletInput) {
     const wallet = this.walletRepository.create({
       ...createWalletInput,
-      user: await this.userService.findOne(createWalletInput.userId),
+      user: await this.userService.findOneById(createWalletInput.userId),
       balance: 0,
       pendingBalance: 0,
       currency: 'EGP',

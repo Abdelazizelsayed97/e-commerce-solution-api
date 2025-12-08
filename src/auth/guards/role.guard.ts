@@ -21,6 +21,9 @@ export class RolesGuard implements CanActivate {
 
     const user = JSON.stringify(request.user);
 
+    if (!user) {
+      return false;
+    }
     const hasRole = () => requiredRoles.includes(user['role']);
     if (user && hasRole()) {
       return true;

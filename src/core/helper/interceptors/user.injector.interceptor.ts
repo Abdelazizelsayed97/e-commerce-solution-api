@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { UserService } from 'src/user/user.service';
-import { Observable } from 'rxjs';
 
 @Injectable()
 export class UserInspectorInterceptor implements NestInterceptor {
@@ -25,15 +24,13 @@ export class UserInspectorInterceptor implements NestInterceptor {
       try {
         const payload = await this.authService.verifyAsync(token);
 
-        const user = await this.usersService.findOne(payload.sub ?? payload.id);
+        const user = await this.usersService.findOneById(
+          payload.sub ?? payload.id,
+        );
 
         if (user) {
           request.user = user;
         }
-        console.log(
-          'UserInspectorInterceptor: User attached to request:',
-          request.user,
-        );
       } catch (e) {
         console.log(
           'UserInspectorInterceptor: Failed to attach user:',

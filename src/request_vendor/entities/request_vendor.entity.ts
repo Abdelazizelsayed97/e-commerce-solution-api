@@ -6,13 +6,13 @@ import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 @ObjectType()
 @Entity({ synchronize: true })
 export class RequestVendor {
-  @Field()
+  @Field(()=> String)
   @PrimaryGeneratedColumn('uuid')
   id: string;
-  @Field()
+  @Field(()=>String)
   @Column('enum', { enum: RequestVendorEnum })
   status: RequestVendorEnum;
-  @Field(() => Vendor)
+  // @Field(() => Vendor)
   @OneToOne(() => Vendor, (vendor) => vendor.request)
   vendor: Vendor;
   @Field(() => GraphQLTimestamp)

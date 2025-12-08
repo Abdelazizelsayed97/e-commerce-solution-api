@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { FcmService } from './fcm.service';
 import { Fcm } from './entities/fcm.entity';
 import { CreateFcmInput } from './dto/create-fcm.input';

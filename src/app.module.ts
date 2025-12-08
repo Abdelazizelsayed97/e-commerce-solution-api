@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';

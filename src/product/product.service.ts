@@ -22,20 +22,29 @@ export class ProductService {
     if (isExist) {
       throw new NotFoundException('product already exist');
     }
-    const product = this.productsRepository.create(createProductInput);
+    const product = this.productsRepository.create({
+      ...createProductInput,
+      inStock: createProductInput.stock || 0,
+      vendor: { id: createProductInput.vendorId },
+    });
 
     return await this.productsRepository.save(product);
   }
 
-  async findAll(
-    paginate: PaginationInput,
-  ): Promise<PaginatedProduct> {
+  async findAll(paginate: PaginationInput): Promise<PaginatedProduct> {
     const skip = (paginate.page - 1) * paginate.limit;
 
     const [items, totalItems] = await this.productsRepository.findAndCount({
       skip,
       take: paginate.limit,
+      relations: {
+        vendor: {
+          user: true,
+          products: true,
+        },
+      },
     });
+    console.log('items ', items);
     return {
       items,
       pagination: {
@@ -46,7 +55,6 @@ export class ProductService {
         currentPage: paginate.page,
       },
     };
-
   }
 
   async findOne(id: string) {
