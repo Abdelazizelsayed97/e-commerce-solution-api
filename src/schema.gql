@@ -251,7 +251,6 @@ type Query {
   users(paginate: PaginationInput): PaginatedUsers!
   user(id: String!): User!
   me: User!
-  address(id: String!): Address!
   cartById(id: String!): Cart!
   allCarts: [Cart!]!
   cartTotal(id: String!): Float!
@@ -267,6 +266,8 @@ type Query {
   fcm(id: String!): Fcm!
   cartItems(cartId: String!): [CartItem!]!
   cartItem(id: String!): CartItem!
+  addresses: [Address!]!
+  address(id: String!): Address!
   getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
   ratingAndReview(productId: String!): [RatingAndReview!]!
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
@@ -293,9 +294,6 @@ type Mutation {
   register(registerInput: RegisterInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: String!): User!
-  createAddress(createAddressInput: CreateAddressInput!): Address!
-  updateAddress(updateAddressInput: UpdateAddressInput!): Address!
-  removeAddress(id: String!): Address!
   createCart(createCartInput: CreateCartInput!): Cart!
   removeCart(id: String!): Cart!
   createNotification(sendNotification: CreateNotificationInput!): Notification!
@@ -316,6 +314,9 @@ type Mutation {
   updateCartItem(id: String!, updateCartItemInput: UpdateCartItemInput!): CartItem!
   removeCartItem(id: String!): CartItem!
   clearCart(cartId: String!): String!
+  createAddress(createAddressInput: CreateAddressInput!): Address!
+  updateAddress(updateAddressInput: UpdateAddressInput!): Address!
+  removeAddress(id: String!): Address!
   createRequestVendor(createRequestVendorInput: CreateRequestVendorInput!): RequestVendor!
   aproveRequestVendor(id: String!): RequestVendor!
   rejectRequestVendor(id: String!, message: String!): RequestVendor!
@@ -346,21 +347,6 @@ input RegisterInput {
 }
 
 input UpdateUserInput {
-  id: String!
-}
-
-input CreateAddressInput {
-  state: String!
-  city: String!
-  details: String!
-  userid: String!
-}
-
-input UpdateAddressInput {
-  state: String
-  city: String
-  details: String
-  userid: String
   id: String!
 }
 
@@ -455,6 +441,21 @@ input UpdateCartItemInput {
   productId: String
   quantity: Float
   userId: String
+  id: String!
+}
+
+input CreateAddressInput {
+  state: String!
+  city: String!
+  details: String!
+  userid: String!
+}
+
+input UpdateAddressInput {
+  state: String
+  city: String
+  details: String
+  userid: String
   id: String!
 }
 

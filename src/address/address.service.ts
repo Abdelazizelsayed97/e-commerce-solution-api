@@ -5,13 +5,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
 import { Address } from './entities/address.entity';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AddressService {
   constructor(
     @InjectRepository(Address)
     private addressRepository: Repository<Address>,
-  ) {}
+
+    private userService: UserService,
+  ) { }
 
   async create(createAddressInput: CreateAddressInput) {
     const isExist = await this.addressRepository.findOne({
@@ -24,10 +28,12 @@ export class AddressService {
     if (isExist) {
       throw new Error('address already exist');
     }
-    Object.create(createAddressInput);
-    return await this.addressRepository.save({
+    const user = await this.userService.findOneById(createAddressInput.userid);
+    const address = this.addressRepository.create({
       ...createAddressInput,
+      user
     });
+    return await this.addressRepository.save(address);
   }
 
   async findAll() {

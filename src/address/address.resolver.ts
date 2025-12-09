@@ -16,7 +16,7 @@ export class AddressResolver {
     return this.addressService.create(createAddressInput);
   }
 
-  @Query(() => [Address], { name: 'address' })
+  @Query(() => [Address], { name: 'addresses' })
   findAll() {
     return this.addressService.findAll();
   }
