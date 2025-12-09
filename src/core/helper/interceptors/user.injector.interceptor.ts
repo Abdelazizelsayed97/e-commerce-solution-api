@@ -1,44 +1,32 @@
-import { JwtService } from '@nestjs/jwt';
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { UserService } from 'src/user/user.service';
+import { Injectable, NestMiddleware } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { UserService } from "src/user/user.service";
+
 
 @Injectable()
-export class UserInspectorInterceptor implements NestInterceptor {
+export class UserInspectorInterceptor implements NestMiddleware {
   constructor(
     private readonly authService: JwtService,
     private readonly usersService: UserService,
   ) {}
 
-  async intercept(context: ExecutionContext, next: CallHandler) {
-    const gqlContext = GqlExecutionContext.create(context);
-    const request = gqlContext.getContext().req;
-    const token = request.headers.authorization?.split(' ')[1];
+  async use(req: any, res: any, next: () => void) {
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (token) {
       try {
         const payload = await this.authService.verifyAsync(token);
-
-        const user = await this.usersService.findOneById(
-          payload.sub ?? payload.id,
-        );
-
+        const user = await this.usersService.findOneById(payload.sub ?? payload.id);
         if (user) {
-          request.user = user;
+          req.user = user;
         }
       } catch (e) {
         console.log(
-          'UserInspectorInterceptor: Failed to attach user:',
+          'UserInspectorMiddleware: Failed to attach user:',
           e?.message ?? e,
         );
       }
     }
-
-    return next.handle();
+    next();
   }
 }

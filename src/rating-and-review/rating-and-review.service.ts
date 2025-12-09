@@ -47,7 +47,10 @@ export class RatingAndReviewService {
     updateReviewDto: UpdateRatingAndReviewInput,
   ): Promise<RatingAndReview> {
     const review = await this.reviewsRepository.findOne({
-      where: { id: reviewId, user: { id: userId } },
+      where: {
+        id: reviewId,
+        user: { id: userId },
+      },
     });
     if (!review) {
       throw new NotFoundException('Review not found');

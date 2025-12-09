@@ -5,12 +5,14 @@ import { User } from './entities/user.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
+import { PaginatedResponse } from 'src/core/helper/pagination/pagination.output';
+import { PaginatedUsers } from './entities/paginated.user';
 
 @Resolver(() => User)
 export class UserResolver {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
-  @Query(() => [User], { name: 'users' })
+  @Query(() => PaginatedUsers, { name: 'users' })
   findAll(
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,

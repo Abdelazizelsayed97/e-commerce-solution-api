@@ -15,7 +15,7 @@ export class EmailService {
 
     newStatus: string,
   ) {
-    await this.queueService.addNotification('statusNotification', {
+    await this.queueService.addEmail('statusNotification', {
       user,
       entityName,
       newStatus,

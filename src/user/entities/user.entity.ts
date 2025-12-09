@@ -14,6 +14,8 @@ import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
+import { Cart } from 'src/cart/entities/cart.entity';
+
 
 @ObjectType()
 @Entity()
@@ -75,4 +77,7 @@ export class User {
   @Field(() => [RatingAndReview])
   @OneToMany(() => RatingAndReview, (review) => review.user)
   reviews: RatingAndReview[];
+  @Field(() => Cart)
+  @OneToOne(() => Cart, (cart) => cart.user)
+  cart: Cart
 }

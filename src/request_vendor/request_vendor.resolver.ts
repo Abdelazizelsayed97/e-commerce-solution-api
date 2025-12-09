@@ -8,6 +8,7 @@ import { UseGuards } from '@nestjs/common';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { RoleEnum } from 'src/core/enums/role.enum';
 import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
+import { AuthGuard } from 'src/user/guard/auth.guard';
 
 @Resolver(() => RequestVendor)
 export class RequestVendorResolver {
@@ -21,7 +22,7 @@ export class RequestVendorResolver {
     return this.requestVendorService.requestBeVendor(createRequestVendorInput);
   }
   @Roles(RoleEnum.superAdmin)
-  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard,RolesGuard)
   @Mutation(() => RequestVendor)
   aproveRequestVendor(@Args('id') id: string) {
     return this.requestVendorService.approveRequestVendor(id);

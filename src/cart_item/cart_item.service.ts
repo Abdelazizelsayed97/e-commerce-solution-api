@@ -31,7 +31,7 @@ export class CartItemService {
     });
     if (!cart) {
       this.cartRepository.create({
-        userId: { id: createCartItemInput.cartId },
+        user: { id: createCartItemInput.cartId },
       });
     }
 

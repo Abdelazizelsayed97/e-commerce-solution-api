@@ -12,10 +12,6 @@ export class CreateOrderInput {
   paymentStatus: OrderPaymentStatus;
   @Field(() => paymentMethod)
   paymentMethod: paymentMethod;
-  @Field(() => GraphQLTimestamp)
-  createdAt: number;
-  @Field(() => GraphQLTimestamp)
-  updatedAt: number;
   @Field(() => String)
   shippingAddressId: string;
   @Field(() => String)

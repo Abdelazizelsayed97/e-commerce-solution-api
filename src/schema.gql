@@ -46,11 +46,12 @@ type CartItem {
 
 type Cart {
   id: String!
-  userId: User!
+  user: User!
   createAt: Timestamp
   updateAt: Timestamp
-  orders: [Order!]!
-  cartItems: [CartItem!]!
+  orders: [Order!]
+  cartItems: [CartItem!]
+  cartItemsLoader: Cart!
 }
 
 type OrderItem {
@@ -68,6 +69,7 @@ type Order {
   id: String!
   client: User!
   totalAmount: Float!
+  status: OrderStatusEnum!
   paymentStatus: OrderPaymentStatus!
   paymentMethod: paymentMethod!
   createdAt: Timestamp!
@@ -76,6 +78,14 @@ type Order {
   transactionId: String
   cart: Cart!
   orderItems: [OrderItem!]
+}
+
+enum OrderStatusEnum {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
 enum OrderPaymentStatus {
@@ -165,6 +175,7 @@ type User {
   wallet: Wallet
   order: [Order!]!
   reviews: [RatingAndReview!]!
+  cart: Cart!
 }
 
 enum role {
@@ -187,9 +198,27 @@ enum Device {
   Web
 }
 
+type PaginationMeta {
+  totalItems: Int!
+  itemCount: Int!
+  itemsPerPage: Int!
+  totalPages: Int!
+  currentPage: Int!
+}
+
+type PaginatedUsers {
+  items: [User!]!
+  pagination: PaginationMeta!
+}
+
 type CreateOrderResponse {
   order: Order!
   paymentUrl: String
+}
+
+type VendorPaginated {
+  items: [Vendor!]!
+  pagination: PaginationMeta!
 }
 
 type Notification {
@@ -199,14 +228,6 @@ type Notification {
   message: String!
   isRead: Boolean!
   createdAt: Timestamp!
-}
-
-type PaginationMeta {
-  totalItems: Int!
-  itemCount: Int!
-  itemsPerPage: Int!
-  totalPages: Int!
-  currentPage: Int!
 }
 
 type PaginatedProduct {
@@ -227,17 +248,19 @@ type PaginatedSearch {
 union SearchResultUnion = Product | Vendor
 
 type Query {
-  users(paginate: PaginationInput): [User!]!
+  users(paginate: PaginationInput): PaginatedUsers!
   user(id: String!): User!
   me: User!
   address(id: String!): Address!
-  notifications(paginationInput: Int): [Notification!]!
   cartById(id: String!): Cart!
   allCarts: [Cart!]!
   cartTotal(id: String!): Float!
+  notifications(paginationInput: Int): [Notification!]!
   userOrders(userId: String!): [Order!]!
+  allOrders: [Order!]!
+  vendorOrders(vendorId: String!): [Order!]!
   order(orderId: String!): Order!
-  vendors: [Vendor!]!
+  vendors(paginate: PaginationInput!): VendorPaginated!
   vendor(id: String!): Vendor!
   products(paginate: PaginationInput): PaginatedProduct!
   product(id: String!): Product!
@@ -273,12 +296,13 @@ type Mutation {
   createAddress(createAddressInput: CreateAddressInput!): Address!
   updateAddress(updateAddressInput: UpdateAddressInput!): Address!
   removeAddress(id: String!): Address!
-  createNotification(sendNotification: CreateNotificationInput!): Notification!
-  removeNotification(id: Int!): Notification!
   createCart(createCartInput: CreateCartInput!): Cart!
   removeCart(id: String!): Cart!
+  createNotification(sendNotification: CreateNotificationInput!): Notification!
+  removeNotification(id: Int!): Notification!
   createOrder(createOrderInput: CreateOrderInput!): CreateOrderResponse!
   cancelOrder(updateOrderInput: UpdateOrderInput!): Order!
+  updateOrderStatus(orderId: String!, status: OrderStatusEnum!): Order!
   createVendor(createVendorInput: CreateVendorInput!): Vendor!
   updateVendor(updateVendorInput: UpdateVendorInput!): Vendor!
   removeVendor(id: Int!): Vendor!
@@ -340,13 +364,13 @@ input UpdateAddressInput {
   id: String!
 }
 
+input CreateCartInput {
+  userId: String!
+}
+
 input CreateNotificationInput {
   """Example field (placeholder)"""
   exampleField: Int!
-}
-
-input CreateCartInput {
-  userId: String!
 }
 
 input CreateOrderInput {
@@ -354,8 +378,6 @@ input CreateOrderInput {
   totalAmount: Float!
   paymentStatus: OrderPaymentStatus!
   paymentMethod: paymentMethod!
-  createdAt: Timestamp!
-  updatedAt: Timestamp!
   shippingAddressId: String!
   transactionId: String!
   cartId: String!
@@ -366,8 +388,6 @@ input UpdateOrderInput {
   totalAmount: Float
   paymentStatus: OrderPaymentStatus
   paymentMethod: paymentMethod
-  createdAt: Timestamp
-  updatedAt: Timestamp
   shippingAddressId: String
   transactionId: String
   cartId: String

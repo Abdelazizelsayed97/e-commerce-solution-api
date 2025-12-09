@@ -11,6 +11,9 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
 import { Fcm } from 'src/fcm/entities/fcm.entity';
 import { RoleEnum } from 'src/core/enums/role.enum';
+import { PaginatedUsers } from './entities/paginated.user';
+import { Cart } from 'src/cart/entities/cart.entity';
+import { CartService } from 'src/cart/cart.service';
 
 @Injectable()
 export class UserService {
@@ -21,7 +24,9 @@ export class UserService {
     @InjectRepository(Fcm)
     private fcmRepository: Repository<Fcm>,
     private emailService: EmailService,
-  ) {}
+
+    private cartService: CartService,
+  ) { }
 
   async create(registerInput: RegisterInput) {
     const isExist = await this.usersRepository.findOne({
@@ -34,6 +39,7 @@ export class UserService {
     }
 
     console.log('this service is running', registerInput);
+
     const user = this.usersRepository.create({
       email: registerInput.email,
       password: registerInput.password,
@@ -41,8 +47,12 @@ export class UserService {
       phoneNumber: registerInput.phoneNumber,
       role: RoleEnum.client,
     });
-    const code = await this.sendNotificationToNewUserWithVerificationCode(user);
+    const cart = await this.cartService.create({
+      userId: user.id,
+    });
 
+    const code = await this.sendNotificationToNewUserWithVerificationCode(user);
+    user.cart = cart;
     user.OtpCode = code;
     user.token = await this.generateToken(user.id);
     const result = await this.usersRepository.save(user);
@@ -53,13 +63,15 @@ export class UserService {
     });
     console.log('log from service', result);
 
+
+
     return result;
   }
 
-  async findAll(paginate: PaginationInput) {
+  async findAll(paginate: PaginationInput): Promise<PaginatedUsers> {
     const limit = paginate.limit;
     const page = (paginate.page - 1) * limit;
-    return await this.usersRepository.find({
+    const [[token, ...users], totalItems] = await this.usersRepository.findAndCount({
       skip: page,
       take: limit,
       relations: {
@@ -67,6 +79,17 @@ export class UserService {
         vendor: true,
       },
     });
+    return {
+      items: users,
+      pagination: {
+        currentPage: paginate.page,
+        totalItems: totalItems,
+        itemCount: paginate.limit,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit)
+
+      }
+    }
   }
 
   async findOneById(id: string) {

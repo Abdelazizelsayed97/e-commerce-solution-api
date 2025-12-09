@@ -5,12 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
-import { CreateOrderResponse } from './dto/create-order-response';
-import { paymentMethod } from '../core/enums/payment.method.enum';
+
+
 import { Cart } from 'src/cart/entities/cart.entity';
 import { CartItem } from 'src/cart_item/entities/cart_item.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
+import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
 
 @Injectable()
 export class OrderService {
@@ -25,7 +26,7 @@ export class OrderService {
     private readonly cartItemRepository: Repository<CartItem>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-  ) {}
+  ) { }
 
   async createOrder(createOrderInput: CreateOrderInput) {
 
@@ -69,6 +70,7 @@ export class OrderService {
       paymentStatus: OrderPaymentStatus.pending,
       paymentMethod: createOrderInput.paymentMethod,
       shippingAddressId: createOrderInput.shippingAddressId,
+      status: OrderShippingStatusEnum.PENDING,
       createdAt: now,
       updatedAt: now,
     });
@@ -134,14 +136,37 @@ export class OrderService {
     });
   }
 
-  async updateOrderStatus(orderId: string, status: string) {
+  async updateOrderStatus(orderId: string, status: OrderShippingStatusEnum) {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
     });
     if (!order) {
       throw new BadRequestException('Order not found');
     }
-    order.updatedAt = Date.now();
+
+    const now = Date.now();
+    order.status = status;
+    order.updatedAt = now;
     return await this.orderRepository.save(order);
+  }
+
+  async getAllOrders() {
+    return this.orderRepository.find({
+      relations: ['client', 'orderItems', 'orderItems.product', 'orderItems.vendor', 'cart'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getOrdersByVendor(vendorId: string) {
+    return this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.client', 'client')
+      .leftJoinAndSelect('order.cart', 'cart')
+      .leftJoinAndSelect('order.orderItems', 'orderItem')
+      .leftJoinAndSelect('orderItem.product', 'product')
+      .leftJoinAndSelect('orderItem.vendor', 'vendor')
+      .where('vendor.id = :vendorId', { vendorId })
+      .orderBy('order.createdAt', 'DESC')
+      .getMany();
   }
 }

@@ -6,10 +6,12 @@ import { User } from './entities/user.entity';
 import { AddressModule } from 'src/address/address.module';
 import { EmailModule } from 'src/email/email.module';
 import { Fcm } from 'src/fcm/entities/fcm.entity';
+import { Cart } from 'src/cart/entities/cart.entity';
+import { CartModule } from 'src/cart/cart.module';
 
 @Module({
   providers: [UserResolver, UserService],
   exports: [UserService],
-  imports: [TypeOrmModule.forFeature([User, Fcm]), AddressModule, EmailModule],
+  imports: [TypeOrmModule.forFeature([User, Fcm]), AddressModule, EmailModule, CartModule],
 })
-export class UserModule {}
+export class UserModule { }

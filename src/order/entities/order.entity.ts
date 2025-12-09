@@ -2,8 +2,9 @@ import { ObjectType, Field, Float, GraphQLTimestamp } from '@nestjs/graphql';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { paymentMethod } from 'src/core/enums/payment.method.enum';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
+import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
 import { User } from 'src/user/entities/user.entity';
-import { Transaction } from 'src/transaction/entities/transaction.entity';
+
 import {
   Column,
   Entity,
@@ -25,6 +26,12 @@ export class Order {
   @Field(() => Float)
   @Column()
   totalAmount: number;
+  @Field(() => OrderShippingStatusEnum)
+  @Column('enum', {
+    enum: OrderShippingStatusEnum,
+    default: OrderShippingStatusEnum.PENDING,
+  })
+  status: OrderShippingStatusEnum;
   @Field(() => OrderPaymentStatus)
   @Column('enum', {
     enum: OrderPaymentStatus,

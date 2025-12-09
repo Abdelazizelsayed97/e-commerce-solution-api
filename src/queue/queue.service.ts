@@ -12,7 +12,4 @@ export class QueueService {
   async addEmail(name: string, data: any) {
     await this.emailQueue.add(name, data);
   }
-  async addNotification(name: string, data: any) {
-    await this.notificationQueue.add(name, data);
-  }
 }

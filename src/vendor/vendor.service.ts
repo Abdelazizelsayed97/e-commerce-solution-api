@@ -5,6 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vendor } from './entities/vendor.entity';
 import { UserService } from 'src/user/user.service';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { promises } from 'dns';
+import { VendorPaginated } from './entities/vendor.paginated';
 
 @Injectable()
 export class VendorService {
@@ -12,7 +15,7 @@ export class VendorService {
     @InjectRepository(Vendor)
     private readonly vendorRepository: Repository<Vendor>,
     private readonly userService: UserService,
-  ) {}
+  ) { }
   async create(createVendorInput: CreateVendorInput) {
     const isExist = await this.vendorRepository.findOne({
       where: {
@@ -37,18 +40,29 @@ export class VendorService {
     return await this.vendorRepository.save(vendor);
   }
 
-  async getAllVendors() {
-    const vendors = await this.vendorRepository.find({
+  async getAllVendors(paginate: PaginationInput): Promise<VendorPaginated> {
+    const skip = (paginate.page - 1) * paginate.limit;
+    const [vendors, total] = await this.vendorRepository.findAndCount({
       relations: {
         user: true,
       },
+      skip: skip,
+      take: paginate.limit,
     });
-    console.log(
-      'vendors',
-      vendors.map((v) => v.user),
-    );
-    return vendors;
+    console.log("vendors", vendors)
+    return {
+      items: vendors,
+      pagination: {
+        currentPage: paginate.page,
+        itemCount: total,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(total / paginate.limit),
+        totalItems: total
+      }
+    };
   }
+
+
 
   async findOne(id: string) {
     const vendor = await this.vendorRepository.findOne({

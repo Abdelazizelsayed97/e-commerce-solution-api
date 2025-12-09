@@ -18,7 +18,9 @@ export class PaginationMeta {
   currentPage: number;
 }
 
-@ObjectType()
+@ObjectType({
+  isAbstract: true
+})
 export class PaginatedResponse<T> {
   @Field(() => [Object])
   items: T[];

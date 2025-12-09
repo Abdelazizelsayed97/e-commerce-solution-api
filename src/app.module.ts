@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
@@ -18,7 +18,6 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { RequestVendorModule } from './request_vendor/request_vendor.module';
 import { RatingAndReviewModule } from './rating-and-review/rating-and-review.module';
-
 import { FollowersModule } from './followers/followers.module';
 import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
@@ -28,6 +27,9 @@ import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { UserInspectorInterceptor } from './core/helper/interceptors/user.injector.interceptor';
+import { UserResponseInterceptor } from './core/helper/interceptors/user.responce.interceptor';
+
+
 
 @Module({
   imports: [
@@ -89,14 +91,12 @@ import { UserInspectorInterceptor } from './core/helper/interceptors/user.inject
   providers: [
     {
       provide: APP_INTERCEPTOR,
-      useClass: UserInspectorInterceptor,
-    },
-  ],
+      useClass: UserResponseInterceptor
+    }
+  ]
 })
-export class AppModule {
-  constructor() {
-    console.log(
-      'this is port console log ' + process.env.STRIPE_WEBHOOK_SECRET,
-    );
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(UserInspectorInterceptor).forRoutes("*");
   }
 }

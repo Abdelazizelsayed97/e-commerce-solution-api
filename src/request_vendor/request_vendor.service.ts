@@ -4,12 +4,12 @@ import { Repository } from 'typeorm';
 import { RequestVendor } from './entities/request_vendor.entity';
 import { RequestVendorEnum } from 'src/core/enums/request.vendor.status';
 import { UserService } from 'src/user/user.service';
-
 import { CreateRequestVendorInput } from './dto/create-request_vendor.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { PaginatedRequestVendor } from './entities/request.vendor.paginate';
-import { User } from 'src/user/entities/user.entity';
+import { RoleEnum } from 'src/core/enums/role.enum';
+
 
 @Injectable()
 export class RequestVendorService {
@@ -18,9 +18,8 @@ export class RequestVendorService {
     private requestVendorRepository: Repository<RequestVendor>,
     @InjectRepository(Vendor)
     private vendorRepository: Repository<Vendor>,
-
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   async requestBeVendor(createRequestVendorInput: CreateRequestVendorInput) {
     const user = await this.userService.findOneById(
@@ -91,6 +90,7 @@ export class RequestVendorService {
     const user = await this.userService.findOneById(request.vendor.user.id);
     user.isVendor = true;
     user.vendor = request.vendor;
+    user.role = RoleEnum.vendor;
     console.log('updaterequest', updaterequest);
     await this.userService.update(user.id, user);
 

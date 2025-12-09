@@ -9,13 +9,22 @@ import {
 } from '@nestjs/graphql';
 import { VendorService } from './vendor.service';
 import { Vendor } from './entities/vendor.entity';
+import { VendorPaginated } from './entities/vendor.paginated';
 import { CreateVendorInput } from './dto/create-vendor.input';
 import { UpdateVendorInput } from './dto/update-vendor.input';
+
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import DataLoader from 'dataloader';
+import { DataSource } from 'typeorm';
+import { VendorUserLoader } from './vendor.loader';
 import { User } from 'src/user/entities/user.entity';
 
 @Resolver(() => Vendor)
 export class VendorResolver {
-  constructor(private readonly vendorService: VendorService) {}
+  vendorLoader: DataLoader<string, User | null>;
+  constructor(private readonly vendorService: VendorService, dataSource: DataSource) {
+    this.vendorLoader = VendorUserLoader(dataSource);
+  }
 
   @Mutation(() => Vendor)
   createVendor(
@@ -24,9 +33,9 @@ export class VendorResolver {
     return this.vendorService.create(createVendorInput);
   }
 
-  @Query(() => [Vendor], { name: 'vendors' })
-  findAll() {
-    return this.vendorService.getAllVendors();
+  @Query(() => VendorPaginated, { name: 'vendors' })
+  vendors(@Args('paginate') paginate: PaginationInput) {
+    return this.vendorService.getAllVendors(paginate);
   }
 
   @Query(() => Vendor, { name: 'vendor' })
@@ -47,6 +56,7 @@ export class VendorResolver {
   }
   @ResolveField(() => User)
   user(@Parent() vendor: Vendor) {
-    return this.vendorService.findOne(vendor.id);
+    console.log(vendor.id);
+    return this.vendorLoader.load(vendor.id);
   }
 }

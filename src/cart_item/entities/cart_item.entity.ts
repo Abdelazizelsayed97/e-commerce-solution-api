@@ -11,13 +11,13 @@ export class CartItem {
   @PrimaryGeneratedColumn('uuid')
   id: string;
   @Field(() => Cart)
-  @ManyToOne(() => Cart, (cart) => cart.id)
+  @ManyToOne(() => Cart, (cart) => cart.cartItems,{ onDelete: 'CASCADE' })
   cart: Cart;
   @Field(() => Product)
-  @ManyToOne(() => Product, (product) => product.id)
+  @ManyToOne(() => Product)
   product: Product;
   @Field(() => Vendor)
-  @ManyToOne(() => Vendor, (vendor) => vendor.id)
+  @ManyToOne(() => Vendor)
   vendor: Vendor;
 
   @Field(() => Float)
