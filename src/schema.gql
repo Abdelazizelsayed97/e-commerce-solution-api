@@ -7,7 +7,7 @@ type Address {
   state: String!
   city: String!
   details: String!
-  user: String!
+  user: User!
 }
 
 type RatingAndReview {
@@ -28,6 +28,7 @@ type Product {
   reviews: [RatingAndReview!]
   addedAt: Timestamp!
   updatedAt: Timestamp!
+  purchuseCount: Int!
 }
 
 """
@@ -37,11 +38,14 @@ scalar Timestamp
 
 type CartItem {
   id: String!
+  cartId: String!
   cart: Cart!
+  productId: String!
   product: Product!
-  vendor: Vendor!
+  vendor: Vendor
   quantity: Float!
   totlePrice: Float!
+  cartItem: CartItem!
 }
 
 type Cart {
@@ -78,6 +82,7 @@ type Order {
   transactionId: String
   cart: Cart!
   orderItems: [OrderItem!]
+  order: Order!
 }
 
 enum OrderStatusEnum {
@@ -120,6 +125,7 @@ type Vendor {
   followers: [Follower!]
   request: RequestVendor
   products: [Product!]!
+  isFollowed: Boolean!
 }
 
 type Follower {
@@ -235,6 +241,11 @@ type PaginatedProduct {
   pagination: PaginationMeta!
 }
 
+type PaginatedAddress {
+  items: [Address!]!
+  totalCount: Float!
+}
+
 type PaginatedRequestVendor {
   items: [RequestVendor!]!
   pagination: PaginationMeta!
@@ -259,23 +270,23 @@ type Query {
   allOrders: [Order!]!
   vendorOrders(vendorId: String!): [Order!]!
   order(orderId: String!): Order!
-  vendors(paginate: PaginationInput!): VendorPaginated!
-  vendor(id: String!): Vendor!
-  products(paginate: PaginationInput): PaginatedProduct!
-  product(id: String!): Product!
-  fcm(id: String!): Fcm!
+  wallet(id: String!): Wallet!
+  transaction(id: String!): Transaction!
   cartItems(cartId: String!): [CartItem!]!
   cartItem(id: String!): CartItem!
-  addresses: [Address!]!
+  vendors(paginate: PaginationInput!): VendorPaginated!
+  vendor(id: String!): Vendor!
+  products(paginate: PaginationInput, filter: Boolean): PaginatedProduct!
+  product(id: String!): Product!
+  fcm(id: String!): Fcm!
+  getAllUserAddresses(paginate: PaginationInput): PaginatedAddress!
+  getAllAddressesBoard(paginate: PaginationInput): PaginatedAddress!
   address(id: String!): Address!
   getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
-  ratingAndReview(productId: String!): [RatingAndReview!]!
+  ratingAndReview(productId: String!, paginate: PaginationInput): [RatingAndReview!]
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
   vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
-  follower(id: Int!): Follower!
   search(searchInput: SearchInput!): PaginatedSearch!
-  transaction(id: String!): Transaction!
-  wallet(id: String!): Wallet!
 }
 
 input PaginationInput {
@@ -292,6 +303,7 @@ input SearchInput {
 type Mutation {
   login(loginInput: LoginInput!): User!
   register(registerInput: RegisterInput!): User!
+  verfiyUser(userId: String!, code: String!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: String!): User!
   createCart(createCartInput: CreateCartInput!): Cart!
@@ -301,6 +313,14 @@ type Mutation {
   createOrder(createOrderInput: CreateOrderInput!): CreateOrderResponse!
   cancelOrder(updateOrderInput: UpdateOrderInput!): Order!
   updateOrderStatus(orderId: String!, status: OrderStatusEnum!): Order!
+  createWallet(createWalletInput: CreateWalletInput!): Wallet!
+  updateWallet(updateWalletInput: UpdateWalletInput!): Wallet!
+  createTransaction(createTransactionInput: CreateTransactionInput!): Transaction!
+  removeTransaction(id: String!): Transaction!
+  addToCart(createCartItemInput: CreateCartItemInput!): CartItem!
+  updateCartItem(id: String!, updateCartItemInput: UpdateCartItemInput!): CartItem!
+  removeCartItem(id: String!): CartItem!
+  clearCart(cartId: String!): String!
   createVendor(createVendorInput: CreateVendorInput!): Vendor!
   updateVendor(updateVendorInput: UpdateVendorInput!): Vendor!
   removeVendor(id: Int!): Vendor!
@@ -310,10 +330,6 @@ type Mutation {
   createFcm(createFcmInput: CreateFcmInput!): Fcm!
   updateFcm(updateFcmInput: UpdateFcmInput!): Fcm!
   removeFcm(id: String!): Fcm!
-  addToCart(createCartItemInput: CreateCartItemInput!): CartItem!
-  updateCartItem(id: String!, updateCartItemInput: UpdateCartItemInput!): CartItem!
-  removeCartItem(id: String!): CartItem!
-  clearCart(cartId: String!): String!
   createAddress(createAddressInput: CreateAddressInput!): Address!
   updateAddress(updateAddressInput: UpdateAddressInput!): Address!
   removeAddress(id: String!): Address!
@@ -324,12 +340,6 @@ type Mutation {
   updateRatingAndReview(updateRatingAndReviewInput: UpdateRatingAndReviewInput!): RatingAndReview!
   removeRatingAndReview(id: String!): RatingAndReview!
   followVendor(followVendor: CreateFollowerInput!): Follower!
-  updateFollower(updateFollowerInput: UpdateFollowerInput!): Follower!
-  removeFollower(id: String!): Follower!
-  createTransaction(createTransactionInput: CreateTransactionInput!): Transaction!
-  removeTransaction(id: String!): Transaction!
-  createWallet(createWalletInput: CreateWalletInput!): Wallet!
-  updateWallet(updateWalletInput: UpdateWalletInput!): Wallet!
 }
 
 input LoginInput {
@@ -361,7 +371,6 @@ input CreateNotificationInput {
 
 input CreateOrderInput {
   clientId: String!
-  totalAmount: Float!
   paymentStatus: OrderPaymentStatus!
   paymentMethod: paymentMethod!
   shippingAddressId: String!
@@ -371,12 +380,53 @@ input CreateOrderInput {
 
 input UpdateOrderInput {
   clientId: String
-  totalAmount: Float
   paymentStatus: OrderPaymentStatus
   paymentMethod: paymentMethod
   shippingAddressId: String
   transactionId: String
   cartId: String
+  id: String!
+}
+
+input CreateWalletInput {
+  balance: Float!
+  pendingBalance: Float!
+  currency: String!
+  type: String!
+  transactionHistory: [String!]!
+  userId: String!
+}
+
+input UpdateWalletInput {
+  balance: Float
+  pendingBalance: Float
+  currency: String
+  type: String
+  transactionHistory: [String!]
+  userId: String
+  id: String!
+}
+
+input CreateTransactionInput {
+  type: String! = "ADJUSTMENT"
+  amount: Float!
+  orderId: String!
+  userId: String!
+  description: String
+}
+
+input CreateCartItemInput {
+  cartId: String!
+  productId: String!
+  quantity: Float!
+  userId: String!
+}
+
+input UpdateCartItemInput {
+  cartId: String
+  productId: String
+  quantity: Float
+  userId: String
   id: String!
 }
 
@@ -429,21 +479,6 @@ input UpdateFcmInput {
   id: String!
 }
 
-input CreateCartItemInput {
-  cartId: String!
-  productId: String!
-  quantity: Float!
-  userId: String!
-}
-
-input UpdateCartItemInput {
-  cartId: String
-  productId: String
-  quantity: Float
-  userId: String
-  id: String!
-}
-
 input CreateAddressInput {
   state: String!
   city: String!
@@ -483,37 +518,4 @@ input UpdateRatingAndReviewInput {
 input CreateFollowerInput {
   vendorId: String!
   followerId: String!
-}
-
-input UpdateFollowerInput {
-  vendorId: String
-  followerId: String
-  id: String!
-}
-
-input CreateTransactionInput {
-  type: String! = "ADJUSTMENT"
-  amount: Float!
-  orderId: String!
-  userId: String!
-  description: String
-}
-
-input CreateWalletInput {
-  balance: Float!
-  pendingBalance: Float!
-  currency: String!
-  type: String!
-  transactionHistory: [String!]!
-  userId: String!
-}
-
-input UpdateWalletInput {
-  balance: Float
-  pendingBalance: Float
-  currency: String
-  type: String
-  transactionHistory: [String!]
-  userId: String
-  id: String!
 }

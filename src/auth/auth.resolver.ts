@@ -21,4 +21,8 @@ export class AuthResolver {
   ) {
     return this.authService.register(registerInput);
   }
+  @Mutation(() => User)
+  verfiyUser(@Args('userId') userId: string, @Args('code') code: string) {
+    return this.authService.verfiyUser(userId, code);
+  }
 }

@@ -16,6 +16,8 @@ import { TransactionTypeEnum } from 'src/core/enums/transaction.enum';
 import { CartItemService } from 'src/cart_item/cart_item.service';
 import { stockHistoryActionEnum } from 'src/core/enums/stock.history.enum';
 import { OrderPaymentVendorStatusEnum } from 'src/core/enums/order.payment.status';
+import { CreateOrderInput } from 'src/order/dto/create-order.input';
+import { CartItem } from 'src/cart_item/entities/cart_item.entity';
 
 @Injectable()
 export class PaymentService {
@@ -31,21 +33,19 @@ export class PaymentService {
     private readonly stockHistoryRepository: Repository<StockHistory>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @InjectRepository(OrderItem)
-    private readonly orderItemRepository: Repository<OrderItem>,
     @InjectRepository(Wallet)
     private readonly walletRepository: Repository<Wallet>,
     @InjectRepository(Vendor)
     private readonly vendorRepository: Repository<Vendor>,
-    private readonly cartItemService: CartItemService,
+    private cartItemService: CartItemService,
   ) {
     this.stripeInstance = new stripe(process.env.STRIPE_API_KEY!);
   }
 
-  async createPayment(orderId: string) {
+  async createPayment( orderID: string) {
     const order = await this.orderRepository.findOne({
-      where: { id: orderId },
-      relations: ['client'],
+      where: { id: orderID },
+      relations: ['client', 'cart'],
     });
     if (!order) {
       throw new Error('Order not found');
@@ -57,7 +57,7 @@ export class PaymentService {
             currency: 'egp',
             unit_amount: Math.floor(order.totalAmount * 100),
             product_data: {
-              name: 'Order #' + orderId,
+              name: 'Order #' + orderID,
               images: [
                 'https://www.bigfootdigital.co.uk/wp-content/uploads/2020/07/image-optimisation-scaled.jpg',
               ],
@@ -67,8 +67,8 @@ export class PaymentService {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL || 'https://localhost:3000'}/order/${orderId}/success`,
-      cancel_url: `${process.env.FRONTEND_URL || 'https://localhost:3000'}/order/${orderId}/cancel`,
+      success_url: `${process.env.FRONTEND_URL || 'https://localhost:3000'}/order/${order.id}/success`,
+      cancel_url: `${process.env.FRONTEND_URL || 'https://localhost:3000'}/order/${order.id}/cancel`,
       client_reference_id: order.id,
       customer_email: order.client.email,
     });
@@ -78,6 +78,7 @@ export class PaymentService {
   @Post('webhook')
   async verifyAndHandleWebhook(rawBody: Buffer, signature: string) {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
     if (!endpointSecret) {
       throw new Error('Stripe webhook secret not configured');
     }
@@ -91,28 +92,24 @@ export class PaymentService {
         endpointSecret,
       );
     } catch (err) {
-      console.log(`Webhook signature verification failed.`, err.message);
       throw new Error('Webhook signature verification failed');
     }
 
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as stripe.Checkout.Session;
-        console.log(`Payment for session ${session.id} was successful!`);
+
         await this.handlePaymentSuccess(session);
         break;
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as stripe.PaymentIntent;
-        console.log(
-          `PaymentIntent for ${paymentIntent.amount} was successful!`,
-        );
+
         break;
       case 'checkout.session.expired':
         const expiredSession = event.data.object as stripe.Checkout.Session;
         await this.handlePaymentFailed(expiredSession);
         break;
       default:
-        console.log(`Unhandled event type ${event.type}.`);
     }
   }
 
@@ -148,7 +145,7 @@ export class PaymentService {
               const orderItem = (order.orderItems || []).find(
                 (oi) =>
                   oi.product.id === cartItem.product.id &&
-                  oi.vendor.id === cartItem.vendor.id,
+                  oi.vendor.id === cartItem.vendor?.id,
               );
               if (orderItem) {
                 const newQuantity = cartItem.quantity - orderItem.quantity;
@@ -159,10 +156,7 @@ export class PaymentService {
                   cartItem.totlePrice = newQuantity * cartItem.product.price;
 
                   const cartItemRepo =
-                    this.orderRepository.manager.getRepository(
-                      require('src/cart_item/entities/cart_item.entity')
-                        .CartItem,
-                    );
+                    this.orderRepository.manager.getRepository(CartItem);
                   await cartItemRepo.save(cartItem);
                 }
               }
@@ -172,7 +166,13 @@ export class PaymentService {
           const userWallet = await this.walletRepository.findOne({
             where: { user: { id: order.client.id } },
           });
-
+          if (!userWallet) {
+            const userWallet = this.walletRepository.create({
+              user: { id: order.client.id },
+            });
+            await this.walletRepository.save(userWallet);
+          }
+          console.log('userWallet', userWallet);
           const userTransaction = this.transactionRepository.create({
             type: TransactionTypeEnum.ORDER_INCOME,
             amount: order.totalAmount,
@@ -197,7 +197,6 @@ export class PaymentService {
               where: { id: vendorId },
             });
             if (!vendor) {
-              console.error(`Vendor ${vendorId} not found`);
               continue;
             }
 
@@ -208,17 +207,17 @@ export class PaymentService {
             const commission = vendorTotal * 0.1;
             const vendorAmount = vendorTotal - commission;
 
-            const vendorTx = this.vendorTransactionRepository.create({
-              vendor: vendor,
-              order: order,
-              type: TransactionTypeEnum.PAYOUT,
-              amount: vendorAmount,
-              status: OrderPaymentStatus.paid,
-              description: `Payment for items in order ${orderId}`,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            });
-            await this.vendorTransactionRepository.save(vendorTx);
+            // const vendorTx = this.vendorTransactionRepository.create({
+            //   vendor: vendor,
+            //   order: order,
+            //   type: TransactionTypeEnum.PAYOUT,
+            //   amount: vendorAmount,
+            //   status: OrderPaymentStatus.paid,
+            //   description: `Payment for items in order ${orderId}`,
+            //   createdAt: new Date(),
+            //   updatedAt: new Date(),
+            // });
+            // await this.vendorTransactionRepository.save(vendorTx);
 
             const commissionTx = this.vendorTransactionRepository.create({
               vendor: vendor,
@@ -235,10 +234,6 @@ export class PaymentService {
             vendor.balance += vendorAmount;
             await this.vendorRepository.save(vendor);
           }
-
-          console.log(
-            `Order ${orderId} payment status updated to paid with all transactions created.`,
-          );
         } catch (error) {
           console.error(
             `Error processing payment success for order ${orderId}:`,
@@ -293,8 +288,6 @@ export class PaymentService {
             OrderPaymentVendorStatusEnum.PAYMENT_FAILED,
             'Payment session expired or cancelled',
           );
-
-          console.log(`Order ${orderId} payment failed. Stock restored.`);
         } catch (error) {
           console.error(
             `Error processing payment failure for order ${orderId}:`,
@@ -336,7 +329,9 @@ export class PaymentService {
   ) {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
-      relations: ['client'],
+      relations: {
+        client: true,
+      },
     });
 
     if (order) {
@@ -349,6 +344,30 @@ export class PaymentService {
         description: `${transactionType}: ${error}`,
         createdAt: new Date(),
       });
+    }
+  }
+
+  async verifyAndHandleReturn(rawBody: Buffer, signature: string) {
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!endpointSecret) {
+      throw new Error('Stripe webhook secret not configured');
+    }
+    let event: stripe.Event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        endpointSecret,
+      );
+    } catch (err) {
+      throw new Error('Webhook signature verification failed');
+    }
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as stripe.Checkout.Session;
+      await this.handlePaymentSuccess(session);
     }
   }
 }

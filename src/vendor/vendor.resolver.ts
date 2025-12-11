@@ -16,13 +16,16 @@ import { UpdateVendorInput } from './dto/update-vendor.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import DataLoader from 'dataloader';
 import { DataSource } from 'typeorm';
-import { VendorUserLoader } from './vendor.loader';
+import { VendorUserLoader } from './loaders/vendor.loader';
 import { User } from 'src/user/entities/user.entity';
 
 @Resolver(() => Vendor)
 export class VendorResolver {
   vendorLoader: DataLoader<string, User | null>;
-  constructor(private readonly vendorService: VendorService, dataSource: DataSource) {
+  constructor(
+    private readonly vendorService: VendorService,
+    dataSource: DataSource,
+  ) {
     this.vendorLoader = VendorUserLoader(dataSource);
   }
 

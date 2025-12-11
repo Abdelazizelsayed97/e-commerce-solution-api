@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
@@ -25,11 +25,8 @@ import { SearchModule } from './search/search.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { UserInspectorInterceptor } from './core/helper/interceptors/user.injector.interceptor';
-import { UserResponseInterceptor } from './core/helper/interceptors/user.responce.interceptor';
-
-
+import * as express from 'express';
 
 @Module({
   imports: [
@@ -52,6 +49,10 @@ import { UserResponseInterceptor } from './core/helper/interceptors/user.responc
       driver: ApolloDriver,
       playground: true,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      // context: (dataSource: DataSource) => ({
+      //   userLoader: createUserLoader(dataSource.getRepository(User)),
+      //   orderLoader: OrderLoader(dataSource.getRepository(Order)),
+      // }),
     }),
 
     JwtModule.register({
@@ -88,15 +89,18 @@ import { UserResponseInterceptor } from './core/helper/interceptors/user.responc
     WalletModule,
     PaymentModule,
   ],
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: UserResponseInterceptor
-    }
-  ]
+  // providers: [
+  //   {
+  //     provide: APP_INTERCEPTOR,
+  //     useClass: UserResponseInterceptor
+  //   }
+  // ]
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(UserInspectorInterceptor).forRoutes("*");
+    consumer.apply(UserInspectorInterceptor).forRoutes('*');
+      consumer
+        .apply(express.raw({ type: 'application/json' }))
+        .forRoutes('webhooks/stripe');
   }
 }

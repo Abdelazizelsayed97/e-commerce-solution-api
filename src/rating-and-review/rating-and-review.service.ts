@@ -8,6 +8,7 @@ import { ProductService } from 'src/product/product.service';
 import { UserService } from 'src/user/user.service';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
 import { User } from 'src/user/entities/user.entity';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Injectable()
 export class RatingAndReviewService {
@@ -76,10 +77,17 @@ export class RatingAndReviewService {
     await this.reviewsRepository.remove(review);
   }
 
-  async getProductReviews(productId: string): Promise<RatingAndReview[]> {
+  async getProductReviews(
+    productId: string,
+    paginate?: PaginationInput,
+  ): Promise<RatingAndReview[]> {
+    const skip = (paginate!.page - 1) * paginate!.limit;
+    const take = paginate?.limit;
     return this.reviewsRepository.find({
       where: { product: { id: productId } },
       relations: ['user'],
+      skip: skip,
+      take: take,
     });
   }
 }

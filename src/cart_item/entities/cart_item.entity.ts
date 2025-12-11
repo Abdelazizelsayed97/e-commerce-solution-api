@@ -10,15 +10,22 @@ export class CartItem {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
   id: string;
+  @Field(() => String)
+  @Column()
+  cartId: string;
   @Field(() => Cart)
-  @ManyToOne(() => Cart, (cart) => cart.cartItems,{ onDelete: 'CASCADE' })
+  @ManyToOne(() => Cart, (cart) => cart.cartItems, { onDelete: 'CASCADE' })
   cart: Cart;
+  @Field(() => String)
+  @Column()
+  productId: string;
   @Field(() => Product)
   @ManyToOne(() => Product)
   product: Product;
-  @Field(() => Vendor)
+
+  @Field(() => Vendor, { nullable: true })
   @ManyToOne(() => Vendor)
-  vendor: Vendor;
+  vendor?: Vendor;
 
   @Field(() => Float)
   @Column()

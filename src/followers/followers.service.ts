@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreateFollowerInput } from './dto/create-follower.input';
-import { UpdateFollowerInput } from './dto/update-follower.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Follower } from './entities/follower.entity';
@@ -58,7 +57,19 @@ export class FollowersService {
       skip: skip,
       take: PaginationInput.limit,
     });
-    return followers;
+    return {
+      items: {
+        followers: followers.map((follower) => follower.follower),
+        id: followers.map((follower) => follower.id),
+      },
+      // pagination: {
+      //   totalItems: followers.length,
+      //   itemCount: followers.length,
+      //   itemsPerPage: PaginationInput.limit,
+      //   totalPages: Math.ceil(followers.length / PaginationInput.limit),
+      //   currentPage: PaginationInput.page,
+      // },
+    };
   }
 
   getFollowingList(id: string, PaginationInput: PaginationInput) {
@@ -77,28 +88,19 @@ export class FollowersService {
       take: PaginationInput.limit,
     });
   }
-  async findOne(id: string) {
-    if (id) {
-      return await this.followersRepository.findOneBy({ id });
-    }
-  }
-  async update(id: string, updateFollowerInput: UpdateFollowerInput) {
-    const follower = this.followersRepository.findOneBy({ id });
-    if (!follower) {
-      throw new Error('follower not found');
-    }
-    Object.assign(follower, updateFollowerInput);
-    return await this.followersRepository.save({
-      id,
-      ...follower,
-    });
-  }
 
-  async remove(id: string) {
-    await this.followersRepository.delete(id);
-    return {
-      success: true,
-      message: `This action removes a #${id} follower`,
-    };
+  async unfollowVendor(vendorId: string, followerId: string) {
+    const follow = await this.followersRepository
+      .createQueryBuilder('follower')
+      .where('follower.followerId = :followerId', { followerId })
+      .andWhere('follower.vendorId = :vendorId', { vendorId })
+      .getOne();
+
+    if (!follow) {
+      throw new Error('Not following this vendor');
+    }
+
+    await this.followersRepository.remove(follow);
+    return { message: 'Successfully unfollowed vendor' };
   }
 }

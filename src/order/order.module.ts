@@ -7,6 +7,8 @@ import { OrderItem } from './entities/order-item.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { CartItem } from 'src/cart_item/entities/cart_item.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { PaymentService } from 'src/payment/payment.service';
+import { PaymentModule } from 'src/payment/payment.module';
 
 @Module({
   providers: [
@@ -14,10 +16,13 @@ import { Product } from 'src/product/entities/product.entity';
     OrderService,
     {
       provide: 'PAYMENT_SERVICE',
-      useValue: null,
+      useValue: PaymentService,
     },
   ],
   exports: [OrderService],
-  imports: [TypeOrmModule.forFeature([Order, OrderItem, Cart, CartItem, Product])],
+  imports: [
+    TypeOrmModule.forFeature([Order, OrderItem, Cart, CartItem, Product]),
+    PaymentModule,
+  ],
 })
 export class OrderModule {}

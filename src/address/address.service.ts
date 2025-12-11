@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
 import { InjectRepository } from '@nestjs/typeorm';
-
 import { Repository } from 'typeorm';
 import { Address } from './entities/address.entity';
-import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { PaginatedAddress } from './entities/paginated.address';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class AddressService {
@@ -15,7 +16,7 @@ export class AddressService {
     private addressRepository: Repository<Address>,
 
     private userService: UserService,
-  ) { }
+  ) {}
 
   async create(createAddressInput: CreateAddressInput) {
     const isExist = await this.addressRepository.findOne({
@@ -31,13 +32,40 @@ export class AddressService {
     const user = await this.userService.findOneById(createAddressInput.userid);
     const address = this.addressRepository.create({
       ...createAddressInput,
-      user
+      user,
     });
     return await this.addressRepository.save(address);
   }
+  async findAllBoard(paginated: PaginationInput): Promise<PaginatedAddress> {
+    const skip = (paginated.page - 1) * paginated.limit;
 
-  async findAll() {
-    return await this.addressRepository.find();
+    const [items, totalCount] = await this.addressRepository.findAndCount({
+      skip,
+      take: paginated.limit,
+      relations: {
+        user: true,
+      },
+    });
+    return { items, totalCount };
+  }
+
+  async findAll(
+    paginated: PaginationInput,
+    user: User,
+  ): Promise<PaginatedAddress> {
+    const skip = (paginated.page - 1) * paginated.limit;
+
+    const [items, totalCount] = await this.addressRepository.findAndCount({
+      skip,
+      take: paginated.limit,
+      relations: {
+        user: true,
+      },
+      where: {
+        user: user,
+      },
+    });
+    return { items, totalCount };
   }
 
   async findOne(id: string) {
@@ -58,6 +86,5 @@ export class AddressService {
 
   async remove(id: string) {
     return await this.addressRepository.delete(id);
-
   }
 }

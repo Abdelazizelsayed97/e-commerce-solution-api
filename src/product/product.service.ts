@@ -31,9 +31,37 @@ export class ProductService {
     return await this.productsRepository.save(product);
   }
 
-  async findAll(paginate: PaginationInput): Promise<PaginatedProduct> {
+  async findAll(
+    paginate: PaginationInput,
+    filter?: boolean,
+  ): Promise<PaginatedProduct> {
     const skip = (paginate.page - 1) * paginate.limit;
 
+    if (filter) {
+      const [items, totalItems] = await this.productsRepository.findAndCount({
+        relations: {
+          vendor: {
+            user: true,
+            products: true,
+          },
+        },
+        order: {
+          purchuseCount: 'DESC',
+        },
+        skip,
+        take: paginate.limit,
+      });
+      return {
+        items,
+        pagination: {
+          totalItems,
+          itemCount: items.length,
+          itemsPerPage: paginate.limit,
+          totalPages: Math.ceil(totalItems / paginate.limit),
+          currentPage: paginate.page,
+        },
+      };
+    }
     const [items, totalItems] = await this.productsRepository.findAndCount({
       skip,
       take: paginate.limit,
@@ -44,7 +72,7 @@ export class ProductService {
         },
       },
     });
-    console.log('items ', items);
+
     return {
       items,
       pagination: {

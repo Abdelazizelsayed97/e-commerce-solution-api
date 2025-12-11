@@ -36,7 +36,7 @@ import { CartItemModule } from 'src/cart_item/cart_item.module';
     WalletModule,
     TransactionModule,
     CartModule,
-    OrderModule,
+    // OrderModule,
     CartItemModule,
   ],
 })

@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { Vendor } from './entities/vendor.entity';
 import { UserService } from 'src/user/user.service';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-import { promises } from 'dns';
+
 import { VendorPaginated } from './entities/vendor.paginated';
 
 @Injectable()

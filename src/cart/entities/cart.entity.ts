@@ -2,7 +2,14 @@ import { ObjectType, Field, GraphQLTimestamp } from '@nestjs/graphql';
 import { CartItem } from 'src/cart_item/entities/cart_item.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @ObjectType()
 @Entity()

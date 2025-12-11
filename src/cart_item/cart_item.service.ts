@@ -41,8 +41,12 @@ export class CartItemService {
     if (!product) {
       throw new NotFoundException('Product not found');
     }
+    console.log('product stock', [
+      product.inStock,
+      createCartItemInput.quantity,
+    ]);
     if (product.inStock < createCartItemInput.quantity) {
-      throw new BadRequestException(`Insufficient stock.`);
+      throw new BadRequestException(`Insufficient .`);
     }
 
     const vendor = await this.vendorRepository.findOne({
@@ -70,8 +74,9 @@ export class CartItemService {
     });
 
     if (existingItem) {
-      const newQuantity = existingItem.quantity + createCartItemInput.quantity;
+      const newQuantity = createCartItemInput.quantity;
       if (product.inStock < newQuantity) {
+        console.log('insufficient stock', newQuantity);
         throw new BadRequestException(`Insufficient stock for this quantity.`);
       }
 
@@ -100,7 +105,11 @@ export class CartItemService {
   async findOne(id: string) {
     const item = await this.cartItemRepository.findOne({
       where: { id },
-      relations: ['product', 'vendor', 'cart'],
+      relations: {
+        cart: true,
+        vendor: true,
+        product: true,
+      },
     });
     if (!item) {
       throw new NotFoundException('Cart item not found');

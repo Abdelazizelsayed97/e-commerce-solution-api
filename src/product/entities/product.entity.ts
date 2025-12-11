@@ -1,10 +1,4 @@
-import {
-  ObjectType,
-  Field,
-  Int,
-
-  GraphQLTimestamp,
-} from '@nestjs/graphql';
+import { ObjectType, Field, Int, GraphQLTimestamp } from '@nestjs/graphql';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import {
@@ -53,4 +47,7 @@ export class Product {
   @Field(() => GraphQLTimestamp)
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: number;
+  @Field(() => Int)
+  @Column('int', { default: 0 })
+  purchuseCount: number;
 }

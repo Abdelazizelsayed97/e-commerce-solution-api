@@ -7,7 +7,7 @@ import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Resolver(() => Follower)
 export class FollowersResolver {
-  constructor(private readonly followersService: FollowersService) {}
+  constructor(private readonly followersService: FollowersService) { }
 
   @Mutation(() => Follower, { name: 'followVendor' })
   createFollower(
@@ -31,25 +31,5 @@ export class FollowersResolver {
     paginate: PaginationInput,
   ) {
     return this.followersService.getFollowersList(vendorId, paginate);
-  }
-
-  @Query(() => Follower, { name: 'follower' })
-  findOne(@Args('id', { type: () => Int }) id: string) {
-    return this.followersService.findOne(id);
-  }
-
-  @Mutation(() => Follower)
-  updateFollower(
-    @Args('updateFollowerInput') updateFollowerInput: UpdateFollowerInput,
-  ) {
-    return this.followersService.update(
-      updateFollowerInput.id,
-      updateFollowerInput,
-    );
-  }
-
-  @Mutation(() => Follower)
-  removeFollower(@Args('id', { type: () => String }) id: string) {
-    return this.followersService.remove(id);
   }
 }

@@ -4,11 +4,10 @@ import { UpdateOrderInput } from './dto/update-order.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
-import { OrderItem } from './entities/order-item.entity';
-
+import { OrderItem } from './entities/order-item.entity'
 
 import { Cart } from 'src/cart/entities/cart.entity';
-import { CartItem } from 'src/cart_item/entities/cart_item.entity';
+
 import { Product } from 'src/product/entities/product.entity';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
@@ -22,8 +21,6 @@ export class OrderService {
     private readonly orderItemRepository: Repository<OrderItem>,
     @InjectRepository(Cart)
     private readonly cartRepository: Repository<Cart>,
-    @InjectRepository(CartItem)
-    private readonly cartItemRepository: Repository<CartItem>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
   ) { }
@@ -38,9 +35,10 @@ export class OrderService {
     if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
       throw new BadRequestException('Cart is empty or does not exist');
     }
-
+ let totalAmount = 0
 
     for (const cartItem of cart.cartItems) {
+      totalAmount+= cartItem.totlePrice
       const product = await this.productRepository.findOne({
         where: { id: cartItem.product.id },
       });
@@ -66,7 +64,7 @@ export class OrderService {
     const order = this.orderRepository.create({
       client: { id: createOrderInput.clientId },
       cart: { id: createOrderInput.cartId },
-      totalAmount: createOrderInput.totalAmount,
+      totalAmount: totalAmount,
       paymentStatus: OrderPaymentStatus.pending,
       paymentMethod: createOrderInput.paymentMethod,
       shippingAddressId: createOrderInput.shippingAddressId,

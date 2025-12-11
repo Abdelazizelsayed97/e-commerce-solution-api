@@ -29,9 +29,11 @@ export class ProductResolver {
   findAll(
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,
+    @Args('filter', { type: () => Boolean, nullable: true })
+    SortByPurchuse?: boolean,
   ): Promise<PaginatedProduct> {
     console.log('paginate ', paginate);
-    return this.productService.findAll(paginate);
+    return this.productService.findAll(paginate, SortByPurchuse);
   }
 
   @Query(() => Product, { name: 'product' })

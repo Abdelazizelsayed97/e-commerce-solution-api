@@ -68,4 +68,7 @@ export class Vendor {
   @Field(() => [Product])
   @OneToMany(() => Product, (product) => product.vendor)
   products: Product[];
+  @Field(() => Boolean, { defaultValue: false })
+  @Column('boolean', { default: false })
+  isFollowed: boolean;
 }

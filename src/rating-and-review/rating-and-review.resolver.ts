@@ -5,6 +5,7 @@ import { CreateRatingAndReviewInput } from './dto/create-rating-and-review.input
 import { UpdateRatingAndReviewInput } from './dto/update-rating-and-review.input';
 import type { Request } from 'express';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Resolver(() => RatingAndReview)
 export class RatingAndReviewResolver {
@@ -26,9 +27,14 @@ export class RatingAndReviewResolver {
     );
   }
 
-  @Query(() => [RatingAndReview], { name: 'ratingAndReview' })
-  findAll(@Args('productId', { type: () => String }) productId: string) {
-    return this.ratingAndReviewService.getProductReviews(productId);
+  @Query(() => [RatingAndReview], { name: 'ratingAndReview',nullable: true })
+  findAll(
+    @Args('productId', { type: () => String }) productId: string,
+    @Args('paginate', { type: () => PaginationInput, nullable: true })
+    paginate?: PaginationInput,
+
+  ) {
+    return this.ratingAndReviewService.getProductReviews(productId,paginate);
   }
 
   @Mutation(() => RatingAndReview)

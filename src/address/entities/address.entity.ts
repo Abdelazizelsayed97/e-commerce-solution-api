@@ -17,10 +17,11 @@ export class Address {
   @Field(() => String)
   @Column({})
   details: string;
-  @Field(() => String)
+  @Field(() => User)
   @ManyToOne(() => User, (user) => user.address, {
     nullable: true,
-    cascade: true,
+    onDelete:'CASCADE'
+    // cascade: true,
   })
   user: User;
 }

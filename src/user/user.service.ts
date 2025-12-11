@@ -12,8 +12,9 @@ import { EmailService } from 'src/email/email.service';
 import { Fcm } from 'src/fcm/entities/fcm.entity';
 import { RoleEnum } from 'src/core/enums/role.enum';
 import { PaginatedUsers } from './entities/paginated.user';
-import { Cart } from 'src/cart/entities/cart.entity';
 import { CartService } from 'src/cart/cart.service';
+import { WalletService } from 'src/wallet/wallet.service';
+import { Wallet } from 'src/wallet/entities/wallet.entity';
 
 @Injectable()
 export class UserService {
@@ -24,9 +25,10 @@ export class UserService {
     @InjectRepository(Fcm)
     private fcmRepository: Repository<Fcm>,
     private emailService: EmailService,
-
     private cartService: CartService,
-  ) { }
+    @InjectRepository(Wallet)
+    private walletRepository: Repository<Wallet>,
+  ) {}
 
   async create(registerInput: RegisterInput) {
     const isExist = await this.usersRepository.findOne({
@@ -50,6 +52,17 @@ export class UserService {
     const cart = await this.cartService.create({
       userId: user.id,
     });
+    const wallet = this.walletRepository.create({
+      user: user,
+      balance: 0,
+      pendingBalance: 0,
+      currency: 'EGP',
+      transactionHistory: [],
+      type: 'wallet',
+    });
+
+    await this.walletRepository.save(wallet);
+    user.wallet = wallet;
 
     const code = await this.sendNotificationToNewUserWithVerificationCode(user);
     user.cart = cart;
@@ -63,22 +76,21 @@ export class UserService {
     });
     console.log('log from service', result);
 
-
-
     return result;
   }
 
   async findAll(paginate: PaginationInput): Promise<PaginatedUsers> {
     const limit = paginate.limit;
     const page = (paginate.page - 1) * limit;
-    const [[token, ...users], totalItems] = await this.usersRepository.findAndCount({
-      skip: page,
-      take: limit,
-      relations: {
-        address: true,
-        vendor: true,
-      },
-    });
+    const [[token, ...users], totalItems] =
+      await this.usersRepository.findAndCount({
+        skip: page,
+        take: limit,
+        relations: {
+          address: true,
+          vendor: true,
+        },
+      });
     return {
       items: users,
       pagination: {
@@ -86,10 +98,9 @@ export class UserService {
         totalItems: totalItems,
         itemCount: paginate.limit,
         itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit)
-
-      }
-    }
+        totalPages: Math.ceil(totalItems / paginate.limit),
+      },
+    };
   }
 
   async findOneById(id: string) {
