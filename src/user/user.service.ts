@@ -49,6 +49,8 @@ export class UserService {
       phoneNumber: registerInput.phoneNumber,
       role: RoleEnum.client,
     });
+    user.token = await this.generateToken(user.id);
+    await this.usersRepository.save(user);
     const cart = await this.cartService.create({
       userId: user.id,
     });
@@ -67,13 +69,14 @@ export class UserService {
     const code = await this.sendNotificationToNewUserWithVerificationCode(user);
     user.cart = cart;
     user.OtpCode = code;
-    user.token = await this.generateToken(user.id);
-    const result = await this.usersRepository.save(user);
-    this.fcmRepository.create({
-      user: result,
+
+    const fcm = this.fcmRepository.create({
+      user: user,
       token: registerInput.token,
       device: registerInput.device,
     });
+    await this.fcmRepository.save(fcm);
+    const result = await this.usersRepository.save(user);
     console.log('log from service', result);
 
     return result;
@@ -161,7 +164,7 @@ export class UserService {
   private async generateToken(user_id: string) {
     const tokenPayload = { id: user_id };
     const token = this.jwtService.sign(tokenPayload, {
-      expiresIn: '1h',
+      expiresIn: '7d',
       secret: process.env.JWT_SECRET,
     });
     return token;

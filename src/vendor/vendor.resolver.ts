@@ -12,21 +12,24 @@ import { Vendor } from './entities/vendor.entity';
 import { VendorPaginated } from './entities/vendor.paginated';
 import { CreateVendorInput } from './dto/create-vendor.input';
 import { UpdateVendorInput } from './dto/update-vendor.input';
-
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import DataLoader from 'dataloader';
 import { DataSource } from 'typeorm';
-import { VendorUserLoader } from './loaders/vendor.loader';
 import { User } from 'src/user/entities/user.entity';
+import { UserLoader } from 'src/user/loader/users.loader';
+import { VendorLoader } from './loaders/vendor.loader';
 
 @Resolver(() => Vendor)
 export class VendorResolver {
-  vendorLoader: DataLoader<string, User | null>;
+  vendorLoader: DataLoader<string, Vendor | null>;
+  userLoader: DataLoader<string, User | null>;
   constructor(
     private readonly vendorService: VendorService,
     dataSource: DataSource,
   ) {
-    this.vendorLoader = VendorUserLoader(dataSource);
+
+    this.userLoader = UserLoader(dataSource.getRepository(User));
+    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
   }
 
   @Mutation(() => Vendor)
@@ -46,6 +49,16 @@ export class VendorResolver {
     return this.vendorService.findOne(id);
   }
 
+  //Most popular vendors (by rating + number of purchases)
+
+  @Query(() => [Vendor], { name: 'mostPopularVendors' })
+  async getMostPopularVendors(
+    @Args('paginate', { nullable: true }) paginate: PaginationInput,
+
+  ) {
+    return this.vendorService.getMostPopularVendors(paginate);
+  }
+
   @Mutation(() => Vendor)
   updateVendor(
     @Args('updateVendorInput') updateVendorInput: UpdateVendorInput,
@@ -57,6 +70,7 @@ export class VendorResolver {
   removeVendor(@Args('id', { type: () => Int }) id: number) {
     return this.vendorService.remove(id);
   }
+
   @ResolveField(() => User)
   user(@Parent() vendor: Vendor) {
     console.log(vendor.id);

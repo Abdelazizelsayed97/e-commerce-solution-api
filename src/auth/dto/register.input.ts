@@ -2,7 +2,6 @@ import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty } from 'class-validator';
 import { Device } from 'src/core/enums/device.type';
 
-
 @InputType()
 export class RegisterInput {
   @IsNotEmpty()
@@ -21,9 +20,10 @@ export class RegisterInput {
   @IsNotEmpty()
   phoneNumber: string;
 
-
+  @IsNotEmpty()
   @Field(() => Device)
   device: Device;
+  @IsNotEmpty()
   @Field(() => String)
   token: string;
 }

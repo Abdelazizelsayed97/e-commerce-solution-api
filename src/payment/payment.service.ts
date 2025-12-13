@@ -16,7 +16,6 @@ import { TransactionTypeEnum } from 'src/core/enums/transaction.enum';
 import { CartItemService } from 'src/cart_item/cart_item.service';
 import { stockHistoryActionEnum } from 'src/core/enums/stock.history.enum';
 import { OrderPaymentVendorStatusEnum } from 'src/core/enums/order.payment.status';
-import { CreateOrderInput } from 'src/order/dto/create-order.input';
 import { CartItem } from 'src/cart_item/entities/cart_item.entity';
 
 @Injectable()
@@ -42,7 +41,7 @@ export class PaymentService {
     this.stripeInstance = new stripe(process.env.STRIPE_API_KEY!);
   }
 
-  async createPayment( orderID: string) {
+  async createPayment(orderID: string) {
     const order = await this.orderRepository.findOne({
       where: { id: orderID },
       relations: ['client', 'cart'],

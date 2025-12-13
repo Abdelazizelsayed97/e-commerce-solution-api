@@ -33,6 +33,8 @@ export class SuperAdminSeeder implements OnModuleInit {
         password: hashedPassword,
         role: RoleEnum.superAdmin,
         token: token,
+        phoneNumber: '0000000000',
+        isVendor: false,
       });
       await this.userRepository.save(admin);
       console.log('Super admin user created');

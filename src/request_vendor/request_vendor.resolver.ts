@@ -22,9 +22,9 @@ export class RequestVendorResolver {
     return this.requestVendorService.requestBeVendor(createRequestVendorInput);
   }
   @Roles(RoleEnum.superAdmin)
-  @UseGuards(AuthGuard,RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => RequestVendor)
-  aproveRequestVendor(@Args('id') id: string) {
+  approveRequestVendor(@Args('id') id: string) {
     return this.requestVendorService.approveRequestVendor(id);
   }
   @Roles(RoleEnum.superAdmin)

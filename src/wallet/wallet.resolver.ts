@@ -3,6 +3,8 @@ import { WalletService } from './wallet.service';
 import { Wallet } from './entities/wallet.entity';
 import { CreateWalletInput } from './dto/create-wallet.input';
 import { UpdateWalletInput } from './dto/update-wallet.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/user/guard/auth.guard';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
@@ -21,6 +23,7 @@ export class WalletResolver {
   }
 
   @Mutation(() => Wallet)
+  @UseGuards(AuthGuard)
   updateWallet(
     @Args('updateWalletInput') updateWalletInput: UpdateWalletInput,
   ) {

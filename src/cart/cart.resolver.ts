@@ -1,4 +1,12 @@
-import { Resolver, Query, Mutation, Args, Float, ResolveField, Parent } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Float,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { CartService } from './cart.service';
 import { Cart } from './entities/cart.entity';
 import { CreateCartInput } from './dto/create-cart.input';
@@ -10,12 +18,21 @@ import { RolesGuard } from 'src/auth/guards/role.guard';
 import DataLoader from 'dataloader';
 import { DataSource } from 'typeorm';
 import { cartLoader } from './loaders/cart.loader';
+import { User } from 'src/user/entities/user.entity';
+import { UserLoader } from 'src/user/loader/users.loader';
+import { CartItem } from 'src/cart_item/entities/cart_item.entity';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Resolver(() => Cart)
 export class CartResolver {
   cartLoader: DataLoader<string, Cart>;
-  constructor(private readonly cartService: CartService, dataSource: DataSource) {
+  userLoader: DataLoader<string, User>;
+  constructor(
+    private readonly cartService: CartService,
+    dataSource: DataSource,
+  ) {
     this.cartLoader = cartLoader(dataSource);
+    this.userLoader = UserLoader(dataSource.getRepository(User));
   }
 
   @Mutation(() => Cart)
@@ -27,12 +44,18 @@ export class CartResolver {
   async findOne(@Args('id', { type: () => String }) id: string) {
     return await this.cartService.findOne(id);
   }
-
+  @UseGuards(AuthGuard)
+  @Query(() => Cart, { name: 'cartByUserId' })
+  async v(@Args('user_Id', { type: () => String }) id: string) {
+    return await this.cartService.findCartByUserId(id);
+  }
   @Roles(RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
   @Query(() => [Cart], { name: 'allCarts' })
-  async findAll() {
-    return await this.cartService.findAll();
+  async findAll(
+    @Args('paginate', { nullable: true }) paginate: PaginationInput,
+  ) {
+    return await this.cartService.findAll(paginate);
   }
 
   @Query(() => Float, { name: 'cartTotal' })
@@ -44,9 +67,22 @@ export class CartResolver {
   async removeCart(@Args('id', { type: () => String }) id: string) {
     return await this.cartService.remove(id);
   }
-  @ResolveField(() => Cart)
+  @ResolveField(() => User)
   async cartItemsLoader(@Parent() cart: Cart) {
-    console.log("fhd------==-=--=-------")
-    return this.cartLoader.loadMany(cart.id);
+    if (!cart) return null;
+    console.log('cartcartcart', cart);
+    return this.cartLoader.load(cart.id);
+  }
+  @ResolveField(() => User, { nullable: true })
+  async user(@Parent() cart: Cart) {
+    console.log('cartcartcart', cart);
+    if (!cart.user) return null;
+    return this.userLoader.loadMany([cart.user.id]);
+  }
+  @ResolveField(() => CartItem, { nullable: true })
+  async cartItems(@Parent() cart: Cart) {
+    console.log('cartcartcart', cart);
+    if (!cart.cartItems) return null;
+    return this.cartLoader.load(cart.id);
   }
 }

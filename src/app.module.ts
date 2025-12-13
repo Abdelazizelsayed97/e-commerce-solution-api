@@ -26,6 +26,7 @@ import { TransactionModule } from './transaction/transaction.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
 import { UserInspectorInterceptor } from './core/helper/interceptors/user.injector.interceptor';
+import { SuperAdminSeeder } from './super-admin.seeder';
 import * as express from 'express';
 
 @Module({
@@ -89,12 +90,13 @@ import * as express from 'express';
     WalletModule,
     PaymentModule,
   ],
-  // providers: [
-  //   {
-  //     provide: APP_INTERCEPTOR,
-  //     useClass: UserResponseInterceptor
-  //   }
-  // ]
+  providers: [
+    SuperAdminSeeder,
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: UserResponseInterceptor
+    // }
+  ]
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -4,12 +4,18 @@ import { Follower } from './entities/follower.entity';
 import { CreateFollowerInput } from './dto/create-follower.input';
 import { UpdateFollowerInput } from './dto/update-follower.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/user/guard/auth.guard';
+import { RolesGuard } from 'src/auth/guards/role.guard';
+import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
+import { RoleEnum } from 'src/core/enums/role.enum';
 
 @Resolver(() => Follower)
 export class FollowersResolver {
-  constructor(private readonly followersService: FollowersService) { }
+  constructor(private readonly followersService: FollowersService) {}
 
   @Mutation(() => Follower, { name: 'followVendor' })
+  @UseGuards(AuthGuard)
   createFollower(
     @Args('followVendor') createFollowerInput: CreateFollowerInput,
   ) {

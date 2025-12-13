@@ -7,7 +7,7 @@ import { RegisterInput } from './dto/register.input';
 
 @Resolver(() => User)
 export class AuthResolver {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Mutation(() => User)
   login(@Args('loginInput') loginInput: LoginInput) {
@@ -19,6 +19,8 @@ export class AuthResolver {
     @Args('registerInput', { type: () => RegisterInput })
     registerInput: RegisterInput,
   ) {
+    console.log('testing the register', registerInput);
+
     return this.authService.register(registerInput);
   }
   @Mutation(() => User)

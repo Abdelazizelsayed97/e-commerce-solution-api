@@ -1,26 +1,27 @@
 import DataLoader from 'dataloader';
-import { DataSource } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
-import { User } from 'src/user/entities/user.entity';
 
-export const VendorUserLoader = (dataSource: DataSource) => {
-  return new DataLoader<string, User | null>(
-    async (vendorIds: readonly string[]) => {
-      const vendors = await dataSource
-        .getRepository(Vendor)
+export function VendorLoader(vendorRepo: Repository<Vendor>) {
+  return new DataLoader<string, Vendor | null>(
+    async (ids: readonly string[]) => {
+      console.log('VendorLoader - ids', ids);
+      const data = await vendorRepo
         .createQueryBuilder('vendor')
-        .where('vendor.id IN (:...vendorIds)', { vendorIds: [...vendorIds] })
         .leftJoinAndSelect('vendor.user', 'user')
+        .where('vendor.id IN (:...ids)', { ids })
         .getMany();
+    
+      // const data = await vendorRepo.find({
+      //   where: { id: In(ids as string[]) },
+      // });
 
-      const vendorMap = new Map<string, User>();
-      vendors.forEach((vendor) => {
-        if (vendor.user) {
-          vendorMap.set(vendor.id, vendor.user);
-        }
-      });
+      const vendorMap = new Map<string, Vendor>();
+      for (const vendor of data) {
+        vendorMap.set(vendor.id, vendor);
+      }
 
-      return vendorIds.map((id) => vendorMap.get(id) || null);
+      return ids.map((id) => vendorMap.get(id) ?? null);
     },
   );
-};
+}

@@ -7,6 +7,8 @@ import { UserService } from 'src/user/user.service';
 export class AuthService {
   constructor(private readonly userService: UserService) {}
   async register(registerInput: RegisterInput) {
+    console.log('testing the register', registerInput);
+
     return await this.userService.create(registerInput);
   }
 

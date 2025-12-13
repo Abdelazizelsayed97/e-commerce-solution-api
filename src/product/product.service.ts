@@ -2,17 +2,21 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { PaginatedProduct } from './entities/paginated.product';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { Follower } from 'src/followers/entities/follower.entity';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productsRepository: Repository<Product>,
+    @InjectRepository(Follower)
+    private followersRepository: Repository<Follower>,
   ) {}
+
   async AddProduct(createProductInput: CreateProductInput) {
     const isExist = await this.productsRepository.findOne({
       where: {
@@ -33,11 +37,11 @@ export class ProductService {
 
   async findAll(
     paginate: PaginationInput,
-    filter?: boolean,
+    SortByPurchuse?: boolean,
   ): Promise<PaginatedProduct> {
     const skip = (paginate.page - 1) * paginate.limit;
 
-    if (filter) {
+    if (SortByPurchuse) {
       const [items, totalItems] = await this.productsRepository.findAndCount({
         relations: {
           vendor: {
@@ -66,11 +70,85 @@ export class ProductService {
       skip,
       take: paginate.limit,
       relations: {
+        vendor: true,
+      },
+    });
+
+    return {
+      items,
+      pagination: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+        currentPage: paginate.page,
+      },
+    };
+  }
+  async getVendorProducts(vendorId: string, paginate: PaginationInput) {
+    const skip = (paginate.page - 1) * paginate.limit;
+    const limit = paginate.limit;
+    const [items, count] = await this.productsRepository.findAndCount({
+      where: { vendor: { id: vendorId } },
+      skip,
+      take: limit,
+      order: { addedAt: 'DESC' },
+      relations: {
         vendor: {
           user: true,
           products: true,
         },
       },
+    });
+
+    return {
+      items: items,
+      pagination: {
+        totalItems: count,
+        itemCount: items.length,
+        itemsPerPage: limit,
+        totalPages: Math.ceil(count / limit),
+        currentPage: paginate.page,
+      },
+    };
+  }
+
+  async getFollowedVendorProducts(
+    userId: string,
+    paginate: PaginationInput,
+  ): Promise<PaginatedProduct> {
+    const followedVendors = await this.followersRepository.find({
+      where: { follower: { id: userId } },
+      relations: { vendor: true },
+    });
+
+    if (!followedVendors.length) {
+      return {
+        items: [],
+        pagination: {
+          totalItems: 0,
+          itemCount: 0,
+          itemsPerPage: paginate.limit,
+          totalPages: 0,
+          currentPage: paginate.page,
+        },
+      };
+    }
+
+    const vendorIds = followedVendors.map((f) => f.vendor.id);
+    const skip = (paginate.page - 1) * paginate.limit;
+
+    const [items, totalItems] = await this.productsRepository.findAndCount({
+      where: { vendor: { id: In(vendorIds) } },
+      relations: {
+        vendor: {
+          user: true,
+          products: true,
+        },
+      },
+      skip,
+      take: paginate.limit,
+      order: { addedAt: 'DESC' },
     });
 
     return {

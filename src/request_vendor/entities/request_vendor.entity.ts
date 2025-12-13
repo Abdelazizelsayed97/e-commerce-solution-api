@@ -15,6 +15,12 @@ export class RequestVendor {
   // @Field(() => Vendor)
   @OneToOne(() => Vendor, (vendor) => vendor.request)
   vendor: Vendor;
+
+  @Field(()=> String,{nullable:true})
+  @Column({
+    nullable:true
+  })
+  rejectMessage?:string
   @Field(() => GraphQLTimestamp)
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: number;

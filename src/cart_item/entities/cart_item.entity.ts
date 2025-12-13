@@ -23,9 +23,9 @@ export class CartItem {
   @ManyToOne(() => Product)
   product: Product;
 
-  @Field(() => Vendor, { nullable: true })
+  @Field(() => Vendor)
   @ManyToOne(() => Vendor)
-  vendor?: Vendor;
+  vendor: Vendor;
 
   @Field(() => Float)
   @Column()

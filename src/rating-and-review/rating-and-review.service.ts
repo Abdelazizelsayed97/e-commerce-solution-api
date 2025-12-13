@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateRatingAndReviewInput } from './dto/create-rating-and-review.input';
 import { UpdateRatingAndReviewInput } from './dto/update-rating-and-review.input';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,15 +9,32 @@ import { UserService } from 'src/user/user.service';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
 import { User } from 'src/user/entities/user.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { Order } from 'src/order/entities/order.entity';
 
 @Injectable()
 export class RatingAndReviewService {
   constructor(
     @InjectRepository(RatingAndReview)
     private reviewsRepository: Repository<RatingAndReview>,
+    @InjectRepository(Order)
+    private ordersRepository: Repository<Order>,
     private usersService: UserService,
     private productsService: ProductService,
   ) {}
+
+  /**
+   * Verify if user has purchased the product
+   */
+  private async verifyUserPurchase(userId: string, productId: string): Promise<boolean> {
+    const order = await this.ordersRepository.findOne({
+      where: {
+        client: { id: userId },
+        orderItems: { product: { id: productId } }
+      },
+      relations: ['orderItems', 'orderItems.product']
+    });
+    return !!order;
+  }
 
   async addReview(
     userId: string,
@@ -32,6 +49,12 @@ export class RatingAndReviewService {
     const product = await this.productsService.findOne(productId);
     if (!product) {
       throw new NotFoundException('Product not found');
+    }
+
+    // Verify user has purchased this product
+    const hasPurchased = await this.verifyUserPurchase(userId, productId);
+    if (!hasPurchased) {
+      throw new ForbiddenException('You can only review products you have purchased');
     }
 
     const review = this.reviewsRepository.create({

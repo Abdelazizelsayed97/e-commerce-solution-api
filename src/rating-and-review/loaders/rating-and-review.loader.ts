@@ -7,13 +7,17 @@ export function RatingAndReviewLoader(
 ) {
   return new DataLoader<string, RatingAndReview>(async (ids) => {
     const ratings = await ratingAndReviewRepo.find({
-      where: { id: In(ids as string[]) },
-      relations: {
-        user: true,
+      where: {
         product: {
-          vendor: true,
+          id: In(ids as string[]),
         },
       },
+      // relations: {
+      //   user: true,
+      //   product: {
+      //     vendor: true,
+      //   },
+      // },
     });
 
     const map = new Map(ratings.map((r) => [r.id, r]));

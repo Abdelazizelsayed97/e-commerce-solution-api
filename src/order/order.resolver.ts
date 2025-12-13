@@ -3,7 +3,6 @@ import {
   Query,
   Mutation,
   Args,
-  Context,
   Parent,
   ResolveField,
 } from '@nestjs/graphql';
@@ -12,7 +11,7 @@ import { Order } from './entities/order.entity';
 import { CreateOrderInput } from './dto/create-order.input';
 import { UpdateOrderInput } from './dto/update-order.input';
 import { CreateOrderResponse } from './dto/create-order-response';
-import {  UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { PaymentService } from 'src/payment/payment.service';
 import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
 import { RoleEnum } from 'src/core/enums/role.enum';
@@ -51,8 +50,7 @@ export class OrderResolver {
     try {
       if (this.paymentService) {
         console.log('Creating payment session...');
-        const session =
-          await this.paymentService.createPayment(order.id);
+        const session = await this.paymentService.createPayment(order.id);
         paymentUrl = session.url || undefined;
       }
     } catch (error) {
@@ -89,6 +87,7 @@ export class OrderResolver {
   }
 
   @Mutation(() => Order, { name: 'cancelOrder' })
+  @UseGuards(AuthGuard)
   cancelOrder(@Args('updateOrderInput') updateOrderInput: UpdateOrderInput) {
     return this.orderService.cancelOrder(updateOrderInput);
   }

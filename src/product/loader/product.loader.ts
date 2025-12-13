@@ -7,7 +7,9 @@ export const productLoader = (dataSource: DataSource) => {
     const products = await dataSource
       .getRepository(Product)
       .createQueryBuilder('product')
-      .whereInIds(productIds)
+      .whereInIds(productIds).
+      leftJoinAndSelect('product.vendor', 'vendor')
+      .leftJoinAndSelect('vendor.user', 'user')
       .getMany();
     const productMap: { [key: string]: Product } = {};
     products.forEach((product) => {

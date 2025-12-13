@@ -15,10 +15,11 @@ import DataLoader from 'dataloader';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { DataSource } from 'typeorm';
 import { cartItemLoader } from './loaders/cart.items.loader';
-import { UseInterceptors } from '@nestjs/common';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { UserResponseInterceptor } from 'src/core/helper/interceptors/user.responce.interceptor';
 import { Product } from 'src/product/entities/product.entity';
 import { productLoader } from 'src/product/loader/product.loader';
+import { AuthGuard } from 'src/user/guard/auth.guard';
 
 @UseInterceptors(UserResponseInterceptor)
 @Resolver(() => CartItem)
@@ -36,6 +37,7 @@ export class CartItemResolver {
   }
 
   @Mutation(() => CartItem)
+  @UseGuards(AuthGuard)
   addToCart(
     @Args('createCartItemInput') createCartItemInput: CreateCartItemInput,
   ) {
@@ -53,6 +55,7 @@ export class CartItemResolver {
   }
 
   @Mutation(() => CartItem)
+  @UseGuards(AuthGuard)
   updateCartItem(
     @Args('id', { type: () => String }) id: string,
     @Args('updateCartItemInput') updateCartItemInput: UpdateCartItemInput,
@@ -61,11 +64,13 @@ export class CartItemResolver {
   }
 
   @Mutation(() => CartItem)
+  @UseGuards(AuthGuard)
   removeCartItem(@Args('id', { type: () => String }) id: string) {
     return this.cartItemService.remove(id);
   }
 
   @Mutation(() => String)
+  @UseGuards(AuthGuard)
   clearCart(@Args('cartId', { type: () => String }) cartId: string) {
     return this.cartItemService.removeAllFromCart(cartId);
   }

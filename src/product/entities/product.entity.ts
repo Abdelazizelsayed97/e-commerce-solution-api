@@ -23,9 +23,9 @@ export class Product {
   @Field(() => String)
   @Column('text')
   type: string;
-  @Field(() => Vendor)
-  @ManyToOne(() => Vendor, (vendor) => vendor.products)
-  vendor: Vendor;
+  @Field(() => Vendor, { nullable: true })
+  @ManyToOne(() => Vendor, (vendor) => vendor.products, { nullable: true })
+  vendor: Vendor | null;
   @Field(() => Int)
   @Column()
   price: number;
@@ -50,4 +50,8 @@ export class Product {
   @Field(() => Int)
   @Column('int', { default: 0 })
   purchuseCount: number;
+
+  @Field(() => String, { nullable: true })
+  @Column({ type: 'varchar', length: 255, default: 'Uncategorized', nullable: true })
+  category: string;
 }

@@ -16,19 +16,22 @@ type RatingAndReview {
   comment: String!
   user: User!
   product: Product!
+  vendor: Vendor
 }
 
 type Product {
   id: String!
   name: String!
   type: String!
-  vendor: Vendor!
+  vendor: Vendor
   price: Int!
   inStock: Int!
   reviews: [RatingAndReview!]
   addedAt: Timestamp!
   updatedAt: Timestamp!
   purchuseCount: Int!
+  category: String
+  user: User
 }
 
 """
@@ -42,7 +45,7 @@ type CartItem {
   cart: Cart!
   productId: String!
   product: Product!
-  vendor: Vendor
+  vendor: Vendor!
   quantity: Float!
   totlePrice: Float!
   cartItem: CartItem!
@@ -55,7 +58,7 @@ type Cart {
   updateAt: Timestamp
   orders: [Order!]
   cartItems: [CartItem!]
-  cartItemsLoader: Cart!
+  cartItemsLoader: User!
 }
 
 type OrderItem {
@@ -108,6 +111,7 @@ enum paymentMethod {
 type RequestVendor {
   id: String!
   status: String!
+  rejectMessage: String
   createdAt: Timestamp!
   updatedAt: Timestamp!
 }
@@ -168,6 +172,7 @@ type User {
   id: String!
   name: String!
   email: String!
+  password: String!
   token: String!
   role: role!
   address: [Address!]
@@ -263,7 +268,8 @@ type Query {
   user(id: String!): User!
   me: User!
   cartById(id: String!): Cart!
-  allCarts: [Cart!]!
+  cartByUserId(user_Id: String!): Cart!
+  allCarts(paginate: PaginationInput): [Cart!]!
   cartTotal(id: String!): Float!
   notifications(paginationInput: Int): [Notification!]!
   userOrders(userId: String!): [Order!]!
@@ -276,7 +282,10 @@ type Query {
   cartItem(id: String!): CartItem!
   vendors(paginate: PaginationInput!): VendorPaginated!
   vendor(id: String!): Vendor!
+  mostPopularVendors(paginate: PaginationInput): [Vendor!]!
   products(paginate: PaginationInput, filter: Boolean): PaginatedProduct!
+  followedVendorProducts(paginate: PaginationInput): PaginatedProduct!
+  vendorProducts(vendorId: String!, paginate: PaginationInput): PaginatedProduct!
   product(id: String!): Product!
   fcm(id: String!): Fcm!
   getAllUserAddresses(paginate: PaginationInput): PaginatedAddress!
@@ -298,6 +307,9 @@ input SearchInput {
   page: Int
   limit: Int
   searchKey: String!
+  category: String
+  minPrice: Int
+  maxPrice: Int
 }
 
 type Mutation {
@@ -334,7 +346,7 @@ type Mutation {
   updateAddress(updateAddressInput: UpdateAddressInput!): Address!
   removeAddress(id: String!): Address!
   createRequestVendor(createRequestVendorInput: CreateRequestVendorInput!): RequestVendor!
-  aproveRequestVendor(id: String!): RequestVendor!
+  approveRequestVendor(id: String!): RequestVendor!
   rejectRequestVendor(id: String!, message: String!): RequestVendor!
   createRatingAndReview(createRatingAndReviewInput: CreateRatingAndReviewInput!): RatingAndReview!
   updateRatingAndReview(updateRatingAndReviewInput: UpdateRatingAndReviewInput!): RatingAndReview!
@@ -453,6 +465,7 @@ input CreateProductInput {
   vendorId: String!
   stock: Int!
   price: Int!
+  category: String
 }
 
 input UpdateProductInput {
@@ -461,6 +474,7 @@ input UpdateProductInput {
   vendorId: String
   stock: Int
   price: Int
+  category: String
   id: String!
 }
 

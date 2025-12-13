@@ -10,7 +10,6 @@ import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { PaginatedRequestVendor } from './entities/request.vendor.paginate';
 import { RoleEnum } from 'src/core/enums/role.enum';
 
-
 @Injectable()
 export class RequestVendorService {
   constructor(
@@ -19,7 +18,7 @@ export class RequestVendorService {
     @InjectRepository(Vendor)
     private vendorRepository: Repository<Vendor>,
     private readonly userService: UserService,
-  ) { }
+  ) {}
 
   async requestBeVendor(createRequestVendorInput: CreateRequestVendorInput) {
     const user = await this.userService.findOneById(
@@ -78,13 +77,17 @@ export class RequestVendorService {
     if (!request) {
       throw new NotFoundException('request not found');
     }
-    Object.assign(request.vendor, { isVerfied: true });
-    await this.vendorRepository.save(request.vendor);
+    if (request.status === RequestVendorEnum.approve) {
+      throw new NotFoundException('request already approved');
+    }
+
+    Object.assign(request.vendor.isVerfied, true);
+    await this.vendorRepository.save(request);
     const updaterequest = await this.requestVendorRepository.update(
       request.id,
       {
         id: id,
-        status: RequestVendorEnum.approve,
+        status: RequestVendorEnum.approve,  
       },
     );
     const user = await this.userService.findOneById(request.vendor.user.id);
@@ -104,14 +107,10 @@ export class RequestVendorService {
       throw new NotFoundException('request not found');
     }
 
-    await this.requestVendorRepository.update(request.id, {
-      status: RequestVendorEnum.reject,
-    });
-    this.removeRequest(id);
-    return {
-      message: message,
-      status: RequestVendorEnum.reject,
-    };
+    request.status = RequestVendorEnum.reject;
+    request.rejectMessage = message;
+    await this.requestVendorRepository.save(request);
+    return request;
   }
   async findAll(paginate: PaginationInput): Promise<PaginatedRequestVendor> {
     console.log('paginate', paginate);

@@ -5,7 +5,7 @@ import { Cart } from '../entities/cart.entity';
 export const cartLoader = (dataSource: DataSource) => {
   return new DataLoader<string, Cart>(async (ids: string[]) => {
     const cart = await dataSource.getRepository(Cart).find({
-      relations: ['cartItems', 'cartItems.product', 'cartItems.vendor', 'user'],
+      // relations: ['cartItems', 'cartItems.product', 'cartItems.vendor', 'user'],
       where: { id: In(ids) },
     });
     console.log('ca-----rt', cart);

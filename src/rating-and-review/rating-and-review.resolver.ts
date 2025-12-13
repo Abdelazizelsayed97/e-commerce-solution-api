@@ -1,4 +1,12 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { RatingAndReviewService } from './rating-and-review.service';
 import { RatingAndReview } from './entities/rating-and-review.entity';
 import { CreateRatingAndReviewInput } from './dto/create-rating-and-review.input';
@@ -6,19 +14,35 @@ import { UpdateRatingAndReviewInput } from './dto/update-rating-and-review.input
 import type { Request } from 'express';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { User } from 'src/user/entities/user.entity';
+import DataLoader from 'dataloader';
+import { Product } from 'src/product/entities/product.entity';
+import { Vendor } from 'src/vendor/entities/vendor.entity';
+import { DataSource } from 'typeorm';
+import { productLoader } from 'src/product/loader/product.loader';
+import { UserLoader } from 'src/user/loader/users.loader';
+import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
 
 @Resolver(() => RatingAndReview)
 export class RatingAndReviewResolver {
+  productLoader: DataLoader<string, Product>;
+  userLoader: DataLoader<string, User>;
+  vendorLoader: DataLoader<string, Vendor | null>;
   constructor(
     private readonly ratingAndReviewService: RatingAndReviewService,
-  ) {}
+    dataSource: DataSource,
+  ) {
+    this.productLoader = productLoader(dataSource);
+    this.userLoader = UserLoader(dataSource.getRepository(User));
+    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
+  }
 
   @Mutation(() => RatingAndReview)
   createRatingAndReview(
     request: Request,
     @Args('createRatingAndReviewInput')
     createRatingAndReviewInput: CreateRatingAndReviewInput,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     return this.ratingAndReviewService.addReview(
       user.id,
@@ -27,14 +51,13 @@ export class RatingAndReviewResolver {
     );
   }
 
-  @Query(() => [RatingAndReview], { name: 'ratingAndReview',nullable: true })
+  @Query(() => [RatingAndReview], { name: 'ratingAndReview', nullable: true })
   findAll(
     @Args('productId', { type: () => String }) productId: string,
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate?: PaginationInput,
-
   ) {
-    return this.ratingAndReviewService.getProductReviews(productId,paginate);
+    return this.ratingAndReviewService.getProductReviews(productId, paginate);
   }
 
   @Mutation(() => RatingAndReview)
@@ -56,5 +79,21 @@ export class RatingAndReviewResolver {
     @CurrentUser() user: any,
   ) {
     return this.ratingAndReviewService.deleteReview(user.id, id);
+  }
+  @ResolveField(() => Product)
+  async product(@Parent() review: RatingAndReview) {
+    if (!review.product) return null;
+    return this.productLoader.load(review.product.id);
+  }
+
+  @ResolveField(() => User)
+  async user(@Parent() review: RatingAndReview) {
+    if (!review.user) return null;
+    return this.userLoader.load(review.user.id);
+  }
+  @ResolveField(() => Vendor, { nullable: true })
+  async vendor(@Parent() review: RatingAndReview) {
+    if (!review.product.vendor) return null;
+    return this.vendorLoader.load(review.product.vendor.id);
   }
 }

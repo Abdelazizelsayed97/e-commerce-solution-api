@@ -1,16 +1,36 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
-
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
-import { PaginatedResponse } from 'src/core/helper/pagination/pagination.output';
 import { PaginatedUsers } from './entities/paginated.user';
+import { UseGuards } from '@nestjs/common';
+import { RolesGuard } from 'src/auth/guards/role.guard';
+import { RoleEnum } from 'src/core/enums/role.enum';
+import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
+import { AuthGuard } from './guard/auth.guard';
+import { Vendor } from 'src/vendor/entities/vendor.entity';
+import DataLoader from 'dataloader';
+import { DataSource } from 'typeorm';
+import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
 
 @Resolver(() => User)
 export class UserResolver {
-  constructor(private readonly userService: UserService) { }
+  vendorLoader: DataLoader<string, Vendor | null>;
+  constructor(
+    private readonly userService: UserService,
+    dataSource: DataSource,
+  ) {
+    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
+  }
 
   @Query(() => PaginatedUsers, { name: 'users' })
   findAll(
@@ -27,11 +47,14 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard)
   updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
     return this.userService.update(updateUserInput.id, updateUserInput);
   }
 
   @Mutation(() => User)
+  @Roles(RoleEnum.superAdmin)
+  @UseGuards(AuthGuard, RolesGuard)
   removeUser(@Args('id', { type: () => String }) id: string) {
     return this.userService.remove(id);
   }
@@ -41,5 +64,12 @@ export class UserResolver {
       return user;
     }
   }
-  
+
+  @ResolveField(() => Vendor)
+  async vendor(@Parent() user: User) {
+    console.log('useruseruseruser', user);
+    if (!user.vendor) return null;
+    const vendor = await this.vendorLoader.load(user.vendor?.id ?? '');
+    return vendor;
+  }
 }

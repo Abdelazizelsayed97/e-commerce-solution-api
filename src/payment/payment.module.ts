@@ -6,7 +6,7 @@ import { User } from 'src/user/entities/user.entity';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { TransactionModule } from 'src/transaction/transaction.module';
 import { CartModule } from 'src/cart/cart.module';
-import { OrderModule } from 'src/order/order.module';
+
 import { Module } from '@nestjs/common';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { VendorTransaction } from 'src/transaction/entities/vendor-transaction.entity';

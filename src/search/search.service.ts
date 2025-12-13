@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
-import { ILike, Repository } from 'typeorm';
+import { ILike, Repository, Between } from 'typeorm';
 import { SearchInput } from './dto/search.input';
 import { PaginatedSearch } from './entities/search.entity';
 
@@ -16,13 +16,27 @@ export class SearchService {
   ) {}
 
   async search(searchInput: SearchInput): Promise<PaginatedSearch> {
-    const { searchKey, page, limit } = searchInput;
+    const { searchKey, page, limit, category, minPrice, maxPrice } = searchInput;
     const skip = (page - 1) * limit;
-    console.log('searchKey', searchKey);
+
+    // Build where clause for products
+    const productWhere: any = { name: ILike(`%${searchKey}%`) };
+    if (category) {
+      productWhere.category = category;
+    }
+
+    // Handle price filtering
+    if (minPrice !== undefined && maxPrice !== undefined) {
+      productWhere.price = Between(minPrice, maxPrice);
+    } else if (minPrice !== undefined) {
+      productWhere.price = Between(minPrice, Number.MAX_SAFE_INTEGER);
+    } else if (maxPrice !== undefined) {
+      productWhere.price = Between(0, maxPrice);
+    }
 
     const [products, productsCount] = await this.productRepository.findAndCount(
       {
-        where: { name: ILike(`%${searchKey}%`) },
+        where: productWhere,
       },
     );
 
