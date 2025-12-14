@@ -30,7 +30,7 @@ export class PaymentController {
     const sig = req.headers['stripe-signature'];
 
     try {
-      await this.paymentService.verifyAndHandleReturn(rawBody, sig);
+      await this.paymentService.handleRefundTransactions(rawBody, sig);
       return { received: true };
     } catch (error) {
       throw new BadRequestException(`Return error: ${error.message}`);

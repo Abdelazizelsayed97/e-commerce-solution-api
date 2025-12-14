@@ -54,4 +54,8 @@ export class Product {
   @Field(() => String, { nullable: true })
   @Column({ type: 'varchar', length: 255, default: 'Uncategorized', nullable: true })
   category: string;
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  isWishListed: boolean;
 }

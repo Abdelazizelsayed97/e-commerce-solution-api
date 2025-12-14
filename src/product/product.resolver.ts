@@ -92,6 +92,21 @@ export class ProductResolver {
     return this.productService.findOne(id);
   }
 
+  @Query(() => PaginatedProduct, { name: 'searchProducts' })
+  async searchProducts(
+    @Args('searchTerm', { type: () => String }) searchTerm: string,
+    @Args('paginate', { type: () => PaginationInput, nullable: true })
+    paginate: PaginationInput,
+    @Args('category', { type: () => String, nullable: true })
+    category?: string,
+    @Args('minPrice', { type: () => Number, nullable: true })
+    minPrice?: number,
+    @Args('maxPrice', { type: () => Number, nullable: true })
+    maxPrice?: number,
+  ): Promise<PaginatedProduct> {
+    return this.productService.searchProducts(searchTerm, paginate, category, minPrice, maxPrice);
+  }
+
   @Roles(RoleEnum.vendor, RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => Product)

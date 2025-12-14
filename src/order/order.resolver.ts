@@ -21,31 +21,37 @@ import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
 import { User } from 'src/user/entities/user.entity';
 import DataLoader from 'dataloader';
 import { DataSource } from 'typeorm';
-import { OrderLoader } from './loaders/order.loader';
 import { UserLoader } from 'src/user/loader/users.loader';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { cartLoader } from 'src/cart/loaders/cart.loader';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { PaginatedOrder } from './entities/paginated.order';
+import { OrderItem } from './entities/order-item.entity';
+import { OrderItemLoader } from './loaders/order-item.loader';
+import { CurrentUser } from 'src/core/helper/decorators/current.user';
 
 @Resolver(() => Order)
 export class OrderResolver {
-  orderLoader: DataLoader<string, Order>;
   userLoader: DataLoader<string, User>;
   cartLoader: DataLoader<string, Cart>;
+  orderItemLoader: DataLoader<string, OrderItem[]>;
   constructor(
     private dataSource: DataSource,
     private readonly orderService: OrderService,
     private readonly paymentService?: PaymentService,
   ) {
-    this.orderLoader = OrderLoader(dataSource.getRepository(Order));
     this.userLoader = UserLoader(dataSource.getRepository(User));
     this.cartLoader = cartLoader(dataSource);
+    this.orderItemLoader = OrderItemLoader(dataSource.getRepository(OrderItem));
   }
 
+  @UseGuards(AuthGuard)
   @Mutation(() => CreateOrderResponse)
   async createOrder(
     @Args('createOrderInput') createOrderInput: CreateOrderInput,
+    @CurrentUser() user: User,
   ) {
-    const order = await this.orderService.createOrder(createOrderInput);
+    const order = await this.orderService.createOrder(createOrderInput, user);
     let paymentUrl: string | undefined;
     try {
       if (this.paymentService) {
@@ -62,23 +68,34 @@ export class OrderResolver {
     };
   }
 
-  @Query(() => [Order], { name: 'userOrders' })
-  getUserOrders(@Args('userId', { type: () => String }) userId: string) {
-    return this.orderService.getAllUserOrders(userId);
+  @Query(() => PaginatedOrder, { name: 'userOrders' })
+  getUserOrders(
+    @Args('userId', { type: () => String }) userId: string,
+    @Args('paginate', { type: () => PaginationInput })
+    paginate: PaginationInput,
+  ) {
+    return this.orderService.getAllUserOrders(userId, paginate);
   }
 
-  @Query(() => [Order], { name: 'allOrders' })
+  @Query(() => PaginatedOrder, { name: 'allOrders' })
   @Roles(RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
-  getAllOrders() {
-    return this.orderService.getAllOrders();
+  getAllOrders(
+    @Args('paginate', { type: () => PaginationInput })
+    paginate: PaginationInput,
+  ) {
+    return this.orderService.getAllOrders(paginate);
   }
 
-  @Query(() => [Order], { name: 'vendorOrders' })
+  @Query(() => PaginatedOrder, { name: 'vendorOrders' })
   @Roles(RoleEnum.vendor, RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
-  getVendorOrders(@Args('vendorId', { type: () => String }) vendorId: string) {
-    return this.orderService.getOrdersByVendor(vendorId);
+  getVendorOrders(
+    @Args('vendorId', { type: () => String }) vendorId: string,
+    @Args('paginate', { type: () => PaginationInput })
+    paginate: PaginationInput,
+  ) {
+    return this.orderService.getOrdersByVendor(vendorId, paginate);
   }
 
   @Query(() => Order, { name: 'order' })
@@ -103,18 +120,20 @@ export class OrderResolver {
     return this.orderService.updateOrderStatus(orderId, status);
   }
   @ResolveField(() => User)
-  client(@Parent() order) {
-    console.log('userLoader', order);
-    return this.userLoader.load(order.clientId);
+  client(@Parent() order: Order) {
+    if (!order.client) return null;
+    return this.userLoader.load(order.client.id);
   }
-  @ResolveField(() => Order)
-  order(@Parent() order) {
-    console.log('orderLoader', order);
-    return this.orderLoader.load(order.id);
-  }
+
   @ResolveField(() => Cart)
-  cart(@Parent() order) {
-    console.log('cartLoader', order);
-    return this.cartLoader.load(order.cartId);
+  cart(@Parent() order: Order) {
+    if (!order.cart) return null;
+    return this.cartLoader.load(order.cart.id);
+  }
+
+  @ResolveField(() => [OrderItem], { nullable: true })
+  async orderItems(@Parent() order: Order) {
+    if (!order.id) return null;
+    return this.orderItemLoader.load(order.id);
   }
 }

@@ -73,7 +73,7 @@ export class VendorResolver {
 
   @ResolveField(() => User)
   user(@Parent() vendor: Vendor) {
-    console.log(vendor.id);
-    return this.vendorLoader.load(vendor.id);
+    if (!vendor.user) return null;
+    return this.userLoader.load(vendor.user.id);
   }
 }

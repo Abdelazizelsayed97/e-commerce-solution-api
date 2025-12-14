@@ -4,13 +4,16 @@ import { UpdateOrderInput } from './dto/update-order.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
-import { OrderItem } from './entities/order-item.entity'
+import { OrderItem } from './entities/order-item.entity';
 
 import { Cart } from 'src/cart/entities/cart.entity';
 
 import { Product } from 'src/product/entities/product.entity';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { PaginatedOrder } from './entities/paginated.order';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class OrderService {
@@ -23,10 +26,10 @@ export class OrderService {
     private readonly cartRepository: Repository<Cart>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-  ) { }
+  ) {}
 
-  async createOrder(createOrderInput: CreateOrderInput) {
-
+  
+  async createOrder(createOrderInput: CreateOrderInput, user: User) {
     const cart = await this.cartRepository.findOne({
       where: { id: createOrderInput.cartId },
       relations: ['cartItems', 'cartItems.product', 'cartItems.vendor'],
@@ -35,15 +38,17 @@ export class OrderService {
     if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
       throw new BadRequestException('Cart is empty or does not exist');
     }
- let totalAmount = 0
+    let totalAmount = 0;
 
     for (const cartItem of cart.cartItems) {
-      totalAmount+= cartItem.totlePrice
+      totalAmount += cartItem.totlePrice;
       const product = await this.productRepository.findOne({
         where: { id: cartItem.product.id },
       });
       if (!product) {
-        throw new BadRequestException(`Product ${cartItem.product.id} not found`);
+        throw new BadRequestException(
+          `Product ${cartItem.product.id} not found`,
+        );
       }
       if (product.inStock < cartItem.quantity) {
         throw new BadRequestException(
@@ -52,17 +57,16 @@ export class OrderService {
       }
     }
 
-
-    const existingOrder = await this.orderRepository.findOne({
-      where: { cart: { id: createOrderInput.cartId } },
-    });
-    if (existingOrder && existingOrder.paymentStatus === OrderPaymentStatus.paid) {
-      throw new BadRequestException('Order already exists for this cart');
-    }
+    // const existingOrder = await this.orderRepository.findOne({
+    //   where: { cart: { id: createOrderInput.cartId } },
+    // });
+    // if (existingOrder && existingOrder.paymentStatus === OrderPaymentStatus.paid) {
+    //   throw new BadRequestException('Order already exists for this cart');
+    // }
 
     const now = Date.now();
     const order = this.orderRepository.create({
-      client: { id: createOrderInput.clientId },
+      client: user,
       cart: { id: createOrderInput.cartId },
       totalAmount: totalAmount,
       paymentStatus: OrderPaymentStatus.pending,
@@ -75,11 +79,10 @@ export class OrderService {
 
     const savedOrder = await this.orderRepository.save(order);
 
-
     const orderItems: OrderItem[] = [];
     for (const cartItem of cart.cartItems) {
       const orderItem = this.orderItemRepository.create({
-        order: savedOrder,
+        // order: savedOrder,
         product: cartItem.product,
         vendor: cartItem.vendor,
         quantity: cartItem.quantity,
@@ -106,31 +109,60 @@ export class OrderService {
     }
 
     if (order.paymentStatus === OrderPaymentStatus.paid) {
-      throw new BadRequestException('Cannot cancel a paid order. Please request a refund.');
+      throw new BadRequestException(
+        'Cannot cancel a paid order. Please request a refund.',
+      );
     }
-
 
     if (order.orderItems && order.orderItems.length > 0) {
       await this.orderItemRepository.remove(order.orderItems);
     }
 
-
     await this.orderRepository.remove(order);
     return { message: 'Order cancelled successfully' };
   }
 
-  async getAllUserOrders(userId: string) {
-    return this.orderRepository.find({
+  async getAllUserOrders(
+    userId: string,
+    paginate: PaginationInput,
+  ): Promise<PaginatedOrder> {
+    const skip = (paginate.page - 1) * paginate.limit;
+
+    const [orders, totalItems] = await this.orderRepository.findAndCount({
       where: { client: { id: userId } },
-      relations: ['client', 'orderItems', 'orderItems.product', 'orderItems.vendor', 'cart'],
+      relations: [
+        'client',
+        'orderItems',
+        'orderItems.product',
+        'orderItems.vendor',
+        'cart',
+      ],
       order: { createdAt: 'DESC' },
+      skip,
+      take: paginate.limit,
     });
+    return {
+      items: orders,
+      pagination: {
+        totalItems,
+        itemCount: orders.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+        currentPage: paginate.page,
+      },
+    };
   }
 
   async getOrderById(id: string) {
     return this.orderRepository.findOne({
       where: { id },
-      relations: ['client', 'orderItems', 'orderItems.product', 'orderItems.vendor', 'cart'],
+      relations: [
+        'client',
+        'orderItems',
+        'orderItems.product',
+        'orderItems.vendor',
+        'cart',
+      ],
     });
   }
 
@@ -148,23 +180,59 @@ export class OrderService {
     return await this.orderRepository.save(order);
   }
 
-  async getAllOrders() {
-    return this.orderRepository.find({
-      relations: ['client', 'orderItems', 'orderItems.product', 'orderItems.vendor', 'cart'],
+  async getAllOrders(paginate: PaginationInput): Promise<PaginatedOrder> {
+    const skip = (paginate.page - 1) * paginate.limit;
+    const [orders, totalItems] = await this.orderRepository.findAndCount({
+      relations: [
+        'client',
+        'orderItems',
+        'orderItems.product',
+        'orderItems.vendor',
+        'cart',
+      ],
       order: { createdAt: 'DESC' },
+      skip,
+      take: paginate.limit,
     });
+    return {
+      items: orders,
+      pagination: {
+        currentPage: paginate.page,
+        totalItems,
+        itemCount: orders.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+      },
+    };
   }
 
-  async getOrdersByVendor(vendorId: string) {
-    return this.orderRepository
-      .createQueryBuilder('order')
-      .leftJoinAndSelect('order.client', 'client')
-      .leftJoinAndSelect('order.cart', 'cart')
-      .leftJoinAndSelect('order.orderItems', 'orderItem')
-      .leftJoinAndSelect('orderItem.product', 'product')
-      .leftJoinAndSelect('orderItem.vendor', 'vendor')
-      .where('vendor.id = :vendorId', { vendorId })
-      .orderBy('order.createdAt', 'DESC')
-      .getMany();
+  async getOrdersByVendor(
+    vendorId: string,
+    paginate: PaginationInput,
+  ): Promise<PaginatedOrder> {
+    const skip = (paginate.page - 1) * paginate.limit;
+    const [orders, totalItems] = await this.orderRepository.findAndCount({
+      where: { orderItems: { vendor: { id: vendorId } } },
+      relations: [
+        'client',
+        'orderItems',
+        'orderItems.product',
+        'orderItems.vendor',
+        'cart',
+      ],
+      order: { createdAt: 'DESC' },
+      skip,
+      take: paginate.limit,
+    });
+    return {
+      items: orders,
+      pagination: {
+        currentPage: paginate.page,
+        totalItems,
+        itemCount: orders.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+      },
+    };
   }
 }

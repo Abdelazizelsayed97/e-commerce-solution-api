@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,7 +8,9 @@ import { PaginatedProduct } from './entities/paginated.product';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Follower } from 'src/followers/entities/follower.entity';
 
-@Injectable()
+@Injectable({
+  scope: Scope.REQUEST,
+})
 export class ProductService {
   constructor(
     @InjectRepository(Product)
@@ -190,6 +192,50 @@ export class ProductService {
     return {
       success: true,
       message: `This action removes a #${id} product`,
+    };
+  }
+
+  async searchProducts(
+    searchTerm: string,
+    paginate: PaginationInput,
+    category?: string,
+    minPrice?: number,
+    maxPrice?: number,
+  ): Promise<PaginatedProduct> {
+    const skip = (paginate.page - 1) * paginate.limit;
+    const query = this.productsRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.vendor', 'vendor')
+      .where('product.name ILIKE :searchTerm', {
+        searchTerm: `%${searchTerm}%`,
+      });
+
+    if (category) {
+      query.andWhere('product.category = :category', { category });
+    }
+
+    if (minPrice !== undefined) {
+      query.andWhere('product.price >= :minPrice', { minPrice });
+    }
+
+    if (maxPrice !== undefined) {
+      query.andWhere('product.price <= :maxPrice', { maxPrice });
+    }
+
+    const [items, totalItems] = await query
+      .skip(skip)
+      .take(paginate.limit)
+      .getManyAndCount();
+
+    return {
+      items,
+      pagination: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+        currentPage: paginate.page,
+      },
     };
   }
 }

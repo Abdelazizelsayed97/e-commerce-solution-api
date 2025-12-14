@@ -20,6 +20,10 @@ import { UserResponseInterceptor } from 'src/core/helper/interceptors/user.respo
 import { Product } from 'src/product/entities/product.entity';
 import { productLoader } from 'src/product/loader/product.loader';
 import { AuthGuard } from 'src/user/guard/auth.guard';
+import { Vendor } from 'src/vendor/entities/vendor.entity';
+import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
+import { CurrentUser } from 'src/core/helper/decorators/current.user';
+import { User } from 'src/user/entities/user.entity';
 
 @UseInterceptors(UserResponseInterceptor)
 @Resolver(() => CartItem)
@@ -27,6 +31,7 @@ export class CartItemResolver {
   cartLoader: DataLoader<string, Cart>;
   cartItemLoader: DataLoader<string, CartItem>;
   productLoader: DataLoader<string, Product>;
+  vendorLoader: DataLoader<string, Vendor | null>;
   constructor(
     private readonly cartItemService: CartItemService,
     private dataSource: DataSource,
@@ -34,19 +39,21 @@ export class CartItemResolver {
     this.cartLoader = cartLoader(dataSource);
     this.cartItemLoader = cartItemLoader(dataSource);
     this.productLoader = productLoader(dataSource);
+    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
   }
 
   @Mutation(() => CartItem)
   @UseGuards(AuthGuard)
   addToCart(
     @Args('createCartItemInput') createCartItemInput: CreateCartItemInput,
+    @CurrentUser() user: User,
   ) {
-    return this.cartItemService.addItemToCart(createCartItemInput);
+    return this.cartItemService.addItemToCart(createCartItemInput, user);
   }
 
   @Query(() => [CartItem], { name: 'cartItems' })
-  findAll(@Args('cartId', { type: () => String }) cartId: string) {
-    return this.cartItemService.findAll(cartId);
+  findAll(@CurrentUser() user: User) {
+    return this.cartItemService.findAll(user);
   }
 
   @Query(() => CartItem, { name: 'cartItem' })
@@ -75,17 +82,26 @@ export class CartItemResolver {
     return this.cartItemService.removeAllFromCart(cartId);
   }
   @ResolveField(() => CartItem)
-  cartItem(@Parent() cartItem) {
-    console.log('cartLoader==++==', cartItem);
+  cartItem(@Parent() cartItem: CartItem) {
+    if (!cartItem.id) return null;
     return this.cartItemLoader.load(cartItem.id);
   }
+
   @ResolveField(() => Cart)
-  cart(@Parent() cartItem) {
-    console.log('cartLoader====', cartItem);
-    return this.cartLoader.load('1211cf5b-f047-4b03-a70f-7c0ea7b1db8a');
+  cart(@Parent() cartItem: CartItem) {
+    if (!cartItem.cart) return null;
+    return this.cartLoader.load(cartItem.cart.id);
   }
+
   @ResolveField(() => Product)
-  product(@Parent() cartItem) {
-    return this.productLoader.load(cartItem.productId);
+  product(@Parent() cartItem: CartItem) {
+    if (!cartItem.product) return null;
+    return this.productLoader.load(cartItem.product.id);
+  }
+
+  @ResolveField(() => Vendor, { nullable: true })
+  vendor(@Parent() cartItem: CartItem) {
+    if (!cartItem.vendor) return null;
+    return this.vendorLoader.load(cartItem.vendor.id);
   }
 }

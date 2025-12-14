@@ -7,12 +7,13 @@ import { EmailModule } from 'src/email/email.module';
 import { Fcm } from 'src/fcm/entities/fcm.entity';
 import { CartModule } from 'src/cart/cart.module';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { WishList } from 'src/product/entities/wish.list.entity';
 
 @Module({
   providers: [UserResolver, UserService],
   exports: [UserService],
   imports: [
-    TypeOrmModule.forFeature([User, Fcm, Wallet]),
+    TypeOrmModule.forFeature([User, Fcm, Wallet, WishList]),
     EmailModule,
     CartModule,
 

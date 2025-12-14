@@ -31,6 +31,7 @@ type Product {
   updatedAt: Timestamp!
   purchuseCount: Int!
   category: String
+  isWishListed: Boolean!
   user: User
 }
 
@@ -41,14 +42,12 @@ scalar Timestamp
 
 type CartItem {
   id: String!
-  cartId: String!
-  cart: Cart!
-  productId: String!
   product: Product!
   vendor: Vendor!
   quantity: Float!
   totlePrice: Float!
   cartItem: CartItem!
+  cart: Cart!
 }
 
 type Cart {
@@ -58,7 +57,6 @@ type Cart {
   updateAt: Timestamp
   orders: [Order!]
   cartItems: [CartItem!]
-  cartItemsLoader: User!
 }
 
 type OrderItem {
@@ -85,7 +83,6 @@ type Order {
   transactionId: String
   cart: Cart!
   orderItems: [OrderItem!]
-  order: Order!
 }
 
 enum OrderStatusEnum {
@@ -168,11 +165,18 @@ type Wallet {
   user: User!
 }
 
+type WishList {
+  id: String!
+  productId: String!
+  user: User!
+  createAt: Timestamp!
+  updateAt: Timestamp!
+}
+
 type User {
   id: String!
   name: String!
   email: String!
-  password: String!
   token: String!
   role: role!
   address: [Address!]
@@ -187,6 +191,7 @@ type User {
   order: [Order!]!
   reviews: [RatingAndReview!]!
   cart: Cart!
+  wishList: [WishList!]
 }
 
 enum role {
@@ -227,6 +232,11 @@ type CreateOrderResponse {
   paymentUrl: String
 }
 
+type PaginatedOrder {
+  items: [Order!]!
+  pagination: PaginationMeta!
+}
+
 type VendorPaginated {
   items: [Vendor!]!
   pagination: PaginationMeta!
@@ -256,6 +266,11 @@ type PaginatedRequestVendor {
   pagination: PaginationMeta!
 }
 
+type PaginatedReview {
+  items: [RatingAndReview!]!
+  pagination: PaginationMeta!
+}
+
 type PaginatedSearch {
   items: [SearchResultUnion!]!
   pagination: PaginationMeta!
@@ -272,13 +287,13 @@ type Query {
   allCarts(paginate: PaginationInput): [Cart!]!
   cartTotal(id: String!): Float!
   notifications(paginationInput: Int): [Notification!]!
-  userOrders(userId: String!): [Order!]!
-  allOrders: [Order!]!
-  vendorOrders(vendorId: String!): [Order!]!
+  userOrders(userId: String!, paginate: PaginationInput!): PaginatedOrder!
+  allOrders(paginate: PaginationInput!): PaginatedOrder!
+  vendorOrders(vendorId: String!, paginate: PaginationInput!): PaginatedOrder!
   order(orderId: String!): Order!
   wallet(id: String!): Wallet!
   transaction(id: String!): Transaction!
-  cartItems(cartId: String!): [CartItem!]!
+  cartItems: [CartItem!]!
   cartItem(id: String!): CartItem!
   vendors(paginate: PaginationInput!): VendorPaginated!
   vendor(id: String!): Vendor!
@@ -287,12 +302,13 @@ type Query {
   followedVendorProducts(paginate: PaginationInput): PaginatedProduct!
   vendorProducts(vendorId: String!, paginate: PaginationInput): PaginatedProduct!
   product(id: String!): Product!
+  searchProducts(searchTerm: String!, paginate: PaginationInput, category: String, minPrice: Float, maxPrice: Float): PaginatedProduct!
   fcm(id: String!): Fcm!
   getAllUserAddresses(paginate: PaginationInput): PaginatedAddress!
   getAllAddressesBoard(paginate: PaginationInput): PaginatedAddress!
   address(id: String!): Address!
   getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
-  ratingAndReview(productId: String!, paginate: PaginationInput): [RatingAndReview!]
+  ratingAndReview(productId: String!, paginate: PaginationInput): PaginatedReview
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
   vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
   search(searchInput: SearchInput!): PaginatedSearch!
@@ -382,20 +398,16 @@ input CreateNotificationInput {
 }
 
 input CreateOrderInput {
-  clientId: String!
   paymentStatus: OrderPaymentStatus!
   paymentMethod: paymentMethod!
   shippingAddressId: String!
-  transactionId: String!
   cartId: String!
 }
 
 input UpdateOrderInput {
-  clientId: String
   paymentStatus: OrderPaymentStatus
   paymentMethod: paymentMethod
   shippingAddressId: String
-  transactionId: String
   cartId: String
   id: String!
 }
@@ -428,17 +440,13 @@ input CreateTransactionInput {
 }
 
 input CreateCartItemInput {
-  cartId: String!
   productId: String!
   quantity: Float!
-  userId: String!
 }
 
 input UpdateCartItemInput {
-  cartId: String
   productId: String
   quantity: Float
-  userId: String
   id: String!
 }
 

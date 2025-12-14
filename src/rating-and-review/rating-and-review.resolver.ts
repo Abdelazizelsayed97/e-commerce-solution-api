@@ -22,6 +22,7 @@ import { DataSource } from 'typeorm';
 import { productLoader } from 'src/product/loader/product.loader';
 import { UserLoader } from 'src/user/loader/users.loader';
 import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
+import { PaginatedReview } from './entities/paginated-review';
 
 @Resolver(() => RatingAndReview)
 export class RatingAndReviewResolver {
@@ -51,7 +52,7 @@ export class RatingAndReviewResolver {
     );
   }
 
-  @Query(() => [RatingAndReview], { name: 'ratingAndReview', nullable: true })
+  @Query(() => PaginatedReview, { name: 'ratingAndReview', nullable: true })
   findAll(
     @Args('productId', { type: () => String }) productId: string,
     @Args('paginate', { type: () => PaginationInput, nullable: true })

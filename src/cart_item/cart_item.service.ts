@@ -11,6 +11,7 @@ import { CartItem } from './entities/cart_item.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class CartItemService {
@@ -25,18 +26,34 @@ export class CartItemService {
     private readonly vendorRepository: Repository<Vendor>,
   ) {}
 
-  async addItemToCart(createCartItemInput: CreateCartItemInput) {
-    const cart = await this.cartRepository.findOne({
-      where: { id: createCartItemInput.cartId },
+  async addItemToCart(createCartItemInput: CreateCartItemInput, user: User) {
+    if (createCartItemInput.quantity <= 0) {
+      throw new BadRequestException('Quantity must be greater than 0');
+    }
+
+    let cart = await this.cartRepository.findOne({
+      where: { user: { id: user.id } },
     });
     if (!cart) {
-      this.cartRepository.create({
-        user: { id: createCartItemInput.cartId },
-      });
+      try {
+        cart = await this.cartRepository.save(
+          this.cartRepository.create({
+            user: { id: user.id },
+          }),
+        );
+      } catch (error) {
+        cart = await this.cartRepository.findOne({
+          where: { user: { id: user.id } },
+        });
+        if (!cart) {
+          throw error;
+        }
+      }
     }
 
     const product = await this.productRepository.findOne({
       where: { id: createCartItemInput.productId },
+      relations: ['vendor'],
     });
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -46,14 +63,12 @@ export class CartItemService {
       createCartItemInput.quantity,
     ]);
     if (product.inStock < createCartItemInput.quantity) {
-      throw new BadRequestException(`Insufficient .`);
+      throw new BadRequestException('Insufficient stock');
     }
 
     const vendor = await this.vendorRepository.findOne({
       where: {
-        user: {
-          id: createCartItemInput.userId,
-        },
+        id: product.vendor?.id,
       },
     });
     if (!vendor) {
@@ -62,42 +77,35 @@ export class CartItemService {
 
     const existingItem = await this.cartItemRepository.findOne({
       where: {
-        cart: { id: createCartItemInput.cartId },
-        product: { id: createCartItemInput.productId },
-        vendor: {
-          user: {
-            id: createCartItemInput.userId,
-          },
-        },
+        cart: { id: cart?.id },
+        product: product,
       },
       relations: ['product'],
     });
+    console.log(['existingItem', existingItem?.quantity]);
 
     if (existingItem) {
-      const newQuantity = createCartItemInput.quantity;
-      if (product.inStock < newQuantity) {
-        console.log('insufficient stock', newQuantity);
-        throw new BadRequestException(`Insufficient stock for this quantity.`);
-      }
-
-      existingItem.quantity = newQuantity;
-      existingItem.totlePrice = existingItem.quantity * product.price;
-      return await this.cartItemRepository.save(existingItem);
+      console.log('insufficient stock', cart);
+      throw new BadRequestException(`Product already exists in cart`);
     }
 
     const cartItem = this.cartItemRepository.create({
-      cart: { id: createCartItemInput.cartId },
+      cart: cart,
       product,
       vendor,
       quantity: createCartItemInput.quantity,
       totlePrice: createCartItemInput.quantity * product.price,
     });
+    console.log('cartItemcartItemcartItem', cartItem);
     return await this.cartItemRepository.save(cartItem);
   }
 
-  async findAll(cartId: string) {
+  async findAll(user: User) {
+    const cart = await this.cartRepository.findOne({
+      where: { user },
+    });
     return await this.cartItemRepository.find({
-      where: { cart: { id: cartId } },
+      where: { cart: { id: cart?.id } },
       relations: ['product', 'vendor', 'cart'],
     });
   }

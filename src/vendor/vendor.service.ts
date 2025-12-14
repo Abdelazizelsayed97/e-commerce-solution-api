@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { CreateVendorInput } from './dto/create-vendor.input';
 import { UpdateVendorInput } from './dto/update-vendor.input';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,7 +9,10 @@ import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { VendorPaginated } from './entities/vendor.paginated';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 
-@Injectable()
+@Injectable({
+    scope:Scope.REQUEST
+  
+})
 export class VendorService {
   constructor(
     @InjectRepository(Vendor)

@@ -45,16 +45,18 @@ export class CartService {
   }
 
   async findAll(paginate: PaginationInput): Promise<Cart[]> {
-    console.log('paginate', paginate);
+    const skip = (paginate.page - 1) * paginate.limit;
     return await this.cartRepository.find({
-      relations: ['cartItems', 'cartItems.product', 'cartItems.vendor'],
+      relations: ['cartItems', 'user'],
+      skip,
+      take: paginate.limit,
     });
   }
 
   async findOne(id: string) {
     const cart = await this.cartRepository.findOne({
       where: { id: id },
-      relations: ['cartItems', 'cartItems.product', 'cartItems.vendor'],
+      relations: ['cartItems', 'user'],
     });
     if (!cart) {
       throw new NotFoundException('cart not found');
@@ -65,9 +67,7 @@ export class CartService {
   async findCartByUserId(userId: string) {
     const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
-      // relations: {
-      //   user: true,
-      // },
+      relations: ['user', 'cartItems'],
     });
     if (!cart) {
       throw new NotFoundException('cart not found');

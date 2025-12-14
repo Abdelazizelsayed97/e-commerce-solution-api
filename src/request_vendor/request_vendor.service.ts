@@ -80,9 +80,10 @@ export class RequestVendorService {
     if (request.status === RequestVendorEnum.approve) {
       throw new NotFoundException('request already approved');
     }
+    console.log('requestrequest', request);
 
     Object.assign(request.vendor.isVerfied, true);
-    await this.vendorRepository.save(request);
+    await this.vendorRepository.save(request.vendor);
     const updaterequest = await this.requestVendorRepository.update(
       request.id,
       {

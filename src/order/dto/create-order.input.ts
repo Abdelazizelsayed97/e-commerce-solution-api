@@ -6,10 +6,6 @@ import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 @InputType()
 export class CreateOrderInput {
   @IsNotEmpty()
-  @Field(() => String)
-  clientId: string;
-
-  @IsNotEmpty()
   @Field(() => OrderPaymentStatus)
   paymentStatus: OrderPaymentStatus;
   @Field(() => paymentMethod)
@@ -18,9 +14,7 @@ export class CreateOrderInput {
   @Field(() => String)
   @IsNotEmpty()
   shippingAddressId: string;
-  @Field(() => String)
-  @IsNotEmpty()
-  transactionId: string;
+
   @Field(() => String)
   @IsNotEmpty()
   cartId: string;

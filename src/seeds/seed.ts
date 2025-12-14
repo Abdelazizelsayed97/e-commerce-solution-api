@@ -55,8 +55,11 @@ async function seed() {
   }
   await userRepo.save(users);
 
+  // Re-fetch users to ensure they have IDs
+  const savedUsers = await userRepo.find();
+
   const wallets: Wallet[] = [];
-  for (const [index, user] of users.entries()) {
+  for (const [index, user] of savedUsers.entries()) {
     const wallet = walletRepo.create({
       balance: 1000 + index * 100,
       pendingBalance: 0,
@@ -69,7 +72,7 @@ async function seed() {
   await walletRepo.save(wallets);
 
   const vendors: Vendor[] = [];
-  const vendorUsers = users.filter((u) => u.isVendor);
+  const vendorUsers = savedUsers.filter((u) => u.isVendor);
   vendorUsers.forEach((user, idx) => {
     const vendor = vendorRepo.create({
       user,
@@ -100,7 +103,7 @@ async function seed() {
   await productRepo.save(products);
 
   const carts: Cart[] = [];
-  users.forEach((user) => {
+  savedUsers.forEach((user) => {
     const cart = cartRepo.create({
       user,
     });
@@ -115,9 +118,7 @@ async function seed() {
     const quantity = 1 + (idx % 3);
     const cartItem = cartItemRepo.create({
       cart,
-      cartId: cart.id,
       product,
-      productId: product.id,
       vendor,
       quantity,
       totlePrice: product.price * quantity,
@@ -173,7 +174,7 @@ async function seed() {
   await orderItemRepo.save(orderItems);
 
   const reviews: RatingAndReview[] = [];
-  users.slice(0, 5).forEach((user, idx) => {
+  savedUsers.slice(0, 5).forEach((user, idx) => {
     const product = products[idx];
     const review = reviewRepo.create({
       user,
@@ -194,6 +195,7 @@ async function seed() {
       balanceAfter: wallet.balance + 100,
       order,
       user: wallet.user,
+      wallet,
       description: `Seed transaction ${idx + 1}`,
     });
     transactions.push(tx);

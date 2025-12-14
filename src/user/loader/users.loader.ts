@@ -4,8 +4,10 @@ import { User } from '../entities/user.entity';
 
 export function UserLoader(userRepo: Repository<User>) {
   return new DataLoader<string, User>(async (ids) => {
+    console.log('idessssss', ids);
     const users = await userRepo.find({
-      where: { id: In(ids as string[]) },
+      where: { id: In(ids) },
+
     });
 
     const map = new Map(users.map((u) => [u.id, u]));

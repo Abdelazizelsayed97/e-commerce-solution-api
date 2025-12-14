@@ -44,8 +44,12 @@ export class PaymentService {
   async createPayment(orderID: string) {
     const order = await this.orderRepository.findOne({
       where: { id: orderID },
-      relations: ['client', 'cart'],
+      relations: {
+        client: true,
+        cart: true,
+      },
     });
+    console.log('order', order?.client);
     if (!order) {
       throw new Error('Order not found');
     }
@@ -102,7 +106,7 @@ export class PaymentService {
         break;
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as stripe.PaymentIntent;
-
+        // await this.handlePaymentSuccess(paymentIntent);
         break;
       case 'checkout.session.expired':
         const expiredSession = event.data.object as stripe.Checkout.Session;
@@ -172,6 +176,8 @@ export class PaymentService {
             await this.walletRepository.save(userWallet);
           }
           console.log('userWallet', userWallet);
+          //this part is for vendor transactions after payment success
+
           const userTransaction = this.transactionRepository.create({
             type: TransactionTypeEnum.ORDER_INCOME,
             amount: order.totalAmount,
@@ -199,25 +205,10 @@ export class PaymentService {
               continue;
             }
 
-            const vendorTotal = (items as OrderItem[]).reduce(
-              (sum, item) => sum + item.totalPrice,
-              0,
-            );
-            const commission = vendorTotal * 0.1;
-            const vendorAmount = vendorTotal - commission;
+            const commission = order.totalAmount * 0.1;
+            const vendorAmount = order.totalAmount - commission;
 
-            // const vendorTx = this.vendorTransactionRepository.create({
-            //   vendor: vendor,
-            //   order: order,
-            //   type: TransactionTypeEnum.PAYOUT,
-            //   amount: vendorAmount,
-            //   status: OrderPaymentStatus.paid,
-            //   description: `Payment for items in order ${orderId}`,
-            //   createdAt: new Date(),
-            //   updatedAt: new Date(),
-            // });
-            // await this.vendorTransactionRepository.save(vendorTx);
-
+            //this part is for vendor transactions after adjusting the commission
             const commissionTx = this.vendorTransactionRepository.create({
               vendor: vendor,
               order: order,
@@ -333,6 +324,7 @@ export class PaymentService {
       },
     });
 
+    //this part is for vendor transactions after payment failure
     if (order) {
       await this.transactionRepository.save({
         type: TransactionTypeEnum.ADJUSTMENT,
@@ -346,7 +338,7 @@ export class PaymentService {
     }
   }
 
-  async verifyAndHandleReturn(rawBody: Buffer, signature: string) {
+  async handleRefundTransactions(rawBody: Buffer, signature: string) {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     if (!endpointSecret) {
@@ -355,6 +347,16 @@ export class PaymentService {
     let event: stripe.Event;
 
     try {
+      const refund = await this.stripeInstance.refunds.create({
+        charge: 'charge_id',
+        reverse_transfer: true,
+        refund_application_fee: true,
+        metadata: {
+          order_id: 'order_id',
+          vendor_id: 'vendor_id',
+          transaction_id: 'transaction_id',
+        },
+      });
       event = stripe.webhooks.constructEvent(
         rawBody,
         signature,
@@ -364,9 +366,36 @@ export class PaymentService {
       throw new Error('Webhook signature verification failed');
     }
 
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as stripe.Checkout.Session;
-      await this.handlePaymentSuccess(session);
+    if (event.type === 'refund.updated') {
+      const refund = event.data.object as stripe.Refund;
+      await this.handleRefund(refund);
     }
+  }
+
+  async handleRefund(refund: stripe.Refund) {
+    // refund transactions
+
+    const transaction = await this.transactionRepository.findOne({
+      where: { order: { id: refund.metadata?.transaction_id } },
+    });
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+    transaction.type = TransactionTypeEnum.REFUND;
+    transaction.amount = refund.amount;
+    transaction.balanceAfter = transaction.balanceAfter - refund.amount;
+    await this.transactionRepository.save(transaction);
+    // update order status
+    const order = await this.orderRepository.findOne({
+      where: { id: refund.metadata?.order_id },
+    });
+    if (!order) {
+      throw new Error('Order not found');
+    }
+    order.paymentStatus = OrderPaymentStatus.refunded;
+    await this.orderRepository.save(order);
+    // update stock
+    // update vendor balance
+    // update user balance if the option is transfer to wallet not to source
   }
 }

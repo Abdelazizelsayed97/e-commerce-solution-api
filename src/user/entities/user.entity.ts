@@ -15,6 +15,8 @@ import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
+import { WishList } from 'src/product/entities/wish.list.entity';
+
 
 
 @ObjectType()
@@ -29,7 +31,7 @@ export class User {
   @Field(() => String)
   @Column()
   email: string;
-  @Field(() => String)
+  // @Field(() => String)
   @Column()
   password: string;
   @Field(() => String)
@@ -81,4 +83,7 @@ export class User {
   @Field(() => Cart)
   @OneToOne(() => Cart, (cart) => cart.user)
   cart: Cart
+  @Field(() => [WishList],{nullable:true})
+  @OneToMany(() => WishList, (wishList) => wishList.user,{nullable:true})
+  wishList?: WishList[]
 }

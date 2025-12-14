@@ -6,10 +6,9 @@ import { Repository } from 'typeorm';
 import { RatingAndReview } from './entities/rating-and-review.entity';
 import { ProductService } from 'src/product/product.service';
 import { UserService } from 'src/user/user.service';
-import { CurrentUser } from 'src/core/helper/decorators/current.user';
-import { User } from 'src/user/entities/user.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Order } from 'src/order/entities/order.entity';
+import { PaginatedReview } from './entities/paginated-review';
 
 @Injectable()
 export class RatingAndReviewService {
@@ -22,9 +21,7 @@ export class RatingAndReviewService {
     private productsService: ProductService,
   ) {}
 
-  /**
-   * Verify if user has purchased the product
-   */
+
   private async verifyUserPurchase(userId: string, productId: string): Promise<boolean> {
     const order = await this.ordersRepository.findOne({
       where: {
@@ -38,20 +35,18 @@ export class RatingAndReviewService {
 
   async addReview(
     userId: string,
-    productId: string,
+    productId: string,  
     createReviewDto: CreateRatingAndReviewInput,
   ): Promise<RatingAndReview> {
     const user = await this.usersService.findOneById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
+ console.log('userId',userId)
     const product = await this.productsService.findOne(productId);
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-
-    // Verify user has purchased this product
     const hasPurchased = await this.verifyUserPurchase(userId, productId);
     if (!hasPurchased) {
       throw new ForbiddenException('You can only review products you have purchased');
@@ -62,7 +57,7 @@ export class RatingAndReviewService {
       user,
       product,
     });
-    return this.reviewsRepository.save(review);
+    return await this.reviewsRepository.save(review);
   }
 
   async updateReview(
@@ -86,7 +81,7 @@ export class RatingAndReviewService {
     if (updateReviewDto.comment !== undefined) {
       review.comment = updateReviewDto.comment;
     }
-    return this.reviewsRepository.save(review);
+    return await this.reviewsRepository.save(review);
   }
 
   async deleteReview(userId: string, reviewId: string): Promise<void> {
@@ -103,14 +98,24 @@ export class RatingAndReviewService {
   async getProductReviews(
     productId: string,
     paginate?: PaginationInput,
-  ): Promise<RatingAndReview[]> {
+  ): Promise<PaginatedReview> {
     const skip = (paginate!.page - 1) * paginate!.limit;
     const take = paginate?.limit;
-    return this.reviewsRepository.find({
+    const [items, totalItems] = await this.reviewsRepository.findAndCount({
       where: { product: { id: productId } },
-      relations: ['user'],
-      skip: skip,
-      take: take,
+      relations: ['user', 'product'],
+      skip,
+      take,
     });
+    return {
+      items,
+      pagination: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: paginate!.limit,
+        totalPages: Math.ceil(totalItems / paginate!.limit),
+        currentPage: paginate!.page,
+      },
+    };
   }
 }

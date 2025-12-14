@@ -96,13 +96,13 @@ import * as express from 'express';
     //   provide: APP_INTERCEPTOR,
     //   useClass: UserResponseInterceptor
     // }
-  ]
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(UserInspectorInterceptor).forRoutes('*');
-      consumer
-        .apply(express.raw({ type: 'application/json' }))
-        .forRoutes('webhooks/stripe');
+    consumer
+      .apply(express.raw({ type: 'application/json' }))
+      .forRoutes('webhooks/stripe');
   }
 }

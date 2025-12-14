@@ -13,7 +13,6 @@ import { Fcm } from 'src/fcm/entities/fcm.entity';
 import { RoleEnum } from 'src/core/enums/role.enum';
 import { PaginatedUsers } from './entities/paginated.user';
 import { CartService } from 'src/cart/cart.service';
-import { WalletService } from 'src/wallet/wallet.service';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 
 @Injectable()
@@ -44,7 +43,7 @@ export class UserService {
 
     const user = this.usersRepository.create({
       email: registerInput.email,
-      password: registerInput.password,
+      password: await this.hashPassword(registerInput.password),
       name: registerInput.name,
       phoneNumber: registerInput.phoneNumber,
       role: RoleEnum.client,
@@ -92,6 +91,7 @@ export class UserService {
         relations: {
           address: true,
           vendor: true,
+          cart: true,
         },
       });
     return {
@@ -185,5 +185,8 @@ export class UserService {
     const codde = Math.floor(100000 + Math.random() * 900000).toString();
     await this.emailService.sendVerificationEmail(user, codde);
     return codde;
+  }
+  private async hashPassword(password: string) {
+    return hashSync(password, 10);
   }
 }
