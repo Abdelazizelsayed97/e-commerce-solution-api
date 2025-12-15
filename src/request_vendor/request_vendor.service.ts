@@ -67,11 +67,6 @@ export class RequestVendorService {
   async approveRequestVendor(id: string) {
     const request = await this.requestVendorRepository.findOne({
       where: { id: id },
-      relations: {
-        vendor: {
-          user: true,
-        },
-      },
     });
 
     if (!request) {
@@ -82,7 +77,7 @@ export class RequestVendorService {
     }
     console.log('requestrequest', request);
 
-    Object.assign(request.vendor.isVerfied, true);
+    Object.assign(request.vendor, { isVerfied: true, role: RoleEnum.vendor });
     await this.vendorRepository.save(request.vendor);
     const updaterequest = await this.requestVendorRepository.update(
       request.id,
@@ -95,6 +90,7 @@ export class RequestVendorService {
     user.isVendor = true;
     user.vendor = request.vendor;
     user.role = RoleEnum.vendor;
+    user.vendor.isVerfied = user.isVendor;
     console.log('updaterequest', updaterequest);
     await this.userService.update(user.id, user);
 
@@ -136,8 +132,5 @@ export class RequestVendorService {
         currentPage: paginate.page,
       },
     };
-  }
-  private async removeRequest(id: string) {
-    return await this.requestVendorRepository.delete(id);
   }
 }

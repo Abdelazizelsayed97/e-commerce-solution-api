@@ -96,7 +96,7 @@ export class ProductService {
       where: { vendor: { id: vendorId } },
       skip,
       take: limit,
-      order: { addedAt: 'DESC' },
+      order: { createdAt: 'DESC' },
       relations: {
         vendor: {
           user: true,
@@ -152,7 +152,7 @@ export class ProductService {
       },
       skip,
       take: paginate.limit,
-      order: { addedAt: 'DESC' },
+      order: { createdAt: 'DESC' },
     });
 
     return {
@@ -235,72 +235,18 @@ export class ProductService {
     };
   }
 
-  async searchProducts(
-    searchTerm: string,
-    paginate: PaginationInput,
-    category?: string,
-    minPrice?: number,
-    maxPrice?: number,
-  ): Promise<PaginatedProduct> {
-    const skip = (paginate.page - 1) * paginate.limit;
-    const query = this.productsRepository
-      .createQueryBuilder('product')
-      .leftJoinAndSelect('product.vendor', 'vendor')
-      .where('product.name ILIKE :searchTerm', {
-        searchTerm: `%${searchTerm}%`,
-      });
-
-    if (category) {
-      query.andWhere('product.category = :category', { category });
-    }
-
-    if (minPrice !== undefined) {
-      query.andWhere('product.price >= :minPrice', { minPrice });
-    }
-
-    if (maxPrice !== undefined) {
-      query.andWhere('product.price <= :maxPrice', { maxPrice });
-    }
-
-    const [items, totalItems] = await query
-      .skip(skip)
-      .take(paginate.limit)
-      .getManyAndCount();
-
-    return {
-      items,
-      pagination: {
-        totalItems,
-        itemCount: items.length,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-        currentPage: paginate.page,
-      },
-    };
-  }
+  
 
   async getMostPopularProducts(
     paginate: PaginationInput,
-    timeframe?: '7days' | '30days' | '90days',
   ): Promise<PaginatedProduct> {
     const skip = (paginate.page - 1) * paginate.limit;
 
     let dateCondition = '';
     const now = new Date();
 
-    if (timeframe === '7days') {
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      dateCondition = `AND o.createdAt >= '${sevenDaysAgo.toISOString()}'`;
-    } else if (timeframe === '30days') {
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      dateCondition = `AND o.createdAt >= '${thirtyDaysAgo.toISOString()}'`;
-    } else if (timeframe === '90days') {
-      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-      dateCondition = `AND o.createdAt >= '${ninetyDaysAgo.toISOString()}'`;
-    }
-
     const query = `
-      SELECT 
+      SELECT
         p.*,
         COUNT(oi.id) as order_count,
         SUM(oi.quantity) as total_sold
@@ -329,7 +275,6 @@ export class ProductService {
 
     const totalItems = countResult.length || 0;
 
-    // Map raw results back to Product entities with relations
     const productIds = products.map((p) => p.id);
     const items =
       productIds.length > 0
@@ -353,23 +298,11 @@ export class ProductService {
 
   async getMostPopularVendors(
     paginate: PaginationInput,
-    timeframe?: '7days' | '30days' | '90days',
   ): Promise<{ vendors: any[]; pagination: any }> {
     const skip = (paginate.page - 1) * paginate.limit;
 
     let dateCondition = '';
     const now = new Date();
-
-    if (timeframe === '7days') {
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      dateCondition = `AND o.createdAt >= '${sevenDaysAgo.toISOString()}'`;
-    } else if (timeframe === '30days') {
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      dateCondition = `AND o.createdAt >= '${thirtyDaysAgo.toISOString()}'`;
-    } else if (timeframe === '90days') {
-      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-      dateCondition = `AND o.createdAt >= '${ninetyDaysAgo.toISOString()}'`;
-    }
 
     const query = `
       SELECT 

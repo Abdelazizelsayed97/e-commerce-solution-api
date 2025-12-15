@@ -16,16 +16,15 @@ export class SearchService {
   ) {}
 
   async search(searchInput: SearchInput): Promise<PaginatedSearch> {
-    const { searchKey, page, limit, category, minPrice, maxPrice } = searchInput;
+    const { searchKey, page, limit, category, minPrice, maxPrice } =
+      searchInput;
     const skip = (page - 1) * limit;
 
-    // Build where clause for products
     const productWhere: any = { name: ILike(`%${searchKey}%`) };
     if (category) {
       productWhere.category = category;
     }
 
-    // Handle price filtering
     if (minPrice !== undefined && maxPrice !== undefined) {
       productWhere.price = Between(minPrice, maxPrice);
     } else if (minPrice !== undefined) {

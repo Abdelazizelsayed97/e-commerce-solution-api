@@ -3,6 +3,7 @@ import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   Timestamp,
@@ -16,7 +17,15 @@ export class Notification {
   id: string;
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.id)
+  @JoinColumn({
+    name: 'user_id',
+    referencedColumnName: 'id',
+  })
   user: User;
+
+  @Column()
+  user_id: string;
+
   @Field(() => String)
   @Column()
   title: string;
@@ -26,7 +35,16 @@ export class Notification {
   @Field(() => Boolean)
   @Column({ default: false })
   isRead: boolean;
-  @Field(() => GraphQLTimestamp)
+  @Field()
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Timestamp;
+  createdAt: number;
+
+  @Field({
+    nullable: true,
+  })
+  @Column('timestamp', {
+    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  updatedAt: number;
 }

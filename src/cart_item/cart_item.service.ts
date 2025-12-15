@@ -53,7 +53,6 @@ export class CartItemService {
 
     const product = await this.productRepository.findOne({
       where: { id: createCartItemInput.productId },
-      relations: ['vendor'],
     });
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -78,9 +77,8 @@ export class CartItemService {
     const existingItem = await this.cartItemRepository.findOne({
       where: {
         cart: { id: cart?.id },
-        product: product,
+        product_id: product.id,
       },
-      relations: ['product'],
     });
     console.log(['existingItem', existingItem?.quantity]);
 
@@ -90,9 +88,8 @@ export class CartItemService {
     }
 
     const cartItem = this.cartItemRepository.create({
-      cart: cart,
-      product,
-      vendor,
+      cart_id: cart.id,
+      product_id: product.id,
       quantity: createCartItemInput.quantity,
       totlePrice: createCartItemInput.quantity * product.price,
     });
@@ -106,7 +103,6 @@ export class CartItemService {
     });
     return await this.cartItemRepository.find({
       where: { cart: { id: cart?.id } },
-      relations: ['product', 'vendor', 'cart'],
     });
   }
 
@@ -115,7 +111,6 @@ export class CartItemService {
       where: { id },
       relations: {
         cart: true,
-        vendor: true,
         product: true,
       },
     });

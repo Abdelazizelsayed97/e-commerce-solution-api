@@ -4,6 +4,7 @@ import { Vendor } from 'src/vendor/entities/vendor.entity';
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -17,15 +18,26 @@ export class Product {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
   @Field(() => String)
   @Column('text')
   name: string;
+
   @Field(() => String)
   @Column('text')
   type: string;
+
   @Field(() => Vendor, { nullable: true })
   @ManyToOne(() => Vendor, (vendor) => vendor.products, { nullable: true })
+  @JoinColumn({
+    name: 'vendor_id',
+    referencedColumnName: 'id',
+  })
   vendor: Vendor | null;
+
+  @Column()
+  vendor_id: string;
+
   @Field(() => Int)
   @Column()
   price: number;
@@ -41,18 +53,30 @@ export class Product {
     nullable: true,
   })
   reviews: RatingAndReview[];
-  @Field(() => GraphQLTimestamp)
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  addedAt: number;
-  @Field(() => GraphQLTimestamp)
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Field()
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: number;
+
+  @Field({
+    nullable: true,
+  })
+  @Column('timestamp', {
+    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
   updatedAt: number;
+
   @Field(() => Int)
   @Column('int', { default: 0 })
   purchuseCount: number;
 
   @Field(() => String, { nullable: true })
-  @Column({ type: 'varchar', length: 255, default: 'Uncategorized', nullable: true })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    default: 'Uncategorized',
+    nullable: true,
+  })
   category: string;
 
   @Field(() => Boolean)

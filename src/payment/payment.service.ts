@@ -307,9 +307,7 @@ export class PaymentService {
           if (order.cart && order.cart.cartItems) {
             for (const cartItem of order.cart.cartItems) {
               const orderItem = (order.orderItems || []).find(
-                (oi) =>
-                  oi.product.id === cartItem.product.id &&
-                  oi.vendor.id === cartItem.vendor?.id,
+                (oi) => oi.product.id === cartItem.product.id,
               );
               if (orderItem) {
                 const newQuantity = cartItem.quantity - orderItem.quantity;
@@ -337,16 +335,20 @@ export class PaymentService {
             await this.walletRepository.save(userWallet);
           }
           console.log('userWallet', userWallet);
+          if (userWallet) {
+            userWallet.balance += order.totalAmount;
+            await this.walletRepository.save(userWallet);
+          }
           //this part is for vendor transactions after payment success
 
           const userTransaction = this.transactionRepository.create({
             type: TransactionTypeEnum.ORDER_INCOME,
             amount: order.totalAmount,
             balanceAfter: userWallet?.balance || 0,
-            order: order,
-            user: order.client,
+            order_id: order.id,
+            user_id: order.client.id,
+            wallet_id: userWallet?.id,
             description: `Payment received for order ${orderId}`,
-            createdAt: new Date(),
           });
           await this.transactionRepository.save(userTransaction);
 
@@ -377,8 +379,6 @@ export class PaymentService {
               amount: commission,
               status: OrderPaymentStatus.paid,
               description: `Commission (10%) for order ${orderId}`,
-              createdAt: new Date(),
-              updatedAt: new Date(),
             });
             await this.vendorTransactionRepository.save(commissionTx);
 
@@ -421,14 +421,14 @@ export class PaymentService {
             product.inStock += item.quantity;
 
             await this.stockHistoryRepository.save({
-              product: product,
-              order: order,
+              product_id: product.id,
+              order_id: order.id,
               quantityChanged: item.quantity,
               previousStock: previousStock,
               newStock: product.inStock,
               action: stockHistoryActionEnum.REFUNDED,
               reason: 'Payment cancelled/expired',
-              createdAt: new Date(),
+              createdAt: Date.now(),
             });
 
             await this.productRepository.save(product);
@@ -462,14 +462,14 @@ export class PaymentService {
     await this.productRepository.save(product);
 
     await this.stockHistoryRepository.save({
-      product: product,
-      order: orderItem.order,
+      product_id: orderItem.product.id,
+      order_id: orderItem.order.id,
       quantityChanged: orderItem.quantity,
       previousStock: previousStock,
       newStock: product.inStock,
-      action: action as any,
+      action: stockHistoryActionEnum[action.toUpperCase()],
       reason: `${action} from order`,
-      createdAt: new Date(),
+      createdAt: Date.now(),
     });
   }
 
@@ -491,10 +491,10 @@ export class PaymentService {
         type: TransactionTypeEnum.ADJUSTMENT,
         amount: 0,
         balanceAfter: 0,
-        order: order,
-        user: order.client,
+        order_id: order.id,
+        user_id: order.client.id,
         description: `${transactionType}: ${error}`,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       });
     }
   }

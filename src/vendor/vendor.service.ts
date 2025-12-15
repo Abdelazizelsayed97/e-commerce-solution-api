@@ -10,8 +10,7 @@ import { VendorPaginated } from './entities/vendor.paginated';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 
 @Injectable({
-    scope:Scope.REQUEST
-  
+  scope: Scope.REQUEST,
 })
 export class VendorService {
   constructor(
@@ -98,7 +97,7 @@ export class VendorService {
       }
 
       const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-      return Math.round((totalRating / reviews.length) * 10) / 10;
+      return Math.ceil((totalRating / reviews.length) * 10) / 10;
     } catch (error) {
       console.error(
         `Error calculating average rating for vendor ${vendorId}:`,

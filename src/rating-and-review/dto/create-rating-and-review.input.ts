@@ -1,5 +1,5 @@
 import { InputType, Int, Field } from '@nestjs/graphql';
-import { IsNotEmpty, IsNumber, Min, Max, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, Min, Max, IsString, IsUUID } from 'class-validator';
 
 @InputType()
 export class CreateRatingAndReviewInput {
@@ -16,6 +16,7 @@ export class CreateRatingAndReviewInput {
   comment: string;
   @IsNotEmpty()
   @IsString()
+  @IsUUID()
   @Field(() => String)
   productId: string;
 }

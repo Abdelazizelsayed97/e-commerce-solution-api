@@ -17,12 +17,13 @@ import { RoleEnum } from 'src/core/enums/role.enum';
 @Resolver(() => Address)
 export class AddressResolver {
   constructor(private readonly addressService: AddressService) {}
-
+  @UseGuards(AuthGuard)
   @Mutation(() => Address)
   createAddress(
     @Args('createAddressInput') createAddressInput: CreateAddressInput,
+    @CurrentUser() user: User,
   ) {
-    return this.addressService.create(createAddressInput);
+    return this.addressService.create(createAddressInput, user);
   }
 
   @UseGuards(AuthGuard)
@@ -52,6 +53,7 @@ export class AddressResolver {
     return this.addressService.findOne(id);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => Address)
   updateAddress(
     @Args('updateAddressInput') updateAddressInput: UpdateAddressInput,

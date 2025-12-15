@@ -19,17 +19,32 @@ export class Cart {
   id: string;
   @Field(() => User)
   @OneToOne(() => User, (user) => user.cart)
-  @JoinColumn()
+  @JoinColumn({
+    name: 'user_id',
+    referencedColumnName: 'id',
+  })
   user: User;
-  @Field(() => GraphQLTimestamp, { nullable: true })
+
+  @Column()
+  user_id: string;
+  
+  @Field()
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createAt: number;
-  @Field(() => GraphQLTimestamp, { nullable: true })
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+
+  @Field({
+    nullable: true,
+  })
+  @Column('timestamp', {
+    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
   updateAt: number;
+
   @Field(() => [Order], { nullable: true })
   @OneToMany(() => Order, (order) => order.cart, { nullable: true })
   orders?: Order[];
+
   @Field(() => [CartItem], { nullable: true })
   @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { nullable: true })
   cartItems?: CartItem[];

@@ -1,6 +1,12 @@
-import { Field, GraphQLTimestamp, ObjectType } from "@nestjs/graphql";
-import { User } from "src/user/entities/user.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Field, GraphQLTimestamp, ObjectType } from '@nestjs/graphql';
+import { User } from 'src/user/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @ObjectType()
 @Entity()
@@ -15,13 +21,25 @@ export class WishList {
 
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.wishList)
+  @JoinColumn({
+    name: 'user_id',
+    referencedColumnName: 'id',
+  })
   user: User;
 
-  @Field(() => GraphQLTimestamp)
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createAt: Date;
+  @Column()
+  userId: string;
 
-  @Field(() => GraphQLTimestamp)
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updateAt: Date;
+  @Field()
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: number;
+
+  @Field({
+    nullable: true,
+  })
+  @Column('timestamp', {
+    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  updatedAt: number;
 }

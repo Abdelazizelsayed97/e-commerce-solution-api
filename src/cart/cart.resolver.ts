@@ -73,8 +73,8 @@ export class CartResolver {
   @ResolveField(() => User, { nullable: true })
   async user(@Parent() cart: Cart) {
     console.log('UserUserUser', cart);
-    if (!cart.user) return null;
-    return this.userLoader.load(cart.user.id);
+    if (!cart.user_id) return null;
+    return this.userLoader.load(cart.user_id);
   }
   @ResolveField(() => CartItem, { nullable: true })
   async cartItems(@Parent() cart: Cart) {

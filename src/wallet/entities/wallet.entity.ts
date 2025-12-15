@@ -22,7 +22,7 @@ export class Wallet {
   @Field(() => String)
   @Column()
   type: string;
-  @Field(() => [Transaction],{
+  @Field(() => [Transaction], {
     nullable: true,
   })
   @OneToMany(() => Transaction, (transaction) => transaction.wallet, {
@@ -33,4 +33,17 @@ export class Wallet {
   @OneToOne(() => User, (user) => user.wallet)
   @JoinColumn()
   user: User;
+
+  @Field()
+  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: number;
+
+  @Field({
+    nullable: true,
+  })
+  @Column('timestamp', {
+    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  updatedAt: number;
 }

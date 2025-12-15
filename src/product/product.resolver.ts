@@ -92,45 +92,20 @@ export class ProductResolver {
     return this.productService.findOne(id);
   }
 
-  @Query(() => PaginatedProduct, { name: 'searchProducts' })
-  async searchProducts(
-    @Args('searchTerm', { type: () => String }) searchTerm: string,
-    @Args('paginate', { type: () => PaginationInput, nullable: true })
-    paginate: PaginationInput,
-    @Args('category', { type: () => String, nullable: true })
-    category?: string,
-    @Args('minPrice', { type: () => Number, nullable: true })
-    minPrice?: number,
-    @Args('maxPrice', { type: () => Number, nullable: true })
-    maxPrice?: number,
-  ): Promise<PaginatedProduct> {
-    return this.productService.searchProducts(
-      searchTerm,
-      paginate,
-      category,
-      minPrice,
-      maxPrice,
-    );
-  }
-
   @Query(() => PaginatedProduct, { name: 'mostPopularProducts' })
   async getMostPopularProducts(
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,
-    @Args('timeframe', { type: () => String, nullable: true })
-    timeframe?: '7days' | '30days' | '90days',
   ): Promise<PaginatedProduct> {
-    return this.productService.getMostPopularProducts(paginate, timeframe);
+    return this.productService.getMostPopularProducts(paginate);
   }
 
   @Query(() => String, { name: 'mostPopularVendors' })
   async getMostPopularVendors(
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,
-    @Args('timeframe', { type: () => String, nullable: true })
-    timeframe?: '7days' | '30days' | '90days',
   ) {
-    return this.productService.getMostPopularVendors(paginate, timeframe);
+    return this.productService.getMostPopularVendors(paginate);
   }
 
   @Roles(RoleEnum.vendor, RoleEnum.superAdmin)

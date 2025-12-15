@@ -8,6 +8,8 @@ type Address {
   city: String!
   details: String!
   user: User!
+  createdAt: Float!
+  updatedAt: Float
 }
 
 type RatingAndReview {
@@ -16,6 +18,8 @@ type RatingAndReview {
   comment: String!
   user: User!
   product: Product!
+  createdAt: Float!
+  updatedAt: Float
   vendor: Vendor
 }
 
@@ -27,34 +31,31 @@ type Product {
   price: Int!
   inStock: Int!
   reviews: [RatingAndReview!]
-  addedAt: Timestamp!
-  updatedAt: Timestamp!
+  createdAt: Float!
+  updatedAt: Float
   purchuseCount: Int!
   category: String
   isWishListed: Boolean!
   user: User
 }
 
-"""
-`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
-"""
-scalar Timestamp
-
 type CartItem {
   id: String!
   product: Product!
-  vendor: Vendor!
   quantity: Float!
   totlePrice: Float!
+  createdAt: Float!
+  updatedAt: Float
   cartItem: CartItem
   cart: Cart
+  vendor: Vendor
 }
 
 type Cart {
   id: String!
   user: User!
-  createAt: Timestamp
-  updateAt: Timestamp
+  createAt: Float!
+  updateAt: Float
   orders: [Order!]
   cartItems: [CartItem!]
 }
@@ -68,6 +69,8 @@ type OrderItem {
   unitPrice: Float!
   totalPrice: Float!
   status: String!
+  createdAt: Float!
+  updatedAt: Float
 }
 
 type Order {
@@ -77,11 +80,12 @@ type Order {
   status: OrderStatusEnum!
   paymentStatus: OrderPaymentStatus!
   paymentMethod: paymentMethod!
-  createdAt: Timestamp!
-  updatedAt: Timestamp!
+  createdAt: Float!
+  updatedAt: Float
   shippingAddressId: String!
   transactionId: String
   cart: Cart!
+  cart_id: String!
   orderItems: [OrderItem!]
 }
 
@@ -109,8 +113,8 @@ type RequestVendor {
   id: String!
   status: String!
   rejectMessage: String
-  createdAt: Timestamp!
-  updatedAt: Timestamp!
+  createdAt: Float!
+  updatedAt: Float
 }
 
 type Vendor {
@@ -121,8 +125,8 @@ type Vendor {
   rating: Float!
   isVerfied: Boolean!
   vendorOrders: [Order!]
-  createdAt: Timestamp!
-  updatedAt: Timestamp!
+  createdAt: Float!
+  updatedAt: Float
   followers: [Follower!]
   request: RequestVendor
   products: [Product!]!
@@ -133,6 +137,8 @@ type Follower {
   id: String!
   vendor: Vendor!
   follower: User!
+  createdAt: Float!
+  updatedAt: Float
 }
 
 type Transaction {
@@ -143,7 +149,8 @@ type Transaction {
   order: Order
   user: User
   description: String
-  createdAt: Timestamp!
+  createdAt: Float!
+  updatedAt: Float
   wallet: Wallet!
 }
 
@@ -163,14 +170,16 @@ type Wallet {
   type: String!
   transactionHistory: [Transaction!]
   user: User!
+  createdAt: Float!
+  updatedAt: Float
 }
 
 type WishList {
   id: String!
   productId: String!
   user: User!
-  createAt: Timestamp!
-  updateAt: Timestamp!
+  createdAt: Float!
+  updatedAt: Float
 }
 
 type User {
@@ -184,8 +193,8 @@ type User {
   isVendor: Boolean!
   followers: [Follower!]!
   followingVendor: [Follower!]
-  createAt: Timestamp
-  updateAt: Timestamp
+  createAt: Float!
+  updateAt: Float
   vendor: Vendor
   wallet: Wallet
   order: [Order!]!
@@ -205,7 +214,8 @@ type Fcm {
   user: User!
   token: String!
   device: Device!
-  createdAt: Timestamp!
+  createdAt: Float!
+  updatedAt: Float
 }
 
 enum Device {
@@ -248,7 +258,8 @@ type Notification {
   title: String!
   message: String!
   isRead: Boolean!
-  createdAt: Timestamp!
+  createdAt: Float!
+  updatedAt: Float
 }
 
 type PaginatedProduct {
@@ -297,13 +308,12 @@ type Query {
   cartItem(id: String!): CartItem!
   vendors(paginate: PaginationInput!): VendorPaginated!
   vendor(id: String!): Vendor!
-  mostPopularVendors(paginate: PaginationInput, timeframe: String): String!
+  mostPopularVendors(paginate: PaginationInput): String!
   products(paginate: PaginationInput, filter: Boolean): PaginatedProduct!
   followedVendorProducts(paginate: PaginationInput): PaginatedProduct!
   vendorProducts(vendorId: String!, paginate: PaginationInput): PaginatedProduct!
   product(id: String!): Product!
-  searchProducts(searchTerm: String!, paginate: PaginationInput, category: String, minPrice: Float, maxPrice: Float): PaginatedProduct!
-  mostPopularProducts(paginate: PaginationInput, timeframe: String): PaginatedProduct!
+  mostPopularProducts(paginate: PaginationInput): PaginatedProduct!
   fcm(id: String!): Fcm!
   getAllUserAddresses(paginate: PaginationInput): PaginatedAddress!
   getAllAddressesBoard(paginate: PaginationInput): PaginatedAddress!
@@ -388,6 +398,10 @@ input RegisterInput {
 
 input UpdateUserInput {
   id: String!
+  name: String!
+  email: String!
+  password: String!
+  phoneNumber: String!
 }
 
 input CreateCartInput {
@@ -453,7 +467,7 @@ input CreateTransactionInput {
 
 input CreateCartItemInput {
   productId: String!
-  quantity: Float!
+  quantity: Int!
 }
 
 input UpdateCartItemInput {
@@ -502,14 +516,12 @@ input CreateFcmInput {
   userId: String!
   token: String!
   device: Device!
-  createdAt: Timestamp!
 }
 
 input UpdateFcmInput {
   userId: String
   token: String
   device: Device
-  createdAt: Timestamp
   id: String!
 }
 

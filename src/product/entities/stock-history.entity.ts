@@ -3,6 +3,7 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -23,11 +24,22 @@ export class StockHistory {
 
   @Field(() => Product)
   @ManyToOne(() => Product)
+  @JoinColumn({
+    name: 'product_id',
+    referencedColumnName: 'id',
+  })
   product: Product;
 
   @Field(() => Order, { nullable: true })
   @ManyToOne(() => Order, { nullable: true })
+  @JoinColumn({
+    name: 'order_id',
+    referencedColumnName: 'id',
+  })
   order: Order;
+
+  @Column()
+  order_id: string;
 
   @Field(() => Int)
   @Column()
@@ -51,5 +63,14 @@ export class StockHistory {
 
   @Field()
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  createdAt: number;
+
+  @Field({
+    nullable: true,
+  })
+  @Column('timestamp', {
+    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  updatedAt: number;
 }

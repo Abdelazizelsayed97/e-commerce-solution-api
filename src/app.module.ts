@@ -50,16 +50,6 @@ import * as express from 'express';
       driver: ApolloDriver,
       playground: true,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      // context: (dataSource: DataSource) => ({
-      //   userLoader: createUserLoader(dataSource.getRepository(User)),
-      //   orderLoader: OrderLoader(dataSource.getRepository(Order)),
-      // }),
-    }),
-
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '7d', algorithm: 'HS256' },
     }),
 
     JwtModule.register({
@@ -68,8 +58,6 @@ import * as express from 'express';
       signOptions: { expiresIn: '7d', algorithm: 'HS256' },
     }),
     AuthModule,
-    EmailModule,
-    NotificationModule,
     EmailModule,
     NotificationModule,
     QueueModule,

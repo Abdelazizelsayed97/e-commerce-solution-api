@@ -1,5 +1,5 @@
 import { InputType, Field, Float, GraphQLTimestamp } from '@nestjs/graphql';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 import { paymentMethod } from 'src/core/enums/payment.method.enum';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 
@@ -16,6 +16,8 @@ export class CreateOrderInput {
   shippingAddressId: string;
 
   @Field(() => String)
+  @IsNotEmpty()
+  @IsUUID()
   @IsNotEmpty()
   cartId: string;
 }

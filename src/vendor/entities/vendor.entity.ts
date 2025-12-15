@@ -8,7 +8,6 @@ import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   Entity,
-  JoinColumn,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -47,27 +46,33 @@ export class Vendor {
   })
   vendorOrders?: Order[];
 
-  @Field(() => GraphQLTimestamp)
+  @Field()
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  createdAt: number;
 
-  @Field(() => GraphQLTimestamp)
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  updatedAt: Date;
+  @Field({
+    nullable: true,
+  })
+  @Column('timestamp', {
+    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  updatedAt: number;
 
   @Field(() => [Follower], { nullable: true })
   @OneToMany(() => Follower, (follower) => follower.vendor, { nullable: true })
   followers?: Follower[];
 
-  @JoinColumn()
   @OneToOne(() => RequestVendor, (request) => request.vendor, {
     nullable: true,
   })
   @Field(() => RequestVendor, { nullable: true })
   request?: RequestVendor;
+
   @Field(() => [Product])
   @OneToMany(() => Product, (product) => product.vendor)
   products: Product[];
+
   @Field(() => Boolean, { defaultValue: false })
   @Column('boolean', { default: false })
   isFollowed: boolean;

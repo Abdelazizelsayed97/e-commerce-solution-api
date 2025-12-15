@@ -14,25 +14,25 @@ export class AddressService {
   constructor(
     @InjectRepository(Address)
     private addressRepository: Repository<Address>,
-
-    private userService: UserService,
   ) {}
 
-  async create(createAddressInput: CreateAddressInput) {
+  async create(createAddressInput: CreateAddressInput, user: User) {
     const isExist = await this.addressRepository.findOne({
       where: {
         state: createAddressInput.state,
         city: createAddressInput.city,
         details: createAddressInput.details,
+        user_id: user.id,
       },
     });
+
     if (isExist) {
       throw new Error('address already exist');
     }
-    const user = await this.userService.findOneById(createAddressInput.userid);
+
     const address = this.addressRepository.create({
       ...createAddressInput,
-      user,
+      user_id: user.id,
     });
     return await this.addressRepository.save(address);
   }
@@ -58,11 +58,9 @@ export class AddressService {
     const [items, totalCount] = await this.addressRepository.findAndCount({
       skip,
       take: paginated.limit,
-      relations: {
-        user: true,
-      },
+
       where: {
-        user: user,
+        user_id: user.id,
       },
     });
     return { items, totalCount };
@@ -80,6 +78,7 @@ export class AddressService {
     if (!address) {
       throw new Error('address not found');
     }
+
     Object.assign(address, updateAddressInput);
     return await this.addressRepository.save(address);
   }

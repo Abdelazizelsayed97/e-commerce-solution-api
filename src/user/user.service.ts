@@ -47,6 +47,7 @@ export class UserService {
       name: registerInput.name,
       phoneNumber: registerInput.phoneNumber,
       role: RoleEnum.client,
+    
     });
     user.token = await this.generateToken(user.id);
     await this.usersRepository.save(user);

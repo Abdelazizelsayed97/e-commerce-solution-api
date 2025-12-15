@@ -1,5 +1,11 @@
 import { ObjectType, Field, Float } from '@nestjs/graphql';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
@@ -14,11 +20,25 @@ export class VendorTransaction {
 
   @Field(() => Vendor)
   @ManyToOne(() => Vendor)
+  @JoinColumn({
+    name: 'vendor_id',
+    referencedColumnName: 'id',
+  })
   vendor: Vendor;
+
+  @Column()
+  vendor_id: string;
 
   @Field(() => Order)
   @ManyToOne(() => Order)
+  @JoinColumn({
+    name: 'order_id',
+    referencedColumnName: 'id',
+  })
   order: Order;
+
+  @Column()
+  order_id: string;
 
   @Field(() => TransactionTypeEnum)
   @Column('enum', { enum: TransactionTypeEnum })
@@ -41,12 +61,14 @@ export class VendorTransaction {
 
   @Field()
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  createdAt: number;
 
-  @Field()
-  @Column('timestamp', {
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
+  @Field({
+    nullable: true,
   })
-  updatedAt: Date;
+  @Column('timestamp', {
+    onUpdate: 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  updatedAt: number;
 }

@@ -101,7 +101,7 @@ export class CartItemResolver {
 
   @ResolveField(() => Vendor, { nullable: true })
   vendor(@Parent() cartItem: CartItem) {
-    if (!cartItem.vendor) return null;
-    return this.vendorLoader.load(cartItem.vendor.id);
+    if (!cartItem.product.vendor) return null;
+    return this.vendorLoader.load(cartItem.product.vendor.id);
   }
 }

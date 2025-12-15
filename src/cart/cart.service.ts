@@ -38,7 +38,7 @@ export class CartService {
         throw new NotFoundException('User not found');
       }
       const cart = this.cartRepository.create({
-        ...user,
+        user_id: user.id,
       });
       return await this.cartRepository.save(cart);
     }
@@ -47,7 +47,6 @@ export class CartService {
   async findAll(paginate: PaginationInput): Promise<Cart[]> {
     const skip = (paginate.page - 1) * paginate.limit;
     return await this.cartRepository.find({
-      relations: ['cartItems', 'user'],
       skip,
       take: paginate.limit,
     });
@@ -56,7 +55,7 @@ export class CartService {
   async findOne(id: string) {
     const cart = await this.cartRepository.findOne({
       where: { id: id },
-      relations: ['cartItems', 'user'],
+
     });
     if (!cart) {
       throw new NotFoundException('cart not found');
@@ -67,7 +66,6 @@ export class CartService {
   async findCartByUserId(userId: string) {
     const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['user', 'cartItems'],
     });
     if (!cart) {
       throw new NotFoundException('cart not found');

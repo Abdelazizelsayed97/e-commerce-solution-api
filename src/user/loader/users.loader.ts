@@ -7,7 +7,6 @@ export function UserLoader(userRepo: Repository<User>) {
     console.log('idessssss', ids);
     const users = await userRepo.find({
       where: { id: In(ids) },
-
     });
 
     const map = new Map(users.map((u) => [u.id, u]));

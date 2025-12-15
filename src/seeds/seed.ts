@@ -119,7 +119,7 @@ async function seed() {
     const cartItem = cartItemRepo.create({
       cart,
       product,
-      vendor,
+
       quantity,
       totlePrice: product.price * quantity,
     });
@@ -162,7 +162,7 @@ async function seed() {
       const item = orderItemRepo.create({
         order,
         product: ci.product,
-        vendor: ci.vendor!,
+
         quantity: ci.quantity,
         unitPrice: ci.product.price,
         totalPrice: ci.totlePrice,
