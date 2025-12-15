@@ -18,6 +18,7 @@ async function bootstrap() {
     }),
   );
   app.use('/payment/webhook', express.raw({ type: 'application/json' }));
+  app.use('/payment/refund', express.raw({ type: 'application/json' }));
   console.log('this is port console log ' + process.env.PORT);
   await app.listen(process.env.PORT ?? 3000);
 }

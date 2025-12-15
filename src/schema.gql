@@ -46,8 +46,8 @@ type CartItem {
   vendor: Vendor!
   quantity: Float!
   totlePrice: Float!
-  cartItem: CartItem!
-  cart: Cart!
+  cartItem: CartItem
+  cart: Cart
 }
 
 type Cart {
@@ -297,12 +297,13 @@ type Query {
   cartItem(id: String!): CartItem!
   vendors(paginate: PaginationInput!): VendorPaginated!
   vendor(id: String!): Vendor!
-  mostPopularVendors(paginate: PaginationInput): [Vendor!]!
+  mostPopularVendors(paginate: PaginationInput, timeframe: String): String!
   products(paginate: PaginationInput, filter: Boolean): PaginatedProduct!
   followedVendorProducts(paginate: PaginationInput): PaginatedProduct!
   vendorProducts(vendorId: String!, paginate: PaginationInput): PaginatedProduct!
   product(id: String!): Product!
   searchProducts(searchTerm: String!, paginate: PaginationInput, category: String, minPrice: Float, maxPrice: Float): PaginatedProduct!
+  mostPopularProducts(paginate: PaginationInput, timeframe: String): PaginatedProduct!
   fcm(id: String!): Fcm!
   getAllUserAddresses(paginate: PaginationInput): PaginatedAddress!
   getAllAddressesBoard(paginate: PaginationInput): PaginatedAddress!
@@ -341,6 +342,7 @@ type Mutation {
   createOrder(createOrderInput: CreateOrderInput!): CreateOrderResponse!
   cancelOrder(updateOrderInput: UpdateOrderInput!): Order!
   updateOrderStatus(orderId: String!, status: OrderStatusEnum!): Order!
+  refund(orderID: String!, reason: RefundReason!): String!
   createWallet(createWalletInput: CreateWalletInput!): Wallet!
   updateWallet(updateWalletInput: UpdateWalletInput!): Wallet!
   createTransaction(createTransactionInput: CreateTransactionInput!): Transaction!
@@ -410,6 +412,16 @@ input UpdateOrderInput {
   shippingAddressId: String
   cartId: String
   id: String!
+}
+
+enum RefundReason {
+  DAMAGED_PRODUCT
+  WRONG_ITEM
+  NOT_AS_DESCRIBED
+  NO_LONGER_NEEDED
+  DEFECTIVE
+  LATE_DELIVERY
+  OTHER
 }
 
 input CreateWalletInput {

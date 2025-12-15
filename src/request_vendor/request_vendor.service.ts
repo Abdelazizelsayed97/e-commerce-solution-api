@@ -66,7 +66,7 @@ export class RequestVendorService {
   }
   async approveRequestVendor(id: string) {
     const request = await this.requestVendorRepository.findOne({
-      where: { id },
+      where: { id: id },
       relations: {
         vendor: {
           user: true,
@@ -88,7 +88,7 @@ export class RequestVendorService {
       request.id,
       {
         id: id,
-        status: RequestVendorEnum.approve,  
+        status: RequestVendorEnum.approve,
       },
     );
     const user = await this.userService.findOneById(request.vendor.user.id);

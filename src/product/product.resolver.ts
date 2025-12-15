@@ -104,7 +104,33 @@ export class ProductResolver {
     @Args('maxPrice', { type: () => Number, nullable: true })
     maxPrice?: number,
   ): Promise<PaginatedProduct> {
-    return this.productService.searchProducts(searchTerm, paginate, category, minPrice, maxPrice);
+    return this.productService.searchProducts(
+      searchTerm,
+      paginate,
+      category,
+      minPrice,
+      maxPrice,
+    );
+  }
+
+  @Query(() => PaginatedProduct, { name: 'mostPopularProducts' })
+  async getMostPopularProducts(
+    @Args('paginate', { type: () => PaginationInput, nullable: true })
+    paginate: PaginationInput,
+    @Args('timeframe', { type: () => String, nullable: true })
+    timeframe?: '7days' | '30days' | '90days',
+  ): Promise<PaginatedProduct> {
+    return this.productService.getMostPopularProducts(paginate, timeframe);
+  }
+
+  @Query(() => String, { name: 'mostPopularVendors' })
+  async getMostPopularVendors(
+    @Args('paginate', { type: () => PaginationInput, nullable: true })
+    paginate: PaginationInput,
+    @Args('timeframe', { type: () => String, nullable: true })
+    timeframe?: '7days' | '30days' | '90days',
+  ) {
+    return this.productService.getMostPopularVendors(paginate, timeframe);
   }
 
   @Roles(RoleEnum.vendor, RoleEnum.superAdmin)
@@ -112,23 +138,23 @@ export class ProductResolver {
   @Mutation(() => Product)
   async updateProduct(
     @Args('updateProductInput') updateProductInput: UpdateProductInput,
+    @CurrentUser() user: User,
   ) {
-    const isExist = await this.findOne(updateProductInput.id);
-    if (isExist) {
-      throw new NotFoundException('product not found');
-    }
-    const updatedProduct = Object.assign(isExist, updateProductInput);
     return await this.productService.update(
       updateProductInput.id,
-      updatedProduct,
+      updateProductInput,
+      user,
     );
   }
 
   @Roles(RoleEnum.vendor, RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => Product)
-  removeProduct(@Args('id', { type: () => String }) id: string) {
-    return this.productService.remove(id);
+  removeProduct(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.productService.remove(id, user);
   }
 
   @ResolveField(() => Vendor, { nullable: true })
@@ -144,8 +170,8 @@ export class ProductResolver {
 
     return this.userLoader.load(product.vendor.user.id);
   }
-  @ResolveField(()=>RatingAndReview,{nullable:true})
-  async reviews(@Parent() product:Product){
-    return this.reviewLoader.load(product.id)
+  @ResolveField(() => RatingAndReview, { nullable: true })
+  async reviews(@Parent() product: Product) {
+    return this.reviewLoader.load(product.id);
   }
 }

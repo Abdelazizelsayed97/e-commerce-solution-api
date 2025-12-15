@@ -1,15 +1,25 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { stockHistoryActionEnum } from 'src/core/enums/stock.history.enum';
 
 @ObjectType()
 @Entity()
+@Index('stock_history_product_idx', ['product_id'])
 export class StockHistory {
   @Field(() => String)
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column()
+  product_id: string;
 
   @Field(() => Product)
   @ManyToOne(() => Product)

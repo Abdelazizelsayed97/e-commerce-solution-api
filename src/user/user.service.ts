@@ -20,13 +20,13 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    private jwtService: JwtService,
     @InjectRepository(Fcm)
     private fcmRepository: Repository<Fcm>,
-    private emailService: EmailService,
-    private cartService: CartService,
     @InjectRepository(Wallet)
     private walletRepository: Repository<Wallet>,
+    private jwtService: JwtService,
+    private emailService: EmailService,
+    private cartService: CartService,
   ) {}
 
   async create(registerInput: RegisterInput) {

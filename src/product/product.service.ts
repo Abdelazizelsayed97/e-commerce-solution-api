@@ -7,6 +7,8 @@ import { Product } from './entities/product.entity';
 import { PaginatedProduct } from './entities/paginated.product';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Follower } from 'src/followers/entities/follower.entity';
+import { User } from 'src/user/entities/user.entity';
+import { RoleEnum } from 'src/core/enums/role.enum';
 
 @Injectable({
   scope: Scope.REQUEST,
@@ -178,16 +180,54 @@ export class ProductService {
     }
   }
 
-  async update(id: string, updateProductInput: UpdateProductInput) {
-    const isExist = await this.findOne(id);
-    if (!isExist) {
+  async update(
+    id: string,
+    updateProductInput: UpdateProductInput,
+    user?: User,
+  ) {
+    const product = await this.productsRepository.findOne({
+      where: { id },
+      relations: { vendor: { user: true } },
+    });
+
+    if (!product) {
       throw new NotFoundException('product not found');
     }
-    Object.assign(isExist, updateProductInput);
-    return await this.productsRepository.save(isExist);
+
+    // Check ownership - only vendor who owns the product or super admin can update
+    if (user && user.role !== RoleEnum.superAdmin) {
+      if (
+        user.role !== RoleEnum.vendor ||
+        product.vendor?.user.id !== user.id
+      ) {
+        throw new NotFoundException('You can only update your own products');
+      }
+    }
+
+    Object.assign(product, updateProductInput);
+    return await this.productsRepository.save(product);
   }
 
-  async remove(id: string) {
+  async remove(id: string, user?: User) {
+    const product = await this.productsRepository.findOne({
+      where: { id },
+      relations: { vendor: { user: true } },
+    });
+
+    if (!product) {
+      throw new NotFoundException('product not found');
+    }
+
+    // Check ownership - only vendor who owns the product or super admin can delete
+    if (user && user.role !== RoleEnum.superAdmin) {
+      if (
+        user.role !== RoleEnum.vendor ||
+        product.vendor?.user.id !== user.id
+      ) {
+        throw new NotFoundException('You can only delete your own products');
+      }
+    }
+
     await this.productsRepository.delete(id);
     return {
       success: true,
@@ -232,6 +272,152 @@ export class ProductService {
       pagination: {
         totalItems,
         itemCount: items.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+        currentPage: paginate.page,
+      },
+    };
+  }
+
+  async getMostPopularProducts(
+    paginate: PaginationInput,
+    timeframe?: '7days' | '30days' | '90days',
+  ): Promise<PaginatedProduct> {
+    const skip = (paginate.page - 1) * paginate.limit;
+
+    let dateCondition = '';
+    const now = new Date();
+
+    if (timeframe === '7days') {
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      dateCondition = `AND o.createdAt >= '${sevenDaysAgo.toISOString()}'`;
+    } else if (timeframe === '30days') {
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      dateCondition = `AND o.createdAt >= '${thirtyDaysAgo.toISOString()}'`;
+    } else if (timeframe === '90days') {
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      dateCondition = `AND o.createdAt >= '${ninetyDaysAgo.toISOString()}'`;
+    }
+
+    const query = `
+      SELECT 
+        p.*,
+        COUNT(oi.id) as order_count,
+        SUM(oi.quantity) as total_sold
+      FROM products p
+      LEFT JOIN order_items oi ON p.id = oi.product_id
+      LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'CANCELLED' ${dateCondition}
+      GROUP BY p.id
+      HAVING COUNT(oi.id) > 0
+      ORDER BY order_count DESC, total_sold DESC
+      LIMIT ${paginate.limit} OFFSET ${skip}
+    `;
+
+    const countQuery = `
+      SELECT COUNT(DISTINCT p.id) as total
+      FROM products p
+      LEFT JOIN order_items oi ON p.id = oi.product_id
+      LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'CANCELLED' ${dateCondition}
+      GROUP BY p.id
+      HAVING COUNT(oi.id) > 0
+    `;
+
+    const [products, countResult] = await Promise.all([
+      this.productsRepository.query(query),
+      this.productsRepository.query(countQuery),
+    ]);
+
+    const totalItems = countResult.length || 0;
+
+    // Map raw results back to Product entities with relations
+    const productIds = products.map((p) => p.id);
+    const items =
+      productIds.length > 0
+        ? await this.productsRepository.find({
+            where: { id: { $in: productIds } } as any,
+            relations: { vendor: true },
+          })
+        : [];
+
+    return {
+      items,
+      pagination: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+        currentPage: paginate.page,
+      },
+    };
+  }
+
+  async getMostPopularVendors(
+    paginate: PaginationInput,
+    timeframe?: '7days' | '30days' | '90days',
+  ): Promise<{ vendors: any[]; pagination: any }> {
+    const skip = (paginate.page - 1) * paginate.limit;
+
+    let dateCondition = '';
+    const now = new Date();
+
+    if (timeframe === '7days') {
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      dateCondition = `AND o.createdAt >= '${sevenDaysAgo.toISOString()}'`;
+    } else if (timeframe === '30days') {
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      dateCondition = `AND o.createdAt >= '${thirtyDaysAgo.toISOString()}'`;
+    } else if (timeframe === '90days') {
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      dateCondition = `AND o.createdAt >= '${ninetyDaysAgo.toISOString()}'`;
+    }
+
+    const query = `
+      SELECT 
+        v.*,
+        u.name as user_name,
+        u.email as user_email,
+        COUNT(DISTINCT p.id) as product_count,
+        COUNT(DISTINCT o.id) as order_count,
+        SUM(oi.quantity) as total_sold,
+        AVG(r.rating) as avg_rating,
+        COUNT(DISTINCT r.id) as review_count
+      FROM vendors v
+      LEFT JOIN users u ON v.user_id = u.id
+      LEFT JOIN products p ON v.id = p.vendor_id
+      LEFT JOIN order_items oi ON p.id = oi.product_id
+      LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'CANCELLED' ${dateCondition}
+      LEFT JOIN rating_and_reviews r ON v.id = r.vendor_id
+      GROUP BY v.id, u.name, u.email
+      HAVING COUNT(DISTINCT o.id) > 0 OR COUNT(DISTINCT r.id) > 0
+      ORDER BY 
+        (COUNT(DISTINCT o.id) * 0.6 + AVG(r.rating) * 0.4) DESC,
+        COUNT(DISTINCT p.id) DESC
+      LIMIT ${paginate.limit} OFFSET ${skip}
+    `;
+
+    const countQuery = `
+      SELECT COUNT(DISTINCT v.id) as total
+      FROM vendors v
+      LEFT JOIN products p ON v.id = p.vendor_id
+      LEFT JOIN order_items oi ON p.id = oi.product_id
+      LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'CANCELLED' ${dateCondition}
+      LEFT JOIN rating_and_reviews r ON v.id = r.vendor_id
+      GROUP BY v.id
+      HAVING COUNT(DISTINCT o.id) > 0 OR COUNT(DISTINCT r.id) > 0
+    `;
+
+    const [vendors, countResult] = await Promise.all([
+      this.productsRepository.query(query),
+      this.productsRepository.query(countQuery),
+    ]);
+
+    const totalItems = countResult.length || 0;
+
+    return {
+      vendors,
+      pagination: {
+        totalItems,
+        itemCount: vendors.length,
         itemsPerPage: paginate.limit,
         totalPages: Math.ceil(totalItems / paginate.limit),
         currentPage: paginate.page,

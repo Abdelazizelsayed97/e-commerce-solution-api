@@ -81,19 +81,19 @@ export class CartItemResolver {
   clearCart(@Args('cartId', { type: () => String }) cartId: string) {
     return this.cartItemService.removeAllFromCart(cartId);
   }
-  @ResolveField(() => CartItem)
+  @ResolveField(() => CartItem, { nullable: true })
   cartItem(@Parent() cartItem: CartItem) {
     if (!cartItem.id) return null;
     return this.cartItemLoader.load(cartItem.id);
   }
 
-  @ResolveField(() => Cart)
+  @ResolveField(() => Cart, { nullable: true })
   cart(@Parent() cartItem: CartItem) {
     if (!cartItem.cart) return null;
     return this.cartLoader.load(cartItem.cart.id);
   }
 
-  @ResolveField(() => Product)
+  @ResolveField(() => Product, { nullable: true })
   product(@Parent() cartItem: CartItem) {
     if (!cartItem.product) return null;
     return this.productLoader.load(cartItem.product.id);

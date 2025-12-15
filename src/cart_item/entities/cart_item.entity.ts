@@ -11,13 +11,12 @@ export class CartItem {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // @Field(() => Cart)
   @ManyToOne(() => Cart, (cart) => cart.cartItems, {
     onDelete: 'CASCADE',
     nullable: true,
   })
   cart: Cart;
-  
+
   @Field(() => Product)
   @ManyToOne(() => Product)
   product: Product;

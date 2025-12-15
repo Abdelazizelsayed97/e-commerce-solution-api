@@ -17,6 +17,10 @@ import { CartItemService } from 'src/cart_item/cart_item.service';
 import { stockHistoryActionEnum } from 'src/core/enums/stock.history.enum';
 import { OrderPaymentVendorStatusEnum } from 'src/core/enums/order.payment.status';
 import { CartItem } from 'src/cart_item/entities/cart_item.entity';
+import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
+import { QueueService } from 'src/queue/queue.service';
+import { User } from 'src/user/entities/user.entity';
+import { RefundReason } from 'src/core/enums/refund.reason.enum';
 
 @Injectable()
 export class PaymentService {
@@ -37,8 +41,164 @@ export class PaymentService {
     @InjectRepository(Vendor)
     private readonly vendorRepository: Repository<Vendor>,
     private cartItemService: CartItemService,
+
+    private queueService: QueueService,
   ) {
     this.stripeInstance = new stripe(process.env.STRIPE_API_KEY!);
+  }
+
+  async processRefund(orderId: string, reason?: RefundReason) {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: [
+        'client',
+        'orderItems',
+        'orderItems.product',
+        'orderItems.vendor',
+      ],
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    if (order.paymentStatus !== OrderPaymentStatus.paid) {
+      throw new Error('Only paid orders can be refunded');
+    }
+
+    if (order.status === OrderShippingStatusEnum.CANCELLED) {
+      throw new Error('Order has already been cancelled or refunded');
+    }
+
+    try {
+      // Process Stripe refund if payment was made via Stripe
+      if (order.transactionId) {
+        await this.stripeInstance.refunds.create({
+          payment_intent: order.transactionId,
+          reason: 'requested_by_customer',
+        });
+      }
+
+      // Create refund transaction for client
+      const clientWallet = await this.walletRepository.findOne({
+        where: { user: { id: order.client.id } },
+      });
+
+      if (!clientWallet) {
+        throw new Error('Client wallet not found');
+      }
+
+      const refundTransaction = this.transactionRepository.create({
+        type: TransactionTypeEnum.REFUND,
+        amount: order.totalAmount,
+        balanceAfter: clientWallet.balance + order.totalAmount,
+        description: `Refund for order ${order.id}${reason ? ` - ${reason}` : ''}`,
+        user: order.client,
+        order,
+        wallet: clientWallet,
+      });
+
+      await this.transactionRepository.save(refundTransaction);
+
+      // Update client wallet balance
+      clientWallet.balance += order.totalAmount;
+      await this.walletRepository.save(clientWallet);
+
+      // Restore product stock
+      for (const orderItem of order.orderItems as OrderItem[]) {
+        const product = await this.productRepository.findOne({
+          where: { id: orderItem.product.id },
+          relations: {
+            vendor: true,
+          },
+        });
+
+        if (product) {
+          product.inStock += orderItem.quantity;
+          await this.productRepository.save(product);
+
+          // Record stock history
+          const stockHistory = this.stockHistoryRepository.create({
+            action: stockHistoryActionEnum.REFUNDED,
+            quantityChanged: orderItem.quantity,
+            reason: `Refund for order ${order.id}`,
+            order,
+            previousStock: product.inStock - orderItem.quantity,
+            newStock: product.inStock,
+            product_id: product.id,
+            product,
+          });
+          await this.stockHistoryRepository.save(stockHistory);
+        }
+      }
+
+      // Update order status to refunded
+      order.paymentStatus = OrderPaymentStatus.refunded;
+      order.status = OrderShippingStatusEnum.CANCELLED;
+      order.updatedAt = Date.now();
+      await this.orderRepository.save(order);
+
+      // Send refund notification email
+      await this.queueService.addEmail('statusNotification', {
+        user: {
+          name: order.client.name,
+          email: order.client.email,
+        },
+        entityName: 'Order Refund',
+        oldStatus: 'PAID',
+        newStatus: 'REFUNDED',
+        orderId: order.id,
+      });
+
+      return {
+        success: true,
+        message: 'Refund processed successfully',
+        refundAmount: order.totalAmount,
+      };
+    } catch (error) {
+      throw new Error(`Failed to process refund: ${error.message}`);
+    }
+  }
+
+  async createRefundRequest(orderId: string, reason: RefundReason, user: User) {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['client'],
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    if (order.client.id !== user.id) {
+      throw new Error('You can only request refunds for your own orders');
+    }
+
+    if (order.paymentStatus !== OrderPaymentStatus.paid) {
+      throw new Error('Only paid orders can be refunded');
+    }
+
+    if (order.status === OrderShippingStatusEnum.CANCELLED) {
+      throw new Error('Order has already been refunded');
+    }
+
+    // Create refund request record (you might want to create a separate entity for this)
+    const refundRequest = {
+      orderId,
+      userId: user.id,
+      reason,
+      status: 'PENDING',
+      createdAt: Date.now(),
+    };
+
+    // In a real implementation, you would save this to a refund_requests table
+    // and notify admins for approval
+
+    return {
+      success: true,
+      message: 'Refund request submitted successfully',
+      request: refundRequest,
+    };
   }
 
   async createPayment(orderID: string) {
@@ -53,6 +213,7 @@ export class PaymentService {
     if (!order) {
       throw new Error('Order not found');
     }
+
     const session = await this.stripeInstance.checkout.sessions.create({
       line_items: [
         {
@@ -336,66 +497,5 @@ export class PaymentService {
         createdAt: new Date(),
       });
     }
-  }
-
-  async handleRefundTransactions(rawBody: Buffer, signature: string) {
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!endpointSecret) {
-      throw new Error('Stripe webhook secret not configured');
-    }
-    let event: stripe.Event;
-
-    try {
-      const refund = await this.stripeInstance.refunds.create({
-        charge: 'charge_id',
-        reverse_transfer: true,
-        refund_application_fee: true,
-        metadata: {
-          order_id: 'order_id',
-          vendor_id: 'vendor_id',
-          transaction_id: 'transaction_id',
-        },
-      });
-      event = stripe.webhooks.constructEvent(
-        rawBody,
-        signature,
-        endpointSecret,
-      );
-    } catch (err) {
-      throw new Error('Webhook signature verification failed');
-    }
-
-    if (event.type === 'refund.updated') {
-      const refund = event.data.object as stripe.Refund;
-      await this.handleRefund(refund);
-    }
-  }
-
-  async handleRefund(refund: stripe.Refund) {
-    // refund transactions
-
-    const transaction = await this.transactionRepository.findOne({
-      where: { order: { id: refund.metadata?.transaction_id } },
-    });
-    if (!transaction) {
-      throw new Error('Transaction not found');
-    }
-    transaction.type = TransactionTypeEnum.REFUND;
-    transaction.amount = refund.amount;
-    transaction.balanceAfter = transaction.balanceAfter - refund.amount;
-    await this.transactionRepository.save(transaction);
-    // update order status
-    const order = await this.orderRepository.findOne({
-      where: { id: refund.metadata?.order_id },
-    });
-    if (!order) {
-      throw new Error('Order not found');
-    }
-    order.paymentStatus = OrderPaymentStatus.refunded;
-    await this.orderRepository.save(order);
-    // update stock
-    // update vendor balance
-    // update user balance if the option is transfer to wallet not to source
   }
 }

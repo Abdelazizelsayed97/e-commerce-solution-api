@@ -9,6 +9,7 @@ import { CartItem } from 'src/cart_item/entities/cart_item.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { PaymentService } from 'src/payment/payment.service';
 import { PaymentModule } from 'src/payment/payment.module';
+import { QueueModule } from 'src/queue/queue.module';
 
 @Module({
   providers: [
@@ -23,6 +24,7 @@ import { PaymentModule } from 'src/payment/payment.module';
   imports: [
     TypeOrmModule.forFeature([Order, OrderItem, Cart, CartItem, Product]),
     PaymentModule,
+    QueueModule,
   ],
 })
 export class OrderModule {}

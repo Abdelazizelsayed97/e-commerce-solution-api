@@ -14,6 +14,7 @@ import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { PaginatedOrder } from './entities/paginated.order';
 import { User } from 'src/user/entities/user.entity';
+import { QueueService } from 'src/queue/queue.service';
 
 @Injectable()
 export class OrderService {
@@ -26,9 +27,9 @@ export class OrderService {
     private readonly cartRepository: Repository<Cart>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    private readonly queueService: QueueService,
   ) {}
 
-  
   async createOrder(createOrderInput: CreateOrderInput, user: User) {
     const cart = await this.cartRepository.findOne({
       where: { id: createOrderInput.cartId },
@@ -65,6 +66,7 @@ export class OrderService {
     // }
 
     const now = Date.now();
+    console.log('useruseruser', user);
     const order = this.orderRepository.create({
       client: user,
       cart: { id: createOrderInput.cartId },
@@ -169,15 +171,34 @@ export class OrderService {
   async updateOrderStatus(orderId: string, status: OrderShippingStatusEnum) {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
+      relations: ['client'],
     });
     if (!order) {
       throw new BadRequestException('Order not found');
     }
 
+    const oldStatus = order.status;
     const now = Date.now();
     order.status = status;
     order.updatedAt = now;
-    return await this.orderRepository.save(order);
+
+    const updatedOrder = await this.orderRepository.save(order);
+
+    // Send email notification for status change
+    if (oldStatus !== status && order.client) {
+      await this.queueService.addEmail('statusNotification', {
+        user: {
+          name: order.client.name,
+          email: order.client.email,
+        },
+        entityName: 'Order',
+        oldStatus: oldStatus,
+        newStatus: status,
+        orderId: order.id,
+      });
+    }
+
+    return updatedOrder;
   }
 
   async getAllOrders(paginate: PaginationInput): Promise<PaginatedOrder> {
