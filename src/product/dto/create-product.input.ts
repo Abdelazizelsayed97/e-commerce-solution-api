@@ -6,19 +6,20 @@ export class CreateProductInput {
   @IsNotEmpty()
   @Field(() => String)
   name: string;
-  @IsNotEmpty()
-  @Field(() => String)
-  type: string;
+
   @IsNotEmpty()
   @Field(() => String)
   vendorId: string;
+
   @IsNotEmpty()
   @Field(() => Int)
-  stock: number
+  stock: number;
+
   @IsNotEmpty()
   @Field(() => Int)
-  price: number
+  price: number;
+
   @IsOptional()
-  @Field(() => String, { nullable: true })
-  category?: string;
+  @Field(() => String)
+  categoryId: string;
 }

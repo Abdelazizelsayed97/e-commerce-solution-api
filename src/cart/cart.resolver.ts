@@ -38,6 +38,8 @@ export class CartResolver {
     this.cartItemLoader = cartItemLoader(dataSource);
   }
 
+  @Roles(RoleEnum.superAdmin)
+  @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => Cart)
   async createCart(@Args('createCartInput') createCartInput: CreateCartInput) {
     return await this.cartService.create(createCartInput);
@@ -54,7 +56,7 @@ export class CartResolver {
   }
   @Roles(RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
-  @Query(() => [Cart], { name: 'allCarts' })
+  @Query(() => [Cart], { name: 'allCarts', nullable: true })
   async findAll(
     @Args('paginate', { nullable: true }) paginate: PaginationInput,
   ) {

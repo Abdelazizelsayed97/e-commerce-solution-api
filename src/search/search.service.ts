@@ -20,6 +20,7 @@ export class SearchService {
       searchInput;
     const skip = (page - 1) * limit;
 
+    console.log(searchInput);
     const productWhere: any = { name: ILike(`%${searchKey}%`) };
     if (category) {
       productWhere.category = category;

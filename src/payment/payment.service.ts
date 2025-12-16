@@ -1,6 +1,4 @@
 import { Injectable, Post } from '@nestjs/common';
-
-import stripe from 'stripe';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from 'src/order/entities/order.entity';
 import { Repository } from 'typeorm';
@@ -21,6 +19,7 @@ import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
 import { QueueService } from 'src/queue/queue.service';
 import { User } from 'src/user/entities/user.entity';
 import { RefundReason } from 'src/core/enums/refund.reason.enum';
+import stripe from 'stripe';
 
 @Injectable()
 export class PaymentService {
@@ -28,18 +27,25 @@ export class PaymentService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
+
     @InjectRepository(VendorTransaction)
     private readonly vendorTransactionRepository: Repository<VendorTransaction>,
+
     @InjectRepository(StockHistory)
     private readonly stockHistoryRepository: Repository<StockHistory>,
+
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+
     @InjectRepository(Wallet)
     private readonly walletRepository: Repository<Wallet>,
+
     @InjectRepository(Vendor)
     private readonly vendorRepository: Repository<Vendor>,
+
     private cartItemService: CartItemService,
 
     private queueService: QueueService,
@@ -93,9 +99,9 @@ export class PaymentService {
         amount: order.totalAmount,
         balanceAfter: clientWallet.balance + order.totalAmount,
         description: `Refund for order ${order.id}${reason ? ` - ${reason}` : ''}`,
-        user: order.client,
-        order,
-        wallet: clientWallet,
+        user_id: order.client.id,
+        order_id: order.id,
+        wallet_id: clientWallet.id,
       });
 
       await this.transactionRepository.save(refundTransaction);
@@ -122,11 +128,10 @@ export class PaymentService {
             action: stockHistoryActionEnum.REFUNDED,
             quantityChanged: orderItem.quantity,
             reason: `Refund for order ${order.id}`,
-            order,
+            order_id: order.id,
             previousStock: product.inStock - orderItem.quantity,
             newStock: product.inStock,
             product_id: product.id,
-            product,
           });
           await this.stockHistoryRepository.save(stockHistory);
         }
@@ -373,8 +378,8 @@ export class PaymentService {
 
             //this part is for vendor transactions after adjusting the commission
             const commissionTx = this.vendorTransactionRepository.create({
-              vendor: vendor,
-              order: order,
+              vendor_id: vendor.id,
+              order_id: order.id,
               type: TransactionTypeEnum.MARKETPLACE_COMMISSION,
               amount: commission,
               status: OrderPaymentStatus.paid,

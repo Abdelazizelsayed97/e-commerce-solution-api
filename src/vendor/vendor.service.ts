@@ -48,10 +48,6 @@ export class VendorService {
   async getAllVendors(paginate: PaginationInput): Promise<VendorPaginated> {
     const skip = (paginate.page - 1) * paginate.limit;
     const [vendors, total] = await this.vendorRepository.findAndCount({
-      relations: {
-        user: true,
-        products: true,
-      },
       skip: skip,
       take: paginate.limit,
     });
@@ -111,7 +107,6 @@ export class VendorService {
     try {
       const vendor = await this.vendorRepository.findOne({
         where: { id: vendorId },
-        relations: { products: true },
       });
 
       if (!vendor || !vendor.products || vendor.products.length === 0) {
@@ -146,10 +141,6 @@ export class VendorService {
     const vendor = await this.vendorRepository.findOne({
       where: {
         id,
-      },
-      relations: {
-        user: true,
-        products: true,
       },
     });
     if (!vendor) {

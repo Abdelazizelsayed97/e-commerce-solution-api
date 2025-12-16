@@ -34,6 +34,7 @@ export class ProductService {
       ...createProductInput,
       inStock: createProductInput.stock || 0,
       vendor: { id: createProductInput.vendorId },
+      categoryId: createProductInput.categoryId,
     });
 
     return await this.productsRepository.save(product);
@@ -194,14 +195,8 @@ export class ProductService {
       throw new NotFoundException('product not found');
     }
 
-    // Check ownership - only vendor who owns the product or super admin can update
-    if (user && user.role !== RoleEnum.superAdmin) {
-      if (
-        user.role !== RoleEnum.vendor ||
-        product.vendor?.user.id !== user.id
-      ) {
-        throw new NotFoundException('You can only update your own products');
-      }
+    if (user?.role !== RoleEnum.vendor || product.vendor?.user.id !== user.id) {
+      throw new NotFoundException('You can only update your own products');
     }
 
     Object.assign(product, updateProductInput);
@@ -232,129 +227,6 @@ export class ProductService {
     return {
       success: true,
       message: `This action removes a #${id} product`,
-    };
-  }
-
-  
-
-  async getMostPopularProducts(
-    paginate: PaginationInput,
-  ): Promise<PaginatedProduct> {
-    const skip = (paginate.page - 1) * paginate.limit;
-
-    let dateCondition = '';
-    const now = new Date();
-
-    const query = `
-      SELECT
-        p.*,
-        COUNT(oi.id) as order_count,
-        SUM(oi.quantity) as total_sold
-      FROM products p
-      LEFT JOIN order_items oi ON p.id = oi.product_id
-      LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'CANCELLED' ${dateCondition}
-      GROUP BY p.id
-      HAVING COUNT(oi.id) > 0
-      ORDER BY order_count DESC, total_sold DESC
-      LIMIT ${paginate.limit} OFFSET ${skip}
-    `;
-
-    const countQuery = `
-      SELECT COUNT(DISTINCT p.id) as total
-      FROM products p
-      LEFT JOIN order_items oi ON p.id = oi.product_id
-      LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'CANCELLED' ${dateCondition}
-      GROUP BY p.id
-      HAVING COUNT(oi.id) > 0
-    `;
-
-    const [products, countResult] = await Promise.all([
-      this.productsRepository.query(query),
-      this.productsRepository.query(countQuery),
-    ]);
-
-    const totalItems = countResult.length || 0;
-
-    const productIds = products.map((p) => p.id);
-    const items =
-      productIds.length > 0
-        ? await this.productsRepository.find({
-            where: { id: { $in: productIds } } as any,
-            relations: { vendor: true },
-          })
-        : [];
-
-    return {
-      items,
-      pagination: {
-        totalItems,
-        itemCount: items.length,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-        currentPage: paginate.page,
-      },
-    };
-  }
-
-  async getMostPopularVendors(
-    paginate: PaginationInput,
-  ): Promise<{ vendors: any[]; pagination: any }> {
-    const skip = (paginate.page - 1) * paginate.limit;
-
-    let dateCondition = '';
-    const now = new Date();
-
-    const query = `
-      SELECT 
-        v.*,
-        u.name as user_name,
-        u.email as user_email,
-        COUNT(DISTINCT p.id) as product_count,
-        COUNT(DISTINCT o.id) as order_count,
-        SUM(oi.quantity) as total_sold,
-        AVG(r.rating) as avg_rating,
-        COUNT(DISTINCT r.id) as review_count
-      FROM vendors v
-      LEFT JOIN users u ON v.user_id = u.id
-      LEFT JOIN products p ON v.id = p.vendor_id
-      LEFT JOIN order_items oi ON p.id = oi.product_id
-      LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'CANCELLED' ${dateCondition}
-      LEFT JOIN rating_and_reviews r ON v.id = r.vendor_id
-      GROUP BY v.id, u.name, u.email
-      HAVING COUNT(DISTINCT o.id) > 0 OR COUNT(DISTINCT r.id) > 0
-      ORDER BY 
-        (COUNT(DISTINCT o.id) * 0.6 + AVG(r.rating) * 0.4) DESC,
-        COUNT(DISTINCT p.id) DESC
-      LIMIT ${paginate.limit} OFFSET ${skip}
-    `;
-
-    const countQuery = `
-      SELECT COUNT(DISTINCT v.id) as total
-      FROM vendors v
-      LEFT JOIN products p ON v.id = p.vendor_id
-      LEFT JOIN order_items oi ON p.id = oi.product_id
-      LEFT JOIN orders o ON oi.order_id = o.id AND o.status != 'CANCELLED' ${dateCondition}
-      LEFT JOIN rating_and_reviews r ON v.id = r.vendor_id
-      GROUP BY v.id
-      HAVING COUNT(DISTINCT o.id) > 0 OR COUNT(DISTINCT r.id) > 0
-    `;
-
-    const [vendors, countResult] = await Promise.all([
-      this.productsRepository.query(query),
-      this.productsRepository.query(countQuery),
-    ]);
-
-    const totalItems = countResult.length || 0;
-
-    return {
-      vendors,
-      pagination: {
-        totalItems,
-        itemCount: vendors.length,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-        currentPage: paginate.page,
-      },
     };
   }
 }

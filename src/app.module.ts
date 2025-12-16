@@ -25,8 +25,10 @@ import { SearchModule } from './search/search.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
-import { UserInspectorInterceptor } from './core/helper/interceptors/user.injector.interceptor';
+import { UserInjectorInterceptor } from './core/helper/interceptors/user.injector.interceptor';
 import { SuperAdminSeeder } from './super-admin.seeder';
+import { CategoryModule } from './category/category.module';
+
 import * as express from 'express';
 
 @Module({
@@ -44,7 +46,7 @@ import * as express from 'express';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
-      // dropSchema: true,
+      // dropSchema: true,÷
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
@@ -77,18 +79,13 @@ import * as express from 'express';
     TransactionModule,
     WalletModule,
     PaymentModule,
+    CategoryModule,
   ],
-  providers: [
-    SuperAdminSeeder,
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: UserResponseInterceptor
-    // }
-  ],
+  providers: [SuperAdminSeeder],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(UserInspectorInterceptor).forRoutes('*');
+    consumer.apply(UserInjectorInterceptor).forRoutes('*');
     consumer
       .apply(express.raw({ type: 'application/json' }))
       .forRoutes('webhooks/stripe');

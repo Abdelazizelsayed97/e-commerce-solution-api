@@ -6,9 +6,7 @@ export function AddressLoader(addressRepo: Repository<Address>) {
   return new DataLoader<string, Address>(async (ids) => {
     const addresses = await addressRepo.find({
       where: { id: In(ids as string[]) },
-      relations: {
-        user: true,
-      },
+    
     });
 
     const map = new Map(addresses.map((a) => [a.id, a]));

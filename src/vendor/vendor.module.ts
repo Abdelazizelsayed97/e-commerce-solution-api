@@ -10,6 +10,10 @@ import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-revie
 @Module({
   providers: [VendorResolver, VendorService],
   exports: [VendorService],
-  imports: [TypeOrmModule.forFeature([Vendor, RatingAndReview]), UserModule, EmailModule],
+  imports: [
+    TypeOrmModule.forFeature([Vendor, RatingAndReview]),
+    UserModule,
+    EmailModule,
+  ],
 })
 export class VendorModule {}

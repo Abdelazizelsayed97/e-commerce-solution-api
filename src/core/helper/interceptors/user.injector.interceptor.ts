@@ -1,10 +1,9 @@
-import { Injectable, NestMiddleware } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { UserService } from "src/user/user.service";
-
+import { Injectable, NestMiddleware, NotFoundException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
-export class UserInspectorInterceptor implements NestMiddleware {
+export class UserInjectorInterceptor implements NestMiddleware {
   constructor(
     private readonly authService: JwtService,
     private readonly usersService: UserService,
@@ -16,9 +15,13 @@ export class UserInspectorInterceptor implements NestMiddleware {
     if (token) {
       try {
         const payload = await this.authService.verifyAsync(token);
-        const user = await this.usersService.findOneById(payload.sub ?? payload.id);
+        const user = await this.usersService.findOneById(
+          payload.sub ?? payload.id,
+        );
         if (user) {
           req.user = user;
+        } else {
+          throw new NotFoundException('User not found');
         }
       } catch (e) {
         console.log(

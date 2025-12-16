@@ -12,7 +12,7 @@ import { Repository } from 'typeorm';
 import { CartItem } from 'src/cart_item/entities/cart_item.entity';
 import { User } from 'src/user/entities/user.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-
+import { PaginatedCartResponse } from './entities/paginated.cart.response';
 @Injectable()
 export class CartService {
   constructor(
@@ -44,18 +44,27 @@ export class CartService {
     }
   }
 
-  async findAll(paginate: PaginationInput): Promise<Cart[]> {
+  async findAll(paginate: PaginationInput): Promise<PaginatedCartResponse> {
     const skip = (paginate.page - 1) * paginate.limit;
-    return await this.cartRepository.find({
+    const [carts, totalItems] = await this.cartRepository.findAndCount({
       skip,
       take: paginate.limit,
     });
+    return {
+      items: carts,
+      pagination: {
+        totalItems,
+        itemCount: paginate.limit,
+        itemsPerPage: paginate.limit,
+        totalPages: Math.ceil(totalItems / paginate.limit),
+        currentPage: paginate.page,
+      },
+    };
   }
 
   async findOne(id: string) {
     const cart = await this.cartRepository.findOne({
       where: { id: id },
-
     });
     if (!cart) {
       throw new NotFoundException('cart not found');

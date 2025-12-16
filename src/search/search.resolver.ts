@@ -8,7 +8,7 @@ import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { DataSource } from 'typeorm';
 import { productLoader } from 'src/product/loader/product.loader';
 import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
-
+import { SearchResultUnion } from './entities/search-result.union';
 
 @Resolver(() => PaginatedSearch)
 export class SearchResolver {
@@ -19,12 +19,22 @@ export class SearchResolver {
     private dataSource: DataSource,
   ) {
     this.productLoader = productLoader(dataSource);
-    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor))
-
+    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
   }
 
   @Query(() => PaginatedSearch, { name: 'search' })
   search(@Args('searchInput') searchInput: SearchInput) {
+    console.log('---==---', searchInput);
     return this.searchService.search(searchInput);
   }
+  // @ResolveField(() => Product, { nullable: true })
+  // async product(@Parent() search: typeof SearchResultUnion) {
+  //   if (!search.product_id) return null;
+  //   return this.productLoader.load(search.product_id);
+  // }
+  // @ResolveField(() => Vendor, { nullable: true })
+  // async vendor(@Parent() search: typeof SearchResultUnion) {
+  //   if (!search.vendor_id) return null;
+  //   return this.vendorLoader.load(search.vendor_id);
+  // }
 }

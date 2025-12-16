@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int, GraphQLTimestamp } from '@nestjs/graphql';
+import { Category } from 'src/category/entities/category.entity';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import {
@@ -23,20 +24,16 @@ export class Product {
   @Column('text')
   name: string;
 
-  @Field(() => String)
-  @Column('text')
-  type: string;
-
-  @Field(() => Vendor, { nullable: true })
-  @ManyToOne(() => Vendor, (vendor) => vendor.products, { nullable: true })
+  @Field(() => Vendor)
+  @ManyToOne(() => Vendor, (vendor) => vendor.products)
   @JoinColumn({
-    name: 'vendor_id',
+    name: 'vendorId',
     referencedColumnName: 'id',
   })
-  vendor: Vendor | null;
+  vendor: Vendor;
 
   @Column()
-  vendor_id: string;
+  vendorId: string;
 
   @Field(() => Int)
   @Column()
@@ -70,14 +67,18 @@ export class Product {
   @Column('int', { default: 0 })
   purchuseCount: number;
 
-  @Field(() => String, { nullable: true })
-  @Column({
-    type: 'varchar',
-    length: 255,
-    default: 'Uncategorized',
+  @Field(() => Category, { nullable: true })
+  @ManyToOne(() => Category, (category) => category.products, {
     nullable: true,
   })
-  category: string;
+  @JoinColumn({
+    name: 'categoryId',
+    referencedColumnName: 'id',
+  })
+  category: Category;
+
+  @Column()
+  categoryId: string;
 
   @Field(() => Boolean)
   @Column({ default: false })

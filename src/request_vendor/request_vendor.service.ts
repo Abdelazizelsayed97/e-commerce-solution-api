@@ -9,6 +9,7 @@ import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { PaginatedRequestVendor } from './entities/request.vendor.paginate';
 import { RoleEnum } from 'src/core/enums/role.enum';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class RequestVendorService {
@@ -17,13 +18,16 @@ export class RequestVendorService {
     private requestVendorRepository: Repository<RequestVendor>,
     @InjectRepository(Vendor)
     private vendorRepository: Repository<Vendor>,
-    private readonly userService: UserService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   async requestBeVendor(createRequestVendorInput: CreateRequestVendorInput) {
-    const user = await this.userService.findOneById(
-      createRequestVendorInput.user_id as string,
-    );
+    const user = await this.userRepository.findOne({
+      where: {
+        id: createRequestVendorInput.user_id,
+      },
+    });
     if (!user) {
       throw new NotFoundException('user not found');
     }
@@ -64,10 +68,17 @@ export class RequestVendorService {
       vendor: nv,
     });
   }
+
   async approveRequestVendor(id: string) {
     const request = await this.requestVendorRepository.findOne({
       where: { id: id },
+      relations: {
+        vendor: {
+          user: true,
+        },
+      },
     });
+    console.log('requestrequest', request);
 
     if (!request) {
       throw new NotFoundException('request not found');
@@ -75,27 +86,19 @@ export class RequestVendorService {
     if (request.status === RequestVendorEnum.approve) {
       throw new NotFoundException('request already approved');
     }
-    console.log('requestrequest', request);
+    request.status = RequestVendorEnum.approve;
+    await this.requestVendorRepository.save(request);
 
-    Object.assign(request.vendor, { isVerfied: true, role: RoleEnum.vendor });
+    request.vendor.isVerfied = true;
+
     await this.vendorRepository.save(request.vendor);
-    const updaterequest = await this.requestVendorRepository.update(
-      request.id,
-      {
-        id: id,
-        status: RequestVendorEnum.approve,
-      },
-    );
-    const user = await this.userService.findOneById(request.vendor.user.id);
-    user.isVendor = true;
-    user.vendor = request.vendor;
-    user.role = RoleEnum.vendor;
-    user.vendor.isVerfied = user.isVendor;
-    console.log('updaterequest', updaterequest);
-    await this.userService.update(user.id, user);
+    request.vendor.user.role = RoleEnum.vendor;
+    request.vendor.user.isVendor = true;
+    await this.userRepository.save(request.vendor.user);
 
-    return updaterequest;
+    return request;
   }
+
   async rejectRequestVendor(id: string, message: string) {
     const request = await this.requestVendorRepository.findOne({
       where: { id },

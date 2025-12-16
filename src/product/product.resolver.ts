@@ -92,23 +92,7 @@ export class ProductResolver {
     return this.productService.findOne(id);
   }
 
-  @Query(() => PaginatedProduct, { name: 'mostPopularProducts' })
-  async getMostPopularProducts(
-    @Args('paginate', { type: () => PaginationInput, nullable: true })
-    paginate: PaginationInput,
-  ): Promise<PaginatedProduct> {
-    return this.productService.getMostPopularProducts(paginate);
-  }
-
-  @Query(() => String, { name: 'mostPopularVendors' })
-  async getMostPopularVendors(
-    @Args('paginate', { type: () => PaginationInput, nullable: true })
-    paginate: PaginationInput,
-  ) {
-    return this.productService.getMostPopularVendors(paginate);
-  }
-
-  @Roles(RoleEnum.vendor, RoleEnum.superAdmin)
+  @Roles(RoleEnum.vendor)
   @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => Product)
   async updateProduct(
@@ -116,7 +100,7 @@ export class ProductResolver {
     @CurrentUser() user: User,
   ) {
     return await this.productService.update(
-      updateProductInput.id,
+      updateProductInput.productId,
       updateProductInput,
       user,
     );

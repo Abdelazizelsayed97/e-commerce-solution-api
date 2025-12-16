@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Product } from './product.entity';
 
 @ObjectType()
 @Entity()
@@ -15,14 +16,21 @@ export class WishList {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Field(() => String)
+  @Field(() => Product)
+  @ManyToOne(() => Product)
+  @JoinColumn({
+    name: 'productId',
+    referencedColumnName: 'id',
+  })
+  product: Product;
+
   @Column()
   productId: string;
 
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.wishList)
   @JoinColumn({
-    name: 'user_id',
+    name: 'userId',
     referencedColumnName: 'id',
   })
   user: User;

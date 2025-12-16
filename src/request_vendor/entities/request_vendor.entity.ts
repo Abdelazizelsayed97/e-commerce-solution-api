@@ -1,4 +1,4 @@
-import { ObjectType, Field, GraphQLTimestamp } from '@nestjs/graphql';
+import { ObjectType, Field } from '@nestjs/graphql';
 import { RequestVendorEnum } from 'src/core/enums/request.vendor.status';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import {
@@ -18,7 +18,7 @@ export class RequestVendor {
   @Field(() => String)
   @Column('enum', { enum: RequestVendorEnum })
   status: RequestVendorEnum;
-  // @Field(() => Vendor)
+  
   @OneToOne(() => Vendor, (vendor) => vendor.request, { onDelete: 'CASCADE' })
   @JoinColumn({
     name: 'vendor_id',

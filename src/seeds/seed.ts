@@ -91,11 +91,11 @@ async function seed() {
     for (let i = 1; i <= 2; i++) {
       const product = productRepo.create({
         name: `Product ${idx + 1}-${i}`,
-        type: 'general',
         vendor,
         price: 100 * i,
         inStock: 50,
         purchuseCount: 0,
+        categoryId: undefined,
       });
       products.push(product);
     }

@@ -39,15 +39,12 @@ export class UserService {
       throw new Error('user already exist');
     }
 
-    console.log('this service is running', registerInput);
-
     const user = this.usersRepository.create({
       email: registerInput.email,
-      password: await this.hashPassword(registerInput.password),
+      password: hashSync(registerInput.password, 10),
       name: registerInput.name,
       phoneNumber: registerInput.phoneNumber,
       role: RoleEnum.client,
-    
     });
     user.token = await this.generateToken(user.id);
     await this.usersRepository.save(user);
@@ -71,7 +68,7 @@ export class UserService {
     user.OtpCode = code;
 
     const fcm = this.fcmRepository.create({
-      user: user,
+      user_id: user.id,
       token: registerInput.token,
       device: registerInput.device,
     });
@@ -89,11 +86,6 @@ export class UserService {
       await this.usersRepository.findAndCount({
         skip: page,
         take: limit,
-        relations: {
-          address: true,
-          vendor: true,
-          cart: true,
-        },
       });
     return {
       items: users,
@@ -143,25 +135,22 @@ export class UserService {
   async remove(id: string) {
     return await this.usersRepository.delete(id);
   }
+
   async verifyUser(input: LoginInput): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { email: input.email },
-      relations: {
-        vendor: true,
-      },
     });
     if (!user) {
       throw new Error("This user doesn't exist");
     }
-    const hashedPassword = hashSync(input.password, 10);
-    if (await compare(hashedPassword, user.password)) {
-      throw new Error('Invalid credentials');
-    } else {
+    if (await compare(input.password, user.password)) {
       user.token = await this.generateToken(user.id);
       await this.usersRepository.save(user);
       return user;
     }
+    throw new Error('Invalid credentials');
   }
+
   private async generateToken(user_id: string) {
     const tokenPayload = { id: user_id };
     const token = this.jwtService.sign(tokenPayload, {
@@ -183,11 +172,8 @@ export class UserService {
   }
 
   private async sendNotificationToNewUserWithVerificationCode(user: User) {
-    const codde = Math.floor(100000 + Math.random() * 900000).toString();
-    await this.emailService.sendVerificationEmail(user, codde);
-    return codde;
-  }
-  private async hashPassword(password: string) {
-    return hashSync(password, 10);
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    await this.emailService.sendVerificationEmail(user, code);
+    return code;
   }
 }

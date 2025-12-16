@@ -4,7 +4,7 @@ import { Vendor } from 'src/vendor/entities/vendor.entity';
 
 export const SearchResultUnion = createUnionType({
   name: 'SearchResultUnion',
-  types: () => [Product, Vendor] as const,
+  types: () => [Product, Vendor],
   resolveType(value) {
     if ('shopName' in value) {
       return Vendor;

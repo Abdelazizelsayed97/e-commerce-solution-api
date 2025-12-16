@@ -12,6 +12,12 @@ type Address {
   updatedAt: Float
 }
 
+type Category {
+  id: String!
+  name: String!
+  products: [Product!]
+}
+
 type RatingAndReview {
   id: String!
   rating: Int!
@@ -26,15 +32,14 @@ type RatingAndReview {
 type Product {
   id: String!
   name: String!
-  type: String!
-  vendor: Vendor
+  vendor: Vendor!
   price: Int!
   inStock: Int!
   reviews: [RatingAndReview!]
   createdAt: Float!
   updatedAt: Float
   purchuseCount: Int!
-  category: String
+  category: Category
   isWishListed: Boolean!
   user: User
 }
@@ -115,6 +120,7 @@ type RequestVendor {
   rejectMessage: String
   createdAt: Float!
   updatedAt: Float
+  vendor: Vendor!
 }
 
 type Vendor {
@@ -176,7 +182,7 @@ type Wallet {
 
 type WishList {
   id: String!
-  productId: String!
+  product: Product!
   user: User!
   createdAt: Float!
   updatedAt: Float
@@ -295,7 +301,7 @@ type Query {
   me: User!
   cartById(id: String!): Cart!
   cartByUserId(user_Id: String!): Cart!
-  allCarts(paginate: PaginationInput): [Cart!]!
+  allCarts(paginate: PaginationInput): [Cart!]
   cartTotal(id: String!): Float!
   notifications(paginationInput: Int): [Notification!]!
   userOrders(userId: String!, paginate: PaginationInput!): PaginatedOrder!
@@ -308,12 +314,12 @@ type Query {
   cartItem(id: String!): CartItem!
   vendors(paginate: PaginationInput!): VendorPaginated!
   vendor(id: String!): Vendor!
-  mostPopularVendors(paginate: PaginationInput): String!
+  mostPopularVendors(paginate: PaginationInput): [Vendor!]!
   products(paginate: PaginationInput, filter: Boolean): PaginatedProduct!
   followedVendorProducts(paginate: PaginationInput): PaginatedProduct!
   vendorProducts(vendorId: String!, paginate: PaginationInput): PaginatedProduct!
   product(id: String!): Product!
-  mostPopularProducts(paginate: PaginationInput): PaginatedProduct!
+  wishlist: [WishList!]!
   fcm(id: String!): Fcm!
   getAllUserAddresses(paginate: PaginationInput): PaginatedAddress!
   getAllAddressesBoard(paginate: PaginationInput): PaginatedAddress!
@@ -323,6 +329,7 @@ type Query {
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
   vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
   search(searchInput: SearchInput!): PaginatedSearch!
+  category(id: String!): Category!
 }
 
 input PaginationInput {
@@ -367,6 +374,7 @@ type Mutation {
   addProduct(createProductInput: CreateProductInput!): Product!
   updateProduct(updateProductInput: UpdateProductInput!): Product!
   removeProduct(id: String!): Product!
+  toggleWishlist(productId: String!): WishList
   createFcm(createFcmInput: CreateFcmInput!): Fcm!
   updateFcm(updateFcmInput: UpdateFcmInput!): Fcm!
   removeFcm(id: String!): Fcm!
@@ -380,6 +388,9 @@ type Mutation {
   updateRatingAndReview(updateRatingAndReviewInput: UpdateRatingAndReviewInput!): RatingAndReview!
   removeRatingAndReview(id: String!): RatingAndReview!
   followVendor(followVendor: CreateFollowerInput!): Follower!
+  createCategory(createCategoryInput: CreateCategoryInput!): Category!
+  updateCategory(updateCategoryInput: UpdateCategoryInput!): Category!
+  removeCategory(id: String!): Category!
 }
 
 input LoginInput {
@@ -443,7 +454,7 @@ input CreateWalletInput {
   pendingBalance: Float!
   currency: String!
   type: String!
-  transactionHistory: [String!]!
+  transactionHistory: String!
   userId: String!
 }
 
@@ -452,7 +463,7 @@ input UpdateWalletInput {
   pendingBalance: Float
   currency: String
   type: String
-  transactionHistory: [String!]
+  transactionHistory: String
   userId: String
   id: String!
 }
@@ -472,44 +483,36 @@ input CreateCartItemInput {
 
 input UpdateCartItemInput {
   productId: String
-  quantity: Float
+  quantity: Int
   id: String!
 }
 
 input CreateVendorInput {
   user_id: String!
   shopName: String!
-  balance: Int!
-  rating: Int!
-  isVerfied: Boolean!
 }
 
 input UpdateVendorInput {
   user_id: String
   shopName: String
-  balance: Int
-  rating: Int
-  isVerfied: Boolean
   id: String!
 }
 
 input CreateProductInput {
   name: String!
-  type: String!
   vendorId: String!
   stock: Int!
   price: Int!
-  category: String
+  categoryId: String!
 }
 
 input UpdateProductInput {
   name: String
-  type: String
   vendorId: String
   stock: Int
   price: Int
-  category: String
-  id: String!
+  categoryId: String
+  productId: String!
 }
 
 input CreateFcmInput {
@@ -543,9 +546,6 @@ input UpdateAddressInput {
 input CreateRequestVendorInput {
   user_id: String
   shopName: String
-  balance: Int
-  rating: Int
-  isVerfied: Boolean
 }
 
 input CreateRatingAndReviewInput {
@@ -564,4 +564,13 @@ input UpdateRatingAndReviewInput {
 input CreateFollowerInput {
   vendorId: String!
   followerId: String!
+}
+
+input CreateCategoryInput {
+  name: String!
+}
+
+input UpdateCategoryInput {
+  name: String
+  id: String!
 }
