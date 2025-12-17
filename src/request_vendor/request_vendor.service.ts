@@ -112,7 +112,10 @@ export class RequestVendorService {
     await this.requestVendorRepository.save(request);
     return request;
   }
-  async findAll(paginate: PaginationInput): Promise<PaginatedRequestVendor> {
+  async findAll(
+    paginate: PaginationInput,
+    filterBy: RequestVendorEnum,
+  ): Promise<PaginatedRequestVendor> {
     console.log('paginate', paginate);
     const skip = (paginate.page - 1) * paginate.limit;
     const take = paginate.limit;
@@ -123,8 +126,12 @@ export class RequestVendorService {
         relations: {
           vendor: true,
         },
+        where: {
+          status: filterBy,
+        },
       },
     );
+    console.log('fhjhf', items);
     return {
       items,
       pagination: {

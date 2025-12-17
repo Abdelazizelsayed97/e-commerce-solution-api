@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 import { DataSource, In } from 'typeorm';
-import { CartItem } from '../entities/cart_item.entity';
+import { CartItem } from '../entities/cart-item.entity';
 
 export const cartItemLoader = (dataSource: DataSource) => {
   return new DataLoader<string, CartItem>(async (ids: string[]) => {

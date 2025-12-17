@@ -7,7 +7,7 @@ import { CreateCartItemInput } from './dto/create-cart_item.input';
 import { UpdateCartItemInput } from './dto/update-cart_item.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CartItem } from './entities/cart_item.entity';
+import { CartItem } from './entities/cart-item.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';

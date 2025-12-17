@@ -20,10 +20,11 @@ import { Vendor } from 'src/vendor/entities/vendor.entity';
 import DataLoader from 'dataloader';
 import { DataSource } from 'typeorm';
 import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
+import { RequestVendorEnum } from 'src/core/enums/request.vendor.status';
 
 @Resolver(() => RequestVendor)
 export class RequestVendorResolver {
-  vendorLoader: DataLoader<string, Vendor | null>;
+  vendorLoader: DataLoader<string, Vendor>;
   constructor(
     private readonly requestVendorService: RequestVendorService,
     dataSource: DataSource,
@@ -31,6 +32,8 @@ export class RequestVendorResolver {
     this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
   }
 
+  @Roles(RoleEnum.client)
+  @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => RequestVendor)
   createRequestVendor(
     @Args('createRequestVendorInput', { type: () => CreateRequestVendorInput })
@@ -38,12 +41,14 @@ export class RequestVendorResolver {
   ) {
     return this.requestVendorService.requestBeVendor(createRequestVendorInput);
   }
+
   @Roles(RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => RequestVendor)
   approveRequestVendor(@Args('id') id: string) {
     return this.requestVendorService.approveRequestVendor(id);
   }
+
   @Roles(RoleEnum.superAdmin)
   @UseGuards(RolesGuard)
   @Mutation(() => RequestVendor)
@@ -53,21 +58,26 @@ export class RequestVendorResolver {
   ) {
     return this.requestVendorService.rejectRequestVendor(id, message);
   }
+
   @Roles(RoleEnum.superAdmin)
   @UseGuards(RolesGuard)
-  @Query(() => PaginatedRequestVendor)
-  getAllRequestVendor(
+  @Query(() => PaginatedRequestVendor, { name: 'vendorRequests' })
+  vendorRequests(
     @Args('paginate')
     paginate: PaginationInput,
+    @Args('filterBy', {
+      nullable: true,
+      type: () => RequestVendorEnum,
+    })
+    filterBy: RequestVendorEnum,
   ) {
-    console.log('paginate', paginate);
-    return this.requestVendorService.findAll(paginate);
+    return this.requestVendorService.findAll(paginate, filterBy);
   }
 
   @ResolveField(() => Vendor)
   async vendor(@Parent() requestVendor: RequestVendor) {
     console.log('requestVendorrequestVendor', requestVendor);
-    const vendor = await this.vendorLoader.load(requestVendor.vendor_id);
+    const vendor = await this.vendorLoader.load(requestVendor.vendorId);
     console.log('vendorvendorvendor', vendor);
     return vendor;
   }

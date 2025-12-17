@@ -9,6 +9,7 @@ import { Follower } from 'src/followers/entities/follower.entity';
 import { WishList } from './entities/wish.list.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { User } from 'src/user/entities/user.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Module({
   providers: [
@@ -19,7 +20,14 @@ import { User } from 'src/user/entities/user.entity';
   ],
   exports: [ProductService, WishListService],
   imports: [
-    TypeOrmModule.forFeature([Product, Follower, WishList, Vendor, User]),
+    TypeOrmModule.forFeature([
+      Product,
+      Follower,
+      WishList,
+      Vendor,
+      User,
+      Category,
+    ]),
   ],
 })
 export class ProductModule {}

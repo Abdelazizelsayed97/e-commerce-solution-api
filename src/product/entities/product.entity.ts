@@ -50,6 +50,13 @@ export class Product {
     nullable: true,
   })
   reviews: RatingAndReview[];
+
+  @Field(()=>String)
+  @Column({
+    nullable: true
+  })
+   image?:string 
+
   @Field()
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: number;

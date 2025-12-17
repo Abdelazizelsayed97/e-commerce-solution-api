@@ -18,16 +18,16 @@ export class RequestVendor {
   @Field(() => String)
   @Column('enum', { enum: RequestVendorEnum })
   status: RequestVendorEnum;
-  
+
   @OneToOne(() => Vendor, (vendor) => vendor.request, { onDelete: 'CASCADE' })
   @JoinColumn({
-    name: 'vendor_id',
+    name: 'vendorId',
     referencedColumnName: 'id',
   })
   vendor: Vendor;
 
   @Column()
-  vendor_id: string;
+  vendorId: string;
 
   @Field(() => String, { nullable: true })
   @Column({

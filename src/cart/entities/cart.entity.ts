@@ -1,5 +1,5 @@
 import { ObjectType, Field, GraphQLTimestamp } from '@nestjs/graphql';
-import { CartItem } from 'src/cart_item/entities/cart_item.entity';
+import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -27,7 +27,7 @@ export class Cart {
 
   @Column()
   user_id: string;
-  
+
   @Field()
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createAt: number;

@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
-import { CartItem } from 'src/cart_item/entities/cart_item.entity';
+import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { PaymentService } from 'src/payment/payment.service';
 import { PaymentModule } from 'src/payment/payment.module';

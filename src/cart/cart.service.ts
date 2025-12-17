@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
 
-import { CartItem } from 'src/cart_item/entities/cart_item.entity';
+import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { User } from 'src/user/entities/user.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { PaginatedCartResponse } from './entities/paginated.cart.response';

@@ -8,6 +8,7 @@ import { RoleEnum } from 'src/core/enums/role.enum';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/user/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
+import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 
 @Resolver(() => Category)
 export class CategoryResolver {
@@ -23,8 +24,11 @@ export class CategoryResolver {
   }
 
   @Query(() => [Category], { name: 'category' })
-  findAll() {
-    return this.categoryService.findAll();
+  findAll(
+    @Args('paginationsInput', { nullable: true })
+    paginationInput: PaginationInput,
+  ) {
+    return this.categoryService.findAll(paginationInput);
   }
 
   @Query(() => Category, { name: 'category' })

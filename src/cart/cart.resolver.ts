@@ -20,9 +20,9 @@ import { DataSource } from 'typeorm';
 import { cartLoader } from './loaders/cart.loader';
 import { User } from 'src/user/entities/user.entity';
 import { UserLoader } from 'src/user/loader/users.loader';
-import { CartItem } from 'src/cart_item/entities/cart_item.entity';
+import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-import { cartItemLoader } from 'src/cart_item/loaders/cart.items.loader';
+import { cartItemLoader } from 'src/cart-item/loaders/cart.items.loader';
 
 @Resolver(() => Cart)
 export class CartResolver {

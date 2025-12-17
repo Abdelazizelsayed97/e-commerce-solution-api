@@ -15,7 +15,7 @@ import { Product } from 'src/product/entities/product.entity';
 import { OrderItem } from 'src/order/entities/order-item.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
-import { CartItemModule } from 'src/cart_item/cart_item.module';
+import { CartItemModule } from 'src/cart-item/cart-item.module';
 import { QueueModule } from 'src/queue/queue.module';
 import { PaymentResolver } from './payment.resolver';
 
@@ -41,7 +41,6 @@ import { PaymentResolver } from './payment.resolver';
     // OrderModule,
     CartItemModule,
     QueueModule,
-    
   ],
 })
 export class PaymentModule {}

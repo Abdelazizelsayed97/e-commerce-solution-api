@@ -9,6 +9,7 @@ import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Follower } from 'src/followers/entities/follower.entity';
 import { User } from 'src/user/entities/user.entity';
 import { RoleEnum } from 'src/core/enums/role.enum';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable({
   scope: Scope.REQUEST,
@@ -19,6 +20,9 @@ export class ProductService {
     private productsRepository: Repository<Product>,
     @InjectRepository(Follower)
     private followersRepository: Repository<Follower>,
+
+    @InjectRepository(Category)
+    private catRepo: Repository<Category>,
   ) {}
 
   async AddProduct(createProductInput: CreateProductInput) {
@@ -29,6 +33,14 @@ export class ProductService {
     });
     if (isExist) {
       throw new NotFoundException('product already exist');
+    }
+    const category = await this.catRepo.findOne({
+      where: {
+        id: createProductInput.categoryId,
+      },
+    });
+    if (!category) {
+      throw new Error('this catrgory doesnt exist ');
     }
     const product = this.productsRepository.create({
       ...createProductInput,

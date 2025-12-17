@@ -4,7 +4,7 @@ import { User } from '../user/entities/user.entity';
 import { Vendor } from '../vendor/entities/vendor.entity';
 import { Product } from '../product/entities/product.entity';
 import { Cart } from '../cart/entities/cart.entity';
-import { CartItem } from '../cart_item/entities/cart_item.entity';
+import { CartItem } from '../cart-item/entities/cart-item.entity';
 import { Order } from '../order/entities/order.entity';
 import { OrderItem } from '../order/entities/order-item.entity';
 import { Wallet } from '../wallet/entities/wallet.entity';

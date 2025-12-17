@@ -6,7 +6,7 @@ import { VendorModule } from './vendor/vendor.module';
 import { NotificationModule } from './notification/notification.module';
 import { ProductModule } from './product/product.module';
 import { FcmModule } from './fcm/fcm.module';
-import { CartItemModule } from './cart_item/cart_item.module';
+import { CartItemModule } from './cart-item/cart-item.module';
 import { AddressModule } from './address/address.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -46,7 +46,7 @@ import * as express from 'express';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
-      // dropSchema: true,÷
+      // dropSchema: true,
     }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,

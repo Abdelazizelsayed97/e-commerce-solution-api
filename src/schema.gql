@@ -36,6 +36,7 @@ type Product {
   price: Int!
   inStock: Int!
   reviews: [RatingAndReview!]
+  image: String!
   createdAt: Float!
   updatedAt: Float
   purchuseCount: Int!
@@ -324,7 +325,7 @@ type Query {
   getAllUserAddresses(paginate: PaginationInput): PaginatedAddress!
   getAllAddressesBoard(paginate: PaginationInput): PaginatedAddress!
   address(id: String!): Address!
-  getAllRequestVendor(paginate: PaginationInput!): PaginatedRequestVendor!
+  vendorRequests(paginate: PaginationInput!, filterBy: RequestVendorEnum): PaginatedRequestVendor!
   ratingAndReview(productId: String!, paginate: PaginationInput): PaginatedReview
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
   vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
@@ -335,6 +336,12 @@ type Query {
 input PaginationInput {
   page: Int
   limit: Int
+}
+
+enum RequestVendorEnum {
+  approve
+  reject
+  pending
 }
 
 input SearchInput {

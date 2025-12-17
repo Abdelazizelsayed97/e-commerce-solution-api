@@ -11,10 +11,10 @@ import { OrderItem } from 'src/order/entities/order-item.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { TransactionTypeEnum } from 'src/core/enums/transaction.enum';
-import { CartItemService } from 'src/cart_item/cart_item.service';
+import { CartItemService } from 'src/cart-item/cart-item.service';
 import { stockHistoryActionEnum } from 'src/core/enums/stock.history.enum';
 import { OrderPaymentVendorStatusEnum } from 'src/core/enums/order.payment.status';
-import { CartItem } from 'src/cart_item/entities/cart_item.entity';
+import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
 import { QueueService } from 'src/queue/queue.service';
 import { User } from 'src/user/entities/user.entity';
@@ -196,9 +196,6 @@ export class PaymentService {
       createdAt: Date.now(),
     };
 
-    // In a real implementation, you would save this to a refund_requests table
-    // and notify admins for approval
-
     return {
       success: true,
       message: 'Refund request submitted successfully',
@@ -270,10 +267,10 @@ export class PaymentService {
 
         await this.handlePaymentSuccess(session);
         break;
-      case 'payment_intent.succeeded':
-        const paymentIntent = event.data.object as stripe.PaymentIntent;
-        // await this.handlePaymentSuccess(paymentIntent);
-        break;
+      // case 'payment_intent.succeeded':
+      //   const paymentIntent = event.data.object as stripe.PaymentIntent;
+      // await this.handlePaymentSuccess(paymentIntent);
+      // break;
       case 'checkout.session.expired':
         const expiredSession = event.data.object as stripe.Checkout.Session;
         await this.handlePaymentFailed(expiredSession);

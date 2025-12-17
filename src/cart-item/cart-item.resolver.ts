@@ -6,8 +6,8 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
-import { CartItemService } from './cart_item.service';
-import { CartItem } from './entities/cart_item.entity';
+import { CartItemService } from './cart-item.service';
+import { CartItem } from './entities/cart-item.entity';
 import { CreateCartItemInput } from './dto/create-cart_item.input';
 import { UpdateCartItemInput } from './dto/update-cart_item.input';
 import { cartLoader } from 'src/cart/loaders/cart.loader';
