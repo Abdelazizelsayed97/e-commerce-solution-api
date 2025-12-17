@@ -8,15 +8,15 @@ import { Fcm } from 'src/fcm/entities/fcm.entity';
 import { CartModule } from 'src/cart/cart.module';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { WishList } from 'src/product/entities/wish.list.entity';
+import { TempUser } from './entities/temp.user';
 
 @Module({
   providers: [UserResolver, UserService],
   exports: [UserService],
   imports: [
-    TypeOrmModule.forFeature([User, Fcm, Wallet, WishList]),
+    TypeOrmModule.forFeature([User, TempUser, Fcm, Wallet, WishList]),
     EmailModule,
     CartModule,
-
   ],
 })
-export class UserModule { }
+export class UserModule {}

@@ -5,7 +5,9 @@ import { UploadFileService } from "./upload-file.service";
 @Resolver()
 export class UploadFileResolver {
   constructor(private readonly uploadFileService: UploadFileService) {}
-  @Mutation(() => String)
+  @Mutation(() => String, {
+    name: "uploadFile",
+  })
   async uploadFiles(
     @Args({ name: "files", type: () => GraphQLUpload })
     files: FileUpload

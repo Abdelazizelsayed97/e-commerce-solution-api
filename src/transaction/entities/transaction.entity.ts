@@ -33,24 +33,24 @@ export class Transaction {
   @Field(() => Order, { nullable: true })
   @ManyToOne(() => Order, { nullable: true })
   @JoinColumn({
-    name: 'order_id',
+    name: 'orderId',
     referencedColumnName: 'id',
   })
   order: Order;
 
   @Column()
-  order_id: string;
+  orderId: string;
 
   @Field(() => User, { nullable: true })
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({
-    name: 'user_id',
+    name: 'userId',
     referencedColumnName: 'id',
   })
   user: User;
 
   @Column()
-  user_id: string;
+  userId: string;
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
@@ -72,11 +72,11 @@ export class Transaction {
   @Field(() => Wallet)
   @ManyToOne(() => Wallet, (wallet) => wallet.transactionHistory)
   @JoinColumn({
-    name: 'wallet_id',
+    name: 'walletId',
     referencedColumnName: 'id',
   })
   wallet: Wallet;
 
   @Column()
-  wallet_id: string;
+  walletId: string;
 }

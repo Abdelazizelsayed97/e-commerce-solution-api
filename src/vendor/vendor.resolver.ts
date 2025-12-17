@@ -23,11 +23,11 @@ import { VendorLoader } from './loaders/vendor.loader';
 export class VendorResolver {
   vendorLoader: DataLoader<string, Vendor | null>;
   userLoader: DataLoader<string, User | null>;
+
   constructor(
     private readonly vendorService: VendorService,
     dataSource: DataSource,
   ) {
-
     this.userLoader = UserLoader(dataSource.getRepository(User));
     this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
   }
@@ -54,7 +54,6 @@ export class VendorResolver {
   @Query(() => [Vendor], { name: 'mostPopularVendors' })
   async getMostPopularVendors(
     @Args('paginate', { nullable: true }) paginate: PaginationInput,
-
   ) {
     return this.vendorService.getMostPopularVendors(paginate);
   }
@@ -74,6 +73,7 @@ export class VendorResolver {
   @ResolveField(() => User)
   user(@Parent() vendor: Vendor) {
     if (!vendor.user) return null;
+
     return this.userLoader.load(vendor.user.id);
   }
 }

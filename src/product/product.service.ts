@@ -28,7 +28,7 @@ export class ProductService {
   async AddProduct(createProductInput: CreateProductInput) {
     const isExist = await this.productsRepository.findOne({
       where: {
-        name: createProductInput.name,
+      name: createProductInput.name,
       },
     });
     if (isExist) {
@@ -46,7 +46,7 @@ export class ProductService {
       ...createProductInput,
       inStock: createProductInput.stock || 0,
       vendor: { id: createProductInput.vendorId },
-      categoryId: createProductInput.categoryId,
+      categoryId:category.id,
     });
 
     return await this.productsRepository.save(product);

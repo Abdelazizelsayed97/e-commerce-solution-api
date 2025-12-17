@@ -50,6 +50,15 @@ export class VendorService {
     const [vendors, total] = await this.vendorRepository.findAndCount({
       skip: skip,
       take: paginate.limit,
+      join: {
+        alias: 'vendor',
+        innerJoinAndSelect: {
+          user: 'vendor.user',
+        },
+        leftJoinAndSelect: {
+          products: 'vendor.products',
+        },
+      },
     });
     return {
       items: vendors,

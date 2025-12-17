@@ -21,24 +21,24 @@ export class VendorTransaction {
   @Field(() => Vendor)
   @ManyToOne(() => Vendor)
   @JoinColumn({
-    name: 'vendor_id',
+    name: 'vendorId',
     referencedColumnName: 'id',
   })
   vendor: Vendor;
 
   @Column()
-  vendor_id: string;
+  vendorId: string;
 
   @Field(() => Order)
   @ManyToOne(() => Order)
   @JoinColumn({
-    name: 'order_id',
+    name: 'orderId',
     referencedColumnName: 'id',
   })
   order: Order;
 
   @Column()
-  order_id: string;
+  orderId: string;
 
   @Field(() => TransactionTypeEnum)
   @Column('enum', { enum: TransactionTypeEnum })

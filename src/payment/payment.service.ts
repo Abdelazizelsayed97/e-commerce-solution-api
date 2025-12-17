@@ -99,9 +99,9 @@ export class PaymentService {
         amount: order.totalAmount,
         balanceAfter: clientWallet.balance + order.totalAmount,
         description: `Refund for order ${order.id}${reason ? ` - ${reason}` : ''}`,
-        user_id: order.client.id,
-        order_id: order.id,
-        wallet_id: clientWallet.id,
+        userId: order.client.id,
+        orderId: order.id,
+        walletId: clientWallet.id,
       });
 
       await this.transactionRepository.save(refundTransaction);
@@ -165,6 +165,7 @@ export class PaymentService {
     }
   }
 
+  // request refund handler
   async createRefundRequest(orderId: string, reason: RefundReason, user: User) {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
@@ -211,7 +212,9 @@ export class PaymentService {
         cart: true,
       },
     });
+
     console.log('order', order?.client);
+
     if (!order) {
       throw new Error('Order not found');
     }
@@ -347,9 +350,9 @@ export class PaymentService {
             type: TransactionTypeEnum.ORDER_INCOME,
             amount: order.totalAmount,
             balanceAfter: userWallet?.balance || 0,
-            order_id: order.id,
-            user_id: order.client.id,
-            wallet_id: userWallet?.id,
+            orderId: order.id,
+            userId: order.client.id,
+            walletId: userWallet?.id,
             description: `Payment received for order ${orderId}`,
           });
           await this.transactionRepository.save(userTransaction);
@@ -375,8 +378,8 @@ export class PaymentService {
 
             //this part is for vendor transactions after adjusting the commission
             const commissionTx = this.vendorTransactionRepository.create({
-              vendor_id: vendor.id,
-              order_id: order.id,
+              vendorId: vendor.id,
+              orderId: order.id,
               type: TransactionTypeEnum.MARKETPLACE_COMMISSION,
               amount: commission,
               status: OrderPaymentStatus.paid,

@@ -7,7 +7,6 @@
 - ✅ JWT token generation and validation
 - ✅ User registration with email verification
 - ✅ User login
-- ❌ **BUG**: Login logic reversed (line 155 in user.service.ts) - compares incorrectly
 - ✅ Password hashing with bcrypt
 - ✅ Token expiration (7 days)
 

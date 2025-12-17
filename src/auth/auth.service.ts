@@ -19,4 +19,7 @@ export class AuthService {
   async verfiyUser(userId: string, code: string) {
     return await this.userService.verifyUserEmail(userId, code);
   }
+  async forgetPassword(email: string) {
+    return await this.userService.forgetPassword(email);
+  }
 }

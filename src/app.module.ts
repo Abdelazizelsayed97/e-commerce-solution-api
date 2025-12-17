@@ -28,8 +28,9 @@ import { PaymentModule } from './payment/payment.module';
 import { UserInjectorInterceptor } from './core/helper/interceptors/user.injector.interceptor';
 import { SuperAdminSeeder } from './super-admin.seeder';
 import { CategoryModule } from './category/category.module';
-
 import * as express from 'express';
+import { UploadFileModule } from './upload-file/upload-file.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -59,6 +60,15 @@ import * as express from 'express';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '7d', algorithm: 'HS256' },
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name:'',
+          ttl: 60,
+          limit: 5,
+        },
+      ],
+    }),
     AuthModule,
     EmailModule,
     NotificationModule,
@@ -80,6 +90,7 @@ import * as express from 'express';
     WalletModule,
     PaymentModule,
     CategoryModule,
+    UploadFileModule,
   ],
   providers: [SuperAdminSeeder],
 })

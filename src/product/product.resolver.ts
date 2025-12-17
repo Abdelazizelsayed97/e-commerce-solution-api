@@ -29,6 +29,8 @@ import { UserLoader } from 'src/user/loader/users.loader';
 import { productLoader } from './loader/product.loader';
 import { RatingAndReviewLoader } from 'src/rating-and-review/loaders/rating-and-review.loader';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
+import { Category } from 'src/category/entities/category.entity';
+import { categoryLoader } from 'src/category/loaders/category.loader';
 
 @Resolver(() => Product)
 export class ProductResolver {
@@ -36,6 +38,7 @@ export class ProductResolver {
   productLoader: DataLoader<string, Product>;
   userLoader: DataLoader<string, User>;
   reviewLoader: DataLoader<string, RatingAndReview>;
+  categoryLoader: DataLoader<string, Category>;
   constructor(
     private readonly productService: ProductService,
 
@@ -47,6 +50,7 @@ export class ProductResolver {
     this.reviewLoader = RatingAndReviewLoader(
       dataSource.getRepository(RatingAndReview),
     );
+    this.categoryLoader = categoryLoader(dataSource);
   }
 
   @Roles(RoleEnum.vendor, RoleEnum.superAdmin)
@@ -132,5 +136,9 @@ export class ProductResolver {
   @ResolveField(() => RatingAndReview, { nullable: true })
   async reviews(@Parent() product: Product) {
     return this.reviewLoader.load(product.id);
+  }
+  @ResolveField(() => Category, { nullable: true })
+  async category(@Parent() product: Product) {
+    return this.categoryLoader.load(product.categoryId);
   }
 }

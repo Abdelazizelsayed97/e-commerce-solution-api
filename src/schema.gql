@@ -357,6 +357,7 @@ type Mutation {
   login(loginInput: LoginInput!): User!
   register(registerInput: RegisterInput!): User!
   verfiyUser(userId: String!, code: String!): User!
+  forgetPassword(email: String!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: String!): User!
   createCart(createCartInput: CreateCartInput!): Cart!
@@ -398,6 +399,7 @@ type Mutation {
   createCategory(createCategoryInput: CreateCategoryInput!): Category!
   updateCategory(updateCategoryInput: UpdateCategoryInput!): Category!
   removeCategory(id: String!): Category!
+  uploadFile(files: Upload!): String!
 }
 
 input LoginInput {
@@ -581,3 +583,6 @@ input UpdateCategoryInput {
   name: String
   id: String!
 }
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload

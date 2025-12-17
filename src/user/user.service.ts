@@ -14,12 +14,15 @@ import { RoleEnum } from 'src/core/enums/role.enum';
 import { PaginatedUsers } from './entities/paginated.user';
 import { CartService } from 'src/cart/cart.service';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { TempUser } from './entities/temp.user';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(TempUser)
+    private tempUserRepository: Repository<TempUser>,
     @InjectRepository(Fcm)
     private fcmRepository: Repository<Fcm>,
     @InjectRepository(Wallet)
@@ -30,7 +33,7 @@ export class UserService {
   ) {}
 
   async create(registerInput: RegisterInput) {
-    const isExist = await this.usersRepository.findOne({
+    const isExist = await this.tempUserRepository.findOne({
       where: {
         email: registerInput.email,
       },
@@ -39,7 +42,7 @@ export class UserService {
       throw new Error('user already exist');
     }
 
-    const user = this.usersRepository.create({
+    const user = this.tempUserRepository.create({
       email: registerInput.email,
       password: hashSync(registerInput.password, 10),
       name: registerInput.name,
@@ -47,7 +50,7 @@ export class UserService {
       role: RoleEnum.client,
     });
     user.token = await this.generateToken(user.id);
-    await this.usersRepository.save(user);
+    await this.tempUserRepository.save(user);
     const cart = await this.cartService.create({
       userId: user.id,
     });
@@ -73,7 +76,7 @@ export class UserService {
       device: registerInput.device,
     });
     await this.fcmRepository.save(fcm);
-    const result = await this.usersRepository.save(user);
+    const result = await this.tempUserRepository.save(user);
     console.log('log from service', result);
 
     return result;
@@ -136,14 +139,21 @@ export class UserService {
     return await this.usersRepository.delete(id);
   }
 
+  // login
   async verifyUser(input: LoginInput): Promise<User> {
-    const user = await this.usersRepository.findOne({
+    const user = await this.tempUserRepository.findOne({
       where: { email: input.email },
     });
     if (!user) {
-      throw new Error("This user doesn't exist");
+      throw new Error('You have to verify your email first');
     }
-    if (await compare(input.password, user.password)) {
+    const isVerified = await this.usersRepository.findOne({
+      where: { email: input.email },
+    });
+    if (!isVerified) {
+      throw new Error('You have to verify your email first');
+    }
+    if (await compare(input.password, isVerified.password)) {
       user.token = await this.generateToken(user.id);
       await this.usersRepository.save(user);
       return user;
@@ -161,19 +171,35 @@ export class UserService {
   }
 
   async verifyUserEmail(userId: string, code: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    const user = await this.tempUserRepository.findOne({
+      where: { id: userId },
+    });
     if (!user) {
       throw new Error("This user doesn't exist");
     }
     if (user.OtpCode! !== code) {
       throw new Error('Invalid verification code');
     }
-    return user;
+    this.usersRepository.create({ ...user });
+    await this.tempUserRepository.delete(user.id);
+    return await this.usersRepository.save(user);
   }
 
   private async sendNotificationToNewUserWithVerificationCode(user: User) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     await this.emailService.sendVerificationEmail(user, code);
+    return code;
+  }
+
+  async forgetPassword(email: string) {
+    const isExist = await this.usersRepository.findOne({
+      where: { email: email },
+    });
+    if (!isExist) {
+      throw new Error("This user doesn't exist");
+    }
+    const code =
+      await this.sendNotificationToNewUserWithVerificationCode(isExist);
     return code;
   }
 }
