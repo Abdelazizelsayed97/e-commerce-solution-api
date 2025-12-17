@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { LoginInput } from './dto/login-input';
 import { RegisterInput } from './dto/register.input';
 import { UserService } from 'src/user/user.service';
+import { Device } from 'src/core/enums/device.type';
 
 @Injectable()
 export class AuthService {

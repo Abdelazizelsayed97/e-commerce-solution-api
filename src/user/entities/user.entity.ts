@@ -16,14 +16,11 @@ import { Order } from 'src/order/entities/order.entity';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { WishList } from 'src/product/entities/wish.list.entity';
+import { BasicClass } from 'src/core/helper/classes/basic.class';
 
 @ObjectType()
 @Entity()
-export class User {
-  @Field(() => String)
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class User extends BasicClass {
   @Field(() => String)
   @Column()
   name: string;
@@ -67,19 +64,6 @@ export class User {
   @OneToMany(() => Follower, (follower) => follower.vendor, { nullable: true })
   followingVendor?: Follower[];
 
-  @Field()
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createAt: number;
-
-  @Field({
-    nullable: true,
-  })
-  @Column('timestamp', {
-    onUpdate: 'CURRENT_TIMESTAMP',
-    nullable: true,
-  })
-  updateAt: number;
-
   @Column({ nullable: true })
   OtpCode?: string;
 
@@ -107,4 +91,8 @@ export class User {
   @Field(() => [WishList], { nullable: true })
   @OneToMany(() => WishList, (wishList) => wishList.user, { nullable: true })
   wishList?: WishList[];
+
+  @Field(() => Boolean, { defaultValue: false })
+  @Column({ default: false })
+  isVerified: boolean;
 }

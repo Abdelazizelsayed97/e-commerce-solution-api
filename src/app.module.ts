@@ -49,6 +49,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
       synchronize: true,
       // dropSchema: true,
     }),
+
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       playground: true,
@@ -60,15 +61,27 @@ import { ThrottlerModule } from '@nestjs/throttler';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '7d', algorithm: 'HS256' },
     }),
+
     ThrottlerModule.forRoot({
       throttlers: [
         {
-          name:'',
+          name: 'login',
+          ttl: 60,
+          limit: 5,
+        },
+        {
+          name: 'register',
+          ttl: 60,
+          limit: 5,
+        },
+        {
+          name: 'otp',
           ttl: 60,
           limit: 5,
         },
       ],
     }),
+
     AuthModule,
     EmailModule,
     NotificationModule,

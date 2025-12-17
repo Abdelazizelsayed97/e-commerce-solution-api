@@ -2,14 +2,11 @@ import { ObjectType, Field, Float } from '@nestjs/graphql';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
-import { PrimaryGeneratedColumn } from 'typeorm/decorator/columns/PrimaryGeneratedColumn.js';
+import { BasicClass } from 'src/core/helper/classes/basic.class';
 
 @ObjectType()
 @Entity()
-export class Wallet {
-  @Field(() => String)
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class Wallet extends BasicClass {
   @Field(() => Float)
   @Column('float')
   balance: number;
@@ -33,17 +30,4 @@ export class Wallet {
   @OneToOne(() => User, (user) => user.wallet)
   @JoinColumn()
   user: User;
-
-  @Field()
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: number;
-
-  @Field({
-    nullable: true,
-  })
-  @Column('timestamp', {
-    onUpdate: 'CURRENT_TIMESTAMP',
-    nullable: true,
-  })
-  updatedAt: number;
 }

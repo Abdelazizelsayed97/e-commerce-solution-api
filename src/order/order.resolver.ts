@@ -20,7 +20,7 @@ import { AuthGuard } from 'src/user/guard/auth.guard';
 import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
 import { User } from 'src/user/entities/user.entity';
 import DataLoader from 'dataloader';
-import { DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UserLoader } from 'src/user/loader/users.loader';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { cartLoader } from 'src/cart/loaders/cart.loader';
@@ -29,12 +29,18 @@ import { PaginatedOrder } from './entities/paginated.order';
 import { OrderItem } from './entities/order-item.entity';
 import { OrderItemLoader } from './loaders/order-item.loader';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
+import { Product } from 'src/product/entities/product.entity';
+import { Vendor } from 'src/vendor/entities/vendor.entity';
+import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
+import { productLoader } from 'src/product/loader/product.loader';
 
 @Resolver(() => Order)
 export class OrderResolver {
   userLoader: DataLoader<string, User>;
   cartLoader: DataLoader<string, Cart>;
   orderItemLoader: DataLoader<string, OrderItem[]>;
+  productLoader: DataLoader<string, Product>;
+  vendorLoader: DataLoader<string, Vendor>;
   constructor(
     private dataSource: DataSource,
     private readonly orderService: OrderService,
@@ -43,6 +49,8 @@ export class OrderResolver {
     this.userLoader = UserLoader(dataSource.getRepository(User));
     this.cartLoader = cartLoader(dataSource);
     this.orderItemLoader = OrderItemLoader(dataSource.getRepository(OrderItem));
+    this.productLoader = productLoader(dataSource);
+    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
   }
 
   @UseGuards(AuthGuard)
@@ -121,19 +129,31 @@ export class OrderResolver {
   }
   @ResolveField(() => User)
   client(@Parent() order: Order) {
-    if (!order.client) return null;
-    return this.userLoader.load(order.client.id);
+    if (!order.userId) return null;
+    return this.userLoader.load(order.userId);
   }
 
   @ResolveField(() => Cart)
   cart(@Parent() order: Order) {
-    if (!order.cart) return null;
-    return this.cartLoader.load(order.cart.id);
+    if (!order.cartId) return null;
+    return this.cartLoader.load(order.cartId);
   }
 
   @ResolveField(() => [OrderItem], { nullable: true })
   async orderItems(@Parent() order: Order) {
-    if (!order.id) return null;
-    return this.orderItemLoader.load(order.id);
+    if (!order.orderItems) return null;
+    return this.orderItemLoader.loadMany(order.orderItems.map((map)=>map.id));
+  }
+  @ResolveField(() => Product)
+  product(@Parent() orderItem: OrderItem) {
+    if (!orderItem.product) return null;
+    return this.productLoader.load(orderItem.product.id);
+  }
+  @ResolveField(() => Vendor)
+  vendor(@Parent() orderItem: OrderItem) {
+    if (!orderItem.vendor) return null;
+    return this.vendorLoader.load(orderItem.vendor.id);
   }
 }
+
+

@@ -2,21 +2,12 @@ import { ObjectType, Field, GraphQLTimestamp } from '@nestjs/graphql';
 import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { User } from 'src/user/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import { BasicClass } from 'src/core/helper/classes/basic.class';
 
 @ObjectType()
 @Entity()
-export class Cart {
-  @Field(() => String)
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class Cart extends BasicClass {
   @Field(() => User)
   @OneToOne(() => User, (user) => user.cart)
   @JoinColumn({
@@ -27,19 +18,6 @@ export class Cart {
 
   @Column()
   user_id: string;
-
-  @Field()
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createAt: number;
-
-  @Field({
-    nullable: true,
-  })
-  @Column('timestamp', {
-    onUpdate: 'CURRENT_TIMESTAMP',
-    nullable: true,
-  })
-  updateAt: number;
 
   @Field(() => [Order], { nullable: true })
   @OneToMany(() => Order, (order) => order.cart, { nullable: true })

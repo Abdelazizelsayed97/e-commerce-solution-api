@@ -5,21 +5,12 @@ import { Product } from 'src/product/entities/product.entity';
 import { RequestVendor } from 'src/request_vendor/entities/request_vendor.entity';
 import { User } from 'src/user/entities/user.entity';
 
-import {
-  Column,
-  Entity,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
+import { BasicClass } from 'src/core/helper/classes/basic.class';
 
 @ObjectType()
 @Entity()
-export class Vendor {
-  @Field(() => String)
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Vendor extends BasicClass {
   @Field(() => User)
   @OneToOne(() => User, (user) => user.vendor)
   user: User;
@@ -45,19 +36,6 @@ export class Vendor {
     nullable: true,
   })
   vendorOrders?: Order[];
-
-  @Field()
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: number;
-
-  @Field({
-    nullable: true,
-  })
-  @Column('timestamp', {
-    onUpdate: 'CURRENT_TIMESTAMP',
-    nullable: true,
-  })
-  updatedAt: number;
 
   @Field(() => [Follower], { nullable: true })
   @OneToMany(() => Follower, (follower) => follower.vendor, { nullable: true })

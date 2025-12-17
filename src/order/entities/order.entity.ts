@@ -5,32 +5,23 @@ import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
 import { User } from 'src/user/entities/user.entity';
 
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { OrderItem } from './order-item.entity';
+import { BasicClass } from 'src/core/helper/classes/basic.class';
 
 @ObjectType()
 @Entity({ synchronize: true })
-export class Order {
-  @Field(() => String)
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class Order extends BasicClass {
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.order)
   @JoinColumn({
-    name: 'user_id',
+    name: 'userId',
     referencedColumnName: 'id',
   })
   client: User;
 
   @Column()
-  user_id: string;
+  userId: string;
 
   @Field(() => Float)
   @Column()
@@ -54,19 +45,6 @@ export class Order {
   @Column('enum', { enum: paymentMethod })
   paymentMethod: paymentMethod;
 
-  @Field()
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: number;
-
-  @Field({
-    nullable: true,
-  })
-  @Column('timestamp', {
-    onUpdate: 'CURRENT_TIMESTAMP',
-    nullable: true,
-  })
-  updatedAt: number;
-
   @Field(() => String)
   @Column()
   shippingAddressId: string;
@@ -78,14 +56,14 @@ export class Order {
   @Field(() => Cart)
   @ManyToOne(() => Cart, (cart) => cart.id)
   @JoinColumn({
-    name: 'cart_id',
+    name: 'cartId',
     referencedColumnName: 'id',
   })
   cart: Cart;
 
   @Field(() => String)
   @Column()
-  cart_id: string;
+  cartId: string;
 
   @Field(() => [OrderItem], { nullable: true })
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })

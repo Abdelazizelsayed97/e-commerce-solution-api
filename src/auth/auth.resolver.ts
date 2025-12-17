@@ -1,10 +1,11 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, CustomScalar } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 
 import { LoginInput } from './dto/login-input';
 import { User } from 'src/user/entities/user.entity';
 import { RegisterInput } from './dto/register.input';
 import { Throttle } from '@nestjs/throttler';
+import { Device } from 'src/core/enums/device.type';
 
 @Resolver(() => User)
 export class AuthResolver {

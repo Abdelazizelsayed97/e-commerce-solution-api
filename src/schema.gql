@@ -4,41 +4,48 @@
 
 type Address {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   state: String!
   city: String!
   details: String!
   user: User!
-  createdAt: Float!
-  updatedAt: Float
 }
+
+"""
+`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
+"""
+scalar Timestamp
 
 type Category {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   name: String!
   products: [Product!]
 }
 
 type RatingAndReview {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   rating: Int!
   comment: String!
   user: User!
   product: Product!
-  createdAt: Float!
-  updatedAt: Float
   vendor: Vendor
 }
 
 type Product {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   name: String!
   vendor: Vendor!
   price: Int!
   inStock: Int!
   reviews: [RatingAndReview!]
   image: String!
-  createdAt: Float!
-  updatedAt: Float
   purchuseCount: Int!
   category: Category
   isWishListed: Boolean!
@@ -47,11 +54,11 @@ type Product {
 
 type CartItem {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   product: Product!
   quantity: Float!
   totlePrice: Float!
-  createdAt: Float!
-  updatedAt: Float
   cartItem: CartItem
   cart: Cart
   vendor: Vendor
@@ -59,9 +66,9 @@ type CartItem {
 
 type Cart {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   user: User!
-  createAt: Float!
-  updateAt: Float
   orders: [Order!]
   cartItems: [CartItem!]
 }
@@ -81,18 +88,20 @@ type OrderItem {
 
 type Order {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   client: User!
   totalAmount: Float!
   status: OrderStatusEnum!
   paymentStatus: OrderPaymentStatus!
   paymentMethod: paymentMethod!
-  createdAt: Float!
-  updatedAt: Float
   shippingAddressId: String!
   transactionId: String
   cart: Cart!
-  cart_id: String!
+  cartId: String!
   orderItems: [OrderItem!]
+  product: Product!
+  vendor: Vendor!
 }
 
 enum OrderStatusEnum {
@@ -126,14 +135,14 @@ type RequestVendor {
 
 type Vendor {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   user: User!
   shopName: String!
   balance: Float!
   rating: Float!
   isVerfied: Boolean!
   vendorOrders: [Order!]
-  createdAt: Float!
-  updatedAt: Float
   followers: [Follower!]
   request: RequestVendor
   products: [Product!]!
@@ -142,10 +151,10 @@ type Vendor {
 
 type Follower {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   vendor: Vendor!
   follower: User!
-  createdAt: Float!
-  updatedAt: Float
 }
 
 type Transaction {
@@ -171,14 +180,14 @@ enum transactionType {
 
 type Wallet {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   balance: Float!
   pendingBalance: Float!
   currency: String!
   type: String!
   transactionHistory: [Transaction!]
   user: User!
-  createdAt: Float!
-  updatedAt: Float
 }
 
 type WishList {
@@ -191,6 +200,8 @@ type WishList {
 
 type User {
   id: String!
+  createdAt: Timestamp!
+  updatedAt: Float
   name: String!
   email: String!
   token: String!
@@ -200,14 +211,13 @@ type User {
   isVendor: Boolean!
   followers: [Follower!]!
   followingVendor: [Follower!]
-  createAt: Float!
-  updateAt: Float
   vendor: Vendor
   wallet: Wallet
   order: [Order!]!
   reviews: [RatingAndReview!]!
   cart: Cart!
   wishList: [WishList!]
+  isVerified: Boolean!
 }
 
 enum role {

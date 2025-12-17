@@ -1,20 +1,12 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
-import {
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  Entity,
-  JoinColumn,
-} from 'typeorm';
+import { Column, ManyToOne, Entity, JoinColumn } from 'typeorm';
+import { BasicClass } from 'src/core/helper/classes/basic.class';
 
 @ObjectType()
 @Entity()
-export class RatingAndReview {
-  @Field(() => String)
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+export class RatingAndReview extends BasicClass {
   @Field(() => Int)
   @Column()
   rating: number;
@@ -43,17 +35,4 @@ export class RatingAndReview {
 
   @Column()
   product_id: string;
-
-  @Field()
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: number;
-
-  @Field({
-    nullable: true,
-  })
-  @Column('timestamp', {
-    onUpdate: 'CURRENT_TIMESTAMP',
-    nullable: true,
-  })
-  updatedAt: number;
 }

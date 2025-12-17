@@ -140,7 +140,6 @@ export class PaymentService {
       // Update order status to refunded
       order.paymentStatus = OrderPaymentStatus.refunded;
       order.status = OrderShippingStatusEnum.CANCELLED;
-      order.updatedAt = Date.now();
       await this.orderRepository.save(order);
 
       // Send refund notification email
@@ -284,6 +283,7 @@ export class PaymentService {
 
   private async handlePaymentSuccess(session: stripe.Checkout.Session) {
     const orderId = session.client_reference_id;
+
     if (orderId) {
       const order = await this.orderRepository.findOne({
         where: { id: orderId },
@@ -298,6 +298,7 @@ export class PaymentService {
           'cart.cartItems.vendor',
         ],
       });
+
       if (order) {
         try {
           order.paymentStatus = OrderPaymentStatus.paid;
@@ -344,6 +345,7 @@ export class PaymentService {
             userWallet.balance += order.totalAmount;
             await this.walletRepository.save(userWallet);
           }
+
           //this part is for vendor transactions after payment success
 
           const userTransaction = this.transactionRepository.create({
@@ -355,6 +357,7 @@ export class PaymentService {
             walletId: userWallet?.id,
             description: `Payment received for order ${orderId}`,
           });
+
           await this.transactionRepository.save(userTransaction);
 
           const vendorMap = new Map();
@@ -385,9 +388,11 @@ export class PaymentService {
               status: OrderPaymentStatus.paid,
               description: `Commission (10%) for order ${orderId}`,
             });
+
             await this.vendorTransactionRepository.save(commissionTx);
 
             vendor.balance += vendorAmount;
+
             await this.vendorRepository.save(vendor);
           }
         } catch (error) {
@@ -401,6 +406,7 @@ export class PaymentService {
             OrderPaymentVendorStatusEnum.PAYMENT_PROCESSING_FAILED,
             error.message,
           );
+          
           throw error;
         }
       }

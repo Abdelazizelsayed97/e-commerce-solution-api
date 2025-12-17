@@ -2,24 +2,14 @@ import { ObjectType, Field, Int, GraphQLTimestamp } from '@nestjs/graphql';
 import { Category } from 'src/category/entities/category.entity';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { BasicClass } from 'src/core/helper/classes/basic.class';
 
 @ObjectType()
 @Entity({
   synchronize: true,
 })
-export class Product {
-  @Field(() => String)
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Product extends BasicClass {
   @Field(() => String)
   @Column('text')
   name: string;
@@ -51,24 +41,11 @@ export class Product {
   })
   reviews: RatingAndReview[];
 
-  @Field(()=>String)
+  @Field(() => String)
   @Column({
-    nullable: true
-  })
-   image?:string 
-
-  @Field()
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: number;
-
-  @Field({
     nullable: true,
   })
-  @Column('timestamp', {
-    onUpdate: 'CURRENT_TIMESTAMP',
-    nullable: true,
-  })
-  updatedAt: number;
+  image?: string;
 
   @Field(() => Int)
   @Column('int', { default: 0 })

@@ -14,6 +14,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: true,
+    credentials: true,
   });
 
   app.useGlobalPipes(
@@ -28,7 +29,15 @@ async function bootstrap() {
       threshold: 1024,
     }),
   );
-  app.use(helmet());
+  
+  app.use(
+    helmet({
+      // contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+      contentSecurityPolicy: false,
+      // crossOriginEmbedderPolicy: false
+      // To fix playground
+    }),
+  );
   app.use('/payment/webhook', express.raw({ type: 'application/json' }));
   app.use('/payment/refund', express.raw({ type: 'application/json' }));
   console.log('Running on port ' + process.env.PORT);
