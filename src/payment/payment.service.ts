@@ -149,8 +149,8 @@ export class PaymentService {
           email: order.client.email,
         },
         entityName: 'Order Refund',
-        oldStatus: 'PAID',
-        newStatus: 'REFUNDED',
+        oldStatus: OrderPaymentStatus.paid,
+        newStatus: OrderPaymentStatus.refunded,
         orderId: order.id,
       });
 
@@ -281,7 +281,7 @@ export class PaymentService {
     }
   }
 
-  private async handlePaymentSuccess(session: stripe.Checkout.Session) {
+  public async handlePaymentSuccess(session: stripe.Checkout.Session) {
     const orderId = session.client_reference_id;
 
     if (orderId) {

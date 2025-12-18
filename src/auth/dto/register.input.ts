@@ -35,6 +35,7 @@ export class RegisterInput {
   @IsEnum(Device)
   @Field(() => Device)
   device: Device;
+  
   @IsNotEmpty()
   @Field(() => String)
   token: string;

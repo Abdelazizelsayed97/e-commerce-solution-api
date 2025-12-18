@@ -71,6 +71,7 @@ type Cart {
   user: User!
   orders: [Order!]
   cartItems: [CartItem!]
+  totalPrice: Int!
 }
 
 type OrderItem {
@@ -299,6 +300,11 @@ type PaginatedReview {
   pagination: PaginationMeta!
 }
 
+type SendOtpResponse {
+  id: String!
+  message: String!
+}
+
 type PaginatedSearch {
   items: [SearchResultUnion!]!
   pagination: PaginationMeta!
@@ -313,7 +319,6 @@ type Query {
   cartById(id: String!): Cart!
   cartByUserId(user_Id: String!): Cart!
   allCarts(paginate: PaginationInput): [Cart!]
-  cartTotal(id: String!): Float!
   notifications(paginationInput: Int): [Notification!]!
   userOrders(userId: String!, paginate: PaginationInput!): PaginatedOrder!
   allOrders(paginate: PaginationInput!): PaginatedOrder!
@@ -368,6 +373,7 @@ type Mutation {
   register(registerInput: RegisterInput!): User!
   verfiyUser(userId: String!, code: String!): User!
   forgetPassword(email: String!): User!
+  resendOtpCode(email: String!): SendOtpResponse!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: String!): User!
   createCart(createCartInput: CreateCartInput!): Cart!

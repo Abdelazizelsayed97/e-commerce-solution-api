@@ -5,7 +5,7 @@ import { LoginInput } from './dto/login-input';
 import { User } from 'src/user/entities/user.entity';
 import { RegisterInput } from './dto/register.input';
 import { Throttle } from '@nestjs/throttler';
-import { Device } from 'src/core/enums/device.type';
+import { SendOtpResponse } from './dto/send.otp.type';
 
 @Resolver(() => User)
 export class AuthResolver {
@@ -37,12 +37,19 @@ export class AuthResolver {
 
     return this.authService.register(registerInput);
   }
+
   @Mutation(() => User)
   verfiyUser(@Args('userId') userId: string, @Args('code') code: string) {
     return this.authService.verfiyUser(userId, code);
   }
+
   @Mutation(() => User)
   forgetPassword(@Args('email') email: string) {
     return this.authService.forgetPassword(email);
+  }
+
+  @Mutation(() => SendOtpResponse, { name: 'resendOtpCode' })
+  resendOtpCode(@Args('email') email: string) {
+    return this.authService.resendOtpCode(email);
   }
 }

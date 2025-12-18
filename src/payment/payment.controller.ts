@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { RefundReason } from 'src/core/enums/refund.reason.enum';
-import { User } from 'src/user/entities/user.entity';
 
 @Controller('payment')
 export class PaymentController {
@@ -35,6 +34,7 @@ export class PaymentController {
       await this.paymentService.processRefund(orderID, reason);
       return { received: true };
     } catch (error) {
+      console.log(error);
       throw new BadRequestException(`Return error: ${error.message}`);
     }
   }

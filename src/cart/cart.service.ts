@@ -50,6 +50,7 @@ export class CartService {
       skip,
       take: paginate.limit,
     });
+    
     return {
       items: carts,
       pagination: {
@@ -65,7 +66,7 @@ export class CartService {
   async findOne(id: string) {
     const cart = await this.cartRepository.findOne({
       where: { id: id },
-    });
+  });
     if (!cart) {
       throw new NotFoundException('cart not found');
     }
@@ -88,6 +89,8 @@ export class CartService {
     if (!cart.cartItems || cart.cartItems.length === 0) {
       return 0;
     }
+
+
     return cart.cartItems.reduce((sum, item) => sum + item.totlePrice, 0);
   }
 

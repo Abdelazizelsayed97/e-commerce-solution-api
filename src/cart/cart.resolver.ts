@@ -63,10 +63,7 @@ export class CartResolver {
     return await this.cartService.findAll(paginate);
   }
 
-  @Query(() => Float, { name: 'cartTotal' })
-  async getCartTotal(@Args('id', { type: () => String }) id: string) {
-    return await this.cartService.getCartTotal(id);
-  }
+
 
   @Mutation(() => Cart)
   async removeCart(@Args('id', { type: () => String }) id: string) {

@@ -93,11 +93,23 @@ export class CartItemService {
       quantity: createCartItemInput.quantity,
       totlePrice: createCartItemInput.quantity * product.price,
     });
+    // calculate total of cart
+
+    // Update cart total price
+    const cartItems = await this.cartItemRepository.find({
+      where: { cart_id: cart.id },
+    });
+    const total = cartItems.reduce((sum, item) => sum + item.totlePrice, 0);
+
+    cart.totalPrice = total;
+    await this.cartRepository.save(cart);
+
+    console.log('Updated cart total:', total);
     console.log('cartItemcartItemcartItem', cartItem);
     return await this.cartItemRepository.save(cartItem);
   }
 
-  async findAll(user: User) {
+  async findAll(user: User)  {
     const cart = await this.cartRepository.findOne({
       where: { user },
     });

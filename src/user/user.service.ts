@@ -14,6 +14,7 @@ import { RoleEnum } from 'src/core/enums/role.enum';
 import { PaginatedUsers } from './entities/paginated.user';
 import { CartService } from 'src/cart/cart.service';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { ISendOtpResponse } from 'src/auth/dto/send.otp.type';
 
 @Injectable()
 export class UserService {
@@ -114,7 +115,6 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-
     const user = this.usersRepository.findOne({
       where: {
         email: email,
@@ -171,9 +171,7 @@ export class UserService {
     if (!user) {
       throw new Error("This user doesn't exist");
     }
-    if (!user.isVerified) {
-      throw new Error("You haven't verified your email");
-    }
+
     if (user.OtpCode! !== code) {
       throw new Error('Invalid verification code');
     }
@@ -183,14 +181,20 @@ export class UserService {
     return user;
   }
 
-  async sendVerificationOtp(userId: string) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+  async sendVerificationOtp(email: string): Promise<ISendOtpResponse> {
+    const user = await this.usersRepository.findOne({
+      where: { email: email },
+    });
     if (!user) {
       throw new Error("This user doesn't exist");
     }
     const code = await this.sendNotificationToNewUserWithVerificationCode(user);
     user.OtpCode = code;
     await this.usersRepository.save(user);
+    return {
+     id : user.id,
+      message: 'Otp has been sent successfully',
+    };
   }
 
   private async sendNotificationToNewUserWithVerificationCode(user: User) {
@@ -213,5 +217,4 @@ export class UserService {
       await this.sendNotificationToNewUserWithVerificationCode(isExist);
     return code;
   }
-
 }

@@ -1,4 +1,4 @@
-import { ObjectType, Field, GraphQLTimestamp } from '@nestjs/graphql';
+import { ObjectType, Field, GraphQLTimestamp, Int } from '@nestjs/graphql';
 import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -26,4 +26,7 @@ export class Cart extends BasicClass {
   @Field(() => [CartItem], { nullable: true })
   @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { nullable: true })
   cartItems?: CartItem[];
+  @Field(() => Int)
+  @Column('int', { default: 0 })
+  totalPrice: number;
 }
