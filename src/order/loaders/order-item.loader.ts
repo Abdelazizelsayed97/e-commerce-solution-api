@@ -1,28 +1,38 @@
 import DataLoader from 'dataloader';
 import { In, Repository } from 'typeorm';
 import { OrderItem } from '../entities/order-item.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RequestScoped } from 'src/core/loader.decorator';
 
-export function OrderItemLoader(orderItemRepo: Repository<OrderItem>) {
-  return new DataLoader<string, OrderItem[]>(
-    async (orderIds: readonly string[]) => {
-      const orderItems = await orderItemRepo.find({
-        where: {
-          id: In(orderIds as string[]),
-        },
-      });
+@RequestScoped()
+export class OrderItemLoader {
+  constructor(
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepo: Repository<OrderItem>,
+  ) {}
 
-      const orderItemMap = new Map<string, OrderItem[]>();
-      orderIds.forEach((orderId) => {
-        orderItemMap.set(orderId, []);
-      });
+  loader() {
+    return new DataLoader<string, OrderItem[]>(
+      async (orderIds: readonly string[]) => {
+        const orderItems = await this.orderItemRepo.find({
+          where: {
+            id: In(orderIds as string[]),
+          },
+        });
 
-      orderItems.forEach((item) => {
-        const items = orderItemMap.get(item.id) || [];
-        items.push(item);
-        orderItemMap.set(item.id, items);
-      });
+        const orderItemMap = new Map<string, OrderItem[]>();
+        orderIds.forEach((orderId) => {
+          orderItemMap.set(orderId, []);
+        });
 
-      return orderIds.map((orderId) => orderItemMap.get(orderId) || []);
-    },
-  );
+        orderItems.forEach((item) => {
+          const items = orderItemMap.get(item.id) || [];
+          items.push(item);
+          orderItemMap.set(item.id, items);
+        });
+
+        return orderIds.map((orderId) => orderItemMap.get(orderId) || []);
+      },
+    );
+  }
 }

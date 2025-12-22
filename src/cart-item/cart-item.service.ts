@@ -109,7 +109,7 @@ export class CartItemService {
     return await this.cartItemRepository.save(cartItem);
   }
 
-  async findAll(user: User)  {
+  async findAllCartItems(user: User) {
     const cart = await this.cartRepository.findOne({
       where: { user },
     });

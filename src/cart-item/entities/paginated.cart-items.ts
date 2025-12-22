@@ -1,12 +1,8 @@
 import { ObjectType, Field, Int } from "@nestjs/graphql";
 import { CartItem } from "./cart-item.entity";
-import { PaginationMeta } from "src/core/helper/pagination/pagination.output";
+import { PaginatedType } from "src/core/helper/pagination/pagination.output";
+
 
 @ObjectType()
-export class PaginatedCartItems {
-  @Field(() => [CartItem])
-  items: CartItem[];
+export class PaginatedCartItems extends PaginatedType(CartItem) { }
 
-  @Field(() => PaginationMeta)
-  totalItems: PaginationMeta
-}

@@ -10,6 +10,8 @@ import { Follower } from 'src/followers/entities/follower.entity';
 import { User } from 'src/user/entities/user.entity';
 import { RoleEnum } from 'src/core/enums/role.enum';
 import { Category } from 'src/category/entities/category.entity';
+import { EmailService } from 'src/email/email.service';
+import { Cart } from 'src/cart/entities/cart.entity';
 
 @Injectable({
   scope: Scope.REQUEST,
@@ -23,12 +25,15 @@ export class ProductService {
 
     @InjectRepository(Category)
     private catRepo: Repository<Category>,
+    private readonly emailService: EmailService,
+    @InjectRepository(Cart)
+    private readonly cartRepo: Repository<Cart>,
   ) {}
 
   async AddProduct(createProductInput: CreateProductInput) {
     const isExist = await this.productsRepository.findOne({
       where: {
-      name: createProductInput.name,
+        name: createProductInput.name,
       },
     });
     if (isExist) {
@@ -39,23 +44,22 @@ export class ProductService {
         id: createProductInput.categoryId,
       },
     });
+
     if (!category) {
       throw new Error('this catrgory doesnt exist ');
     }
+
     const product = this.productsRepository.create({
       ...createProductInput,
       inStock: createProductInput.stock || 0,
       vendor: { id: createProductInput.vendorId },
-      categoryId:category.id,
+      categoryId: category.id,
     });
 
     return await this.productsRepository.save(product);
   }
 
-  async findAll(
-    paginate: PaginationInput,
-    SortByPurchuse?: boolean,
-  ): Promise<PaginatedProduct> {
+  async findAllProducts(paginate: PaginationInput, SortByPurchuse?: boolean) {
     const skip = (paginate.page - 1) * paginate.limit;
 
     if (SortByPurchuse) {
@@ -73,14 +77,10 @@ export class ProductService {
         take: paginate.limit,
       });
       return {
-        items,
-        pagination: {
-          totalItems,
-          itemCount: items.length,
-          itemsPerPage: paginate.limit,
-          totalPages: Math.ceil(totalItems / paginate.limit),
-          currentPage: paginate.page,
-        },
+        items: items,
+        total: totalItems,
+        limit: paginate.limit,
+        page: paginate.page,
       };
     }
     const [items, totalItems] = await this.productsRepository.findAndCount({
@@ -120,13 +120,9 @@ export class ProductService {
 
     return {
       items: items,
-      pagination: {
-        totalItems: count,
-        itemCount: items.length,
-        itemsPerPage: limit,
-        totalPages: Math.ceil(count / limit),
-        currentPage: paginate.page,
-      },
+      page: paginate.page,
+      limit: paginate.limit,
+      total: count,
     };
   }
 
@@ -134,21 +130,18 @@ export class ProductService {
     userId: string,
     paginate: PaginationInput,
   ): Promise<PaginatedProduct> {
-    const followedVendors = await this.followersRepository.find({
-      where: { follower: { id: userId } },
-      relations: { vendor: true },
-    });
+    const [followedVendors, totalFollowedVendors] =
+      await this.followersRepository.findAndCount({
+        where: { user: { id: userId } },
+        relations: { vendor: true },
+      });
 
-    if (!followedVendors.length) {
+    if (totalFollowedVendors === 0) {
       return {
         items: [],
-        pagination: {
-          totalItems: 0,
-          itemCount: 0,
-          itemsPerPage: paginate.limit,
-          totalPages: 0,
-          currentPage: paginate.page,
-        },
+        page: paginate.page,
+        limit: paginate.limit,
+        total: 0,
       };
     }
 
@@ -169,14 +162,10 @@ export class ProductService {
     });
 
     return {
-      items,
-      pagination: {
-        totalItems,
-        itemCount: items.length,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-        currentPage: paginate.page,
-      },
+      items: items,
+      page: paginate.page,
+      limit: paginate.limit,
+      total: totalItems,
     };
   }
 
@@ -212,7 +201,18 @@ export class ProductService {
     }
 
     Object.assign(product, updateProductInput);
-    return await this.productsRepository.save(product);
+    const updatedProduct = await this.productsRepository.save(product);
+    const users = await this.cartRepo.find({
+      where: { cartItems: { product_id: id } },
+    });
+    users.forEach(async (user) => {
+      await this.emailService.sendStatusNotification(
+        user,
+        updatedProduct.name,
+        product.name,
+      );
+    });
+    return updatedProduct;
   }
 
   async remove(id: string, user?: User) {

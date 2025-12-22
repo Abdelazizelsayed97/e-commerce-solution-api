@@ -155,7 +155,7 @@ type Follower {
   createdAt: Timestamp!
   updatedAt: Float
   vendor: Vendor!
-  follower: User!
+  user: User!
 }
 
 type Transaction {
@@ -242,17 +242,18 @@ enum Device {
   Web
 }
 
-type PaginationMeta {
-  totalItems: Int!
-  itemCount: Int!
-  itemsPerPage: Int!
-  totalPages: Int!
-  currentPage: Int!
+type PaginatedUser {
+  items: [User!]!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
-type PaginatedUsers {
-  items: [User!]!
-  pagination: PaginationMeta!
+type PaginatedCartResponse {
+  items: [Cart!]!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
 type CreateOrderResponse {
@@ -262,12 +263,23 @@ type CreateOrderResponse {
 
 type PaginatedOrder {
   items: [Order!]!
-  pagination: PaginationMeta!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
+type PaginationTransaction {
+  items: [Transaction!]!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
 type VendorPaginated {
   items: [Vendor!]!
-  pagination: PaginationMeta!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
 type Notification {
@@ -280,24 +292,46 @@ type Notification {
   updatedAt: Float
 }
 
+type PaginatedNotification {
+  items: [Notification!]!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
 type PaginatedProduct {
   items: [Product!]!
-  pagination: PaginationMeta!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
 type PaginatedAddress {
   items: [Address!]!
-  totalCount: Float!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
 type PaginatedRequestVendor {
   items: [RequestVendor!]!
-  pagination: PaginationMeta!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
 type PaginatedReview {
   items: [RatingAndReview!]!
-  pagination: PaginationMeta!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
+type PaginatedFollowers {
+  items: [Follower!]!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
 type SendOtpResponse {
@@ -307,19 +341,28 @@ type SendOtpResponse {
 
 type PaginatedSearch {
   items: [SearchResultUnion!]!
-  pagination: PaginationMeta!
+  total: Int!
+  page: Int!
+  limit: Int!
 }
 
 union SearchResultUnion = Product | Vendor
 
+type PaginatedCategory {
+  items: [Category!]!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
 type Query {
-  users(paginate: PaginationInput): PaginatedUsers!
+  users(paginate: PaginationInput): PaginatedUser!
   user(id: String!): User!
   me: User!
   cartById(id: String!): Cart!
   cartByUserId(user_Id: String!): Cart!
-  allCarts(paginate: PaginationInput): [Cart!]
-  notifications(paginationInput: Int): [Notification!]!
+  allCarts(paginate: PaginationInput): PaginatedCartResponse
+  notifications(paginationInput: PaginationInput): PaginatedNotification!
   userOrders(userId: String!, paginate: PaginationInput!): PaginatedOrder!
   allOrders(paginate: PaginationInput!): PaginatedOrder!
   vendorOrders(vendorId: String!, paginate: PaginationInput!): PaginatedOrder!
@@ -343,7 +386,7 @@ type Query {
   vendorRequests(paginate: PaginationInput!, filterBy: RequestVendorEnum): PaginatedRequestVendor!
   ratingAndReview(productId: String!, paginate: PaginationInput): PaginatedReview
   userFollowing(userId: String!, paginate: PaginationInput): [Follower!]!
-  vendorFollowers(vendorId: String!, paginate: PaginationInput): [Follower!]!
+  vendorFollowers(vendorId: String!, paginate: PaginationInput): PaginatedFollowers!
   search(searchInput: SearchInput!): PaginatedSearch!
   category(id: String!): Category!
 }
@@ -374,12 +417,13 @@ type Mutation {
   verfiyUser(userId: String!, code: String!): User!
   forgetPassword(email: String!): User!
   resendOtpCode(email: String!): SendOtpResponse!
+  loginWithGoogle: String!
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: String!): User!
   createCart(createCartInput: CreateCartInput!): Cart!
   removeCart(id: String!): Cart!
   createNotification(sendNotification: CreateNotificationInput!): Notification!
-  removeNotification(id: Int!): Notification!
+  removeNotification(id: String!): Notification!
   createOrder(createOrderInput: CreateOrderInput!): CreateOrderResponse!
   cancelOrder(updateOrderInput: UpdateOrderInput!): Order!
   updateOrderStatus(orderId: String!, status: OrderStatusEnum!): Order!

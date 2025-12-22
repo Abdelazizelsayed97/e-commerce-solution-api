@@ -1,13 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { CreateOrderInput } from './dto/create-order.input';
 import { UpdateOrderInput } from './dto/update-order.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
-
 import { Cart } from 'src/cart/entities/cart.entity';
-
 import { Product } from 'src/product/entities/product.entity';
 import { OrderPaymentStatus } from 'src/core/enums/payment.status.enum';
 import { OrderShippingStatusEnum } from 'src/core/enums/order.status.enum';
@@ -15,6 +13,7 @@ import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { PaginatedOrder } from './entities/paginated.order';
 import { User } from 'src/user/entities/user.entity';
 import { QueueService } from 'src/queue/queue.service';
+import { PaymentService } from 'src/payment/payment.service';
 
 @Injectable()
 export class OrderService {
@@ -28,6 +27,8 @@ export class OrderService {
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly queueService: QueueService,
+    @Inject(PaymentService)
+    private readonly paymentService: PaymentService,
   ) {}
 
   async createOrder(createOrderInput: CreateOrderInput, user: User) {
@@ -65,7 +66,6 @@ export class OrderService {
     //   throw new BadRequestException('Order already exists for this cart');
     // }
 
-    const now = Date.now();
     console.log('useruseruser', user);
     const order = this.orderRepository.create({
       client: user,
@@ -75,8 +75,6 @@ export class OrderService {
       paymentMethod: createOrderInput.paymentMethod,
       shippingAddressId: createOrderInput.shippingAddressId,
       status: OrderShippingStatusEnum.PENDING,
-      createdAt: now,
-      updatedAt: now,
     });
 
     const savedOrder = await this.orderRepository.save(order);
@@ -84,9 +82,7 @@ export class OrderService {
     const orderItems: OrderItem[] = [];
     for (const cartItem of cart.cartItems) {
       const orderItem = this.orderItemRepository.create({
-        // order: savedOrder,
         product: cartItem.product,
-
         quantity: cartItem.quantity,
         unitPrice: cartItem.product.price,
         totalPrice: cartItem.totlePrice,
@@ -97,8 +93,18 @@ export class OrderService {
 
     await this.orderItemRepository.save(orderItems);
     savedOrder.orderItems = orderItems;
+    let paymentUrl: string | undefined;
+    try {
+      if (this.paymentService) {
+        console.log('Creating payment session...');
+        const session = await this.paymentService.createPayment(savedOrder.id);
+        paymentUrl = session.url || undefined;
+      }
+    } catch (error) {
+      console.error('Error creating payment session:', error);
+    }
 
-    return savedOrder;
+    return { order: savedOrder, paymentUrl };
   }
 
   async cancelOrder(updateOrderInput: UpdateOrderInput) {
@@ -145,13 +151,9 @@ export class OrderService {
     });
     return {
       items: orders,
-      pagination: {
-        totalItems,
-        itemCount: orders.length,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-        currentPage: paginate.page,
-      },
+      limit: paginate.limit,
+      page: paginate.page,
+      total: totalItems,
     };
   }
 
@@ -217,13 +219,9 @@ export class OrderService {
     });
     return {
       items: orders,
-      pagination: {
-        currentPage: paginate.page,
-        totalItems,
-        itemCount: orders.length,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-      },
+      total: totalItems,
+      limit: paginate.limit,
+      page: paginate.page,
     };
   }
 
@@ -247,13 +245,9 @@ export class OrderService {
     });
     return {
       items: orders,
-      pagination: {
-        currentPage: paginate.page,
-        totalItems,
-        itemCount: orders.length,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-      },
+      total: totalItems,
+      limit: paginate.limit,
+      page: paginate.page,
     };
   }
 }

@@ -1,14 +1,8 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  UseGuards,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCartInput } from './dto/create-cart.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cart } from './entities/cart.entity';
 import { Repository } from 'typeorm';
-
 import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { User } from 'src/user/entities/user.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
@@ -44,29 +38,27 @@ export class CartService {
     }
   }
 
-  async findAll(paginate: PaginationInput): Promise<PaginatedCartResponse> {
+  async findAllCarts(
+    paginate: PaginationInput,
+  ): Promise<PaginatedCartResponse> {
     const skip = (paginate.page - 1) * paginate.limit;
     const [carts, totalItems] = await this.cartRepository.findAndCount({
       skip,
       take: paginate.limit,
     });
-    
+
     return {
       items: carts,
-      pagination: {
-        totalItems,
-        itemCount: paginate.limit,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-        currentPage: paginate.page,
-      },
+      limit: paginate.limit,
+      page: paginate.page,
+      total: totalItems,
     };
   }
 
   async findOne(id: string) {
     const cart = await this.cartRepository.findOne({
       where: { id: id },
-  });
+    });
     if (!cart) {
       throw new NotFoundException('cart not found');
     }
@@ -89,7 +81,6 @@ export class CartService {
     if (!cart.cartItems || cart.cartItems.length === 0) {
       return 0;
     }
-
 
     return cart.cartItems.reduce((sum, item) => sum + item.totlePrice, 0);
   }

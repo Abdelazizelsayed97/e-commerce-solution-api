@@ -112,7 +112,7 @@ export class RequestVendorService {
     await this.requestVendorRepository.save(request);
     return request;
   }
-  async findAll(
+  async findAllVendorRequests(
     paginate: PaginationInput,
     filterBy: RequestVendorEnum,
   ): Promise<PaginatedRequestVendor> {
@@ -134,13 +134,9 @@ export class RequestVendorService {
     console.log('fhjhf', items);
     return {
       items,
-      pagination: {
-        totalItems,
-        itemCount: items.length,
-        itemsPerPage: take,
-        totalPages: Math.ceil(totalItems / take),
-        currentPage: paginate.page,
-      },
+      limit: paginate.limit,
+      total: items.length,
+      page: Math.ceil(totalItems / paginate.limit),
     };
   }
 }

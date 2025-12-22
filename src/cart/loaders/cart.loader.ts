@@ -1,18 +1,27 @@
 import DataLoader from 'dataloader';
-import { DataSource, In } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Cart } from '../entities/cart.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RequestScoped } from 'src/core/loader.decorator';
 
-export const cartLoader = (dataSource: DataSource) => {
-  return new DataLoader<string, Cart>(async (ids: string[]) => {
-    const cart = await dataSource.getRepository(Cart).find({
-      where: { id: In(ids) },
+@RequestScoped()
+export class CartLoader {
+  constructor(
+    @InjectRepository(Cart)
+    private readonly cartRepo: Repository<Cart>,
+  ) {}
+  loader() {
+    return new DataLoader<string, Cart>(async (ids: string[]) => {
+      const cart = await this.cartRepo.find({
+        where: { id: In(ids) },
+      });
+
+      const itemsAsMap = new Map<string, Cart>();
+      cart.forEach((item) => {
+        itemsAsMap.set(item.id, item);
+      });
+
+      return ids.map((id) => itemsAsMap.get(id) ?? new Cart());
     });
-
-    const itemsAsMap = new Map<string, Cart>();
-    cart.forEach((cart) => {
-      itemsAsMap.set(cart.id, cart);
-    });
-
-    return ids.map((id) => itemsAsMap.get(id) ?? new Cart());
-  });
-};
+  }
+}

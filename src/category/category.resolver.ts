@@ -9,6 +9,7 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/user/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { PaginatedCategory } from './entities/paginated.category';
 
 @Resolver(() => Category)
 export class CategoryResolver {
@@ -23,12 +24,12 @@ export class CategoryResolver {
     return this.categoryService.create(createCategoryInput);
   }
 
-  @Query(() => [Category], { name: 'category' })
-  findAll(
+  @Query(() => PaginatedCategory, { name: 'category' })
+  findAllCategory(
     @Args('paginationsInput', { nullable: true })
     paginationInput: PaginationInput,
   ) {
-    return this.categoryService.findAll(paginationInput);
+    return this.categoryService.findAllCategories(paginationInput);
   }
 
   @Query(() => Category, { name: 'category' })

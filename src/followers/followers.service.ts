@@ -52,14 +52,14 @@ export class FollowersService {
         },
       },
       relations: {
-        follower: true,
+        user: true,
       },
       skip: skip,
       take: PaginationInput.limit,
     });
     return {
       items: {
-        followers: followers.map((follower) => follower.follower),
+        followers: followers.map((follower) => follower.user),
         id: followers.map((follower) => follower.id),
       },
       // pagination: {
@@ -77,7 +77,7 @@ export class FollowersService {
 
     return this.followersRepository.find({
       where: {
-        follower: {
+        user: {
           id: id,
         },
       },

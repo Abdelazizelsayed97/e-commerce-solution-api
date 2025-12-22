@@ -9,6 +9,7 @@ import { AuthGuard } from 'src/user/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
 import { RoleEnum } from 'src/core/enums/role.enum';
+import { PaginatedFollowers } from './entities/paginated.followers';
 
 @Resolver(() => Follower)
 export class FollowersResolver {
@@ -30,8 +31,8 @@ export class FollowersResolver {
     return this.followersService.getFollowingList(userId, paginate);
   }
 
-  @Query(() => [Follower], { name: 'vendorFollowers' })
-  findAll(
+  @Query(() => PaginatedFollowers, { name: 'vendorFollowers' })
+  findAllFollowers(
     @Args('vendorId', { type: () => String }) vendorId: string,
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,

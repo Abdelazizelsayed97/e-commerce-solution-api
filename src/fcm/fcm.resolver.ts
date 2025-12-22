@@ -15,8 +15,8 @@ export class FcmResolver {
   }
 
   @Query(() => [Fcm], { name: 'fcm' })
-  findAll(@Args('paginateInput') paginateInput: PaginationInput) {
-    return this.fcmService.findAll(paginateInput);
+  findAllFcm(@Args('paginateInput') paginateInput: PaginationInput) {
+    return this.fcmService.findAllFcm(paginateInput);
   }
 
   @Query(() => Fcm, { name: 'fcm' })

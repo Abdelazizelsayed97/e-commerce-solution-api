@@ -1,10 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Address } from './address.entity';
+import { PaginatedType } from 'src/core/helper/pagination/pagination.output';
 @ObjectType()
-export class PaginatedAddress {
-  @Field(() => [Address])
-  items: Address[];
-
-  @Field(() => Number)
-  totalCount: number;
-}
+export class PaginatedAddress extends PaginatedType(Address) {}

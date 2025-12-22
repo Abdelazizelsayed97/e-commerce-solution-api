@@ -1,8 +1,9 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { NotificationService } from './notification.service';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationInput } from './dto/create-notification.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { PaginatedNotification } from './entities/paginated.notification';
 
 @Resolver(() => Notification)
 export class NotificationResolver {
@@ -15,16 +16,16 @@ export class NotificationResolver {
     return this.notificationService.sendNotification(createNotificationInput);
   }
 
-  @Query(() => [Notification], { name: 'notifications' })
-  findAll(
-    @Args('paginationInput', { type: () => Int, nullable: true })
+  @Query(() => PaginatedNotification, { name: 'notifications' })
+  findAllNotifications(
+    @Args('paginationInput', { type: () => PaginationInput, nullable: true })
     paginationInput: PaginationInput,
   ) {
     return this.notificationService.getAllnotifications(paginationInput);
   }
 
   @Mutation(() => Notification)
-  removeNotification(@Args('id', { type: () => Int }) id: number) {
+  removeNotification(@Args('id', { type: () => String }) id: string) {
     return this.notificationService.remove(id);
   }
 }

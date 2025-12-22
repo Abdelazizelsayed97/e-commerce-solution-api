@@ -7,7 +7,8 @@ import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-import { PaginatedResponse } from 'src/core/helper/pagination/pagination.output';
+
+import { PaginationTransaction } from './entities/transaction.pagination';
 
 @Injectable()
 export class TransactionService {
@@ -63,9 +64,9 @@ export class TransactionService {
     return savedTransaction;
   }
 
-  async findAll(
+  async findAllTransactions(
     paginationInput: PaginationInput,
-  ): Promise<PaginatedResponse<Transaction>> {
+  ): Promise<PaginationTransaction> {
     const [items, itemCount] = await this.transactionRepository.findAndCount({
       skip: (paginationInput.page - 1) * paginationInput.limit,
       take: paginationInput.limit,
@@ -75,13 +76,9 @@ export class TransactionService {
     });
     return {
       items: items,
-      PaginationMeta: {
-        itemCount,
-        itemsPerPage: paginationInput.limit,
-        totalItems: itemCount,
-        totalPages: Math.ceil(itemCount / paginationInput.limit),
-        currentPage: paginationInput.page,
-      },
+      limit: paginationInput.limit,
+      page: paginationInput.page,
+      total: itemCount,
     };
   }
 

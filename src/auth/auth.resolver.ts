@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, CustomScalar } from '@nestjs/graphql';
+import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 
 import { LoginInput } from './dto/login-input';
@@ -51,5 +51,9 @@ export class AuthResolver {
   @Mutation(() => SendOtpResponse, { name: 'resendOtpCode' })
   resendOtpCode(@Args('email') email: string) {
     return this.authService.resendOtpCode(email);
+  }
+  @Mutation(() => String)
+  async loginWithGoogle(user: User) {
+    return await this.authService.loginGoogle(user);
   }
 }

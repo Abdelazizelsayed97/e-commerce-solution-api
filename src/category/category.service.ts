@@ -6,6 +6,7 @@ import { Category } from './entities/category.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
+import { PaginatedCategory } from './entities/paginated.category';
 
 @Injectable()
 export class CategoryService {
@@ -28,9 +29,20 @@ export class CategoryService {
     return this.categoryRepository.save(category);
   }
 
-  findAll(paginate: PaginationInput) {
-    const skip = (paginate?.page - 1) * paginate?.limit
-    return this.categoryRepository.find();
+  async findAllCategories(
+    paginate: PaginationInput,
+  ): Promise<PaginatedCategory> {
+    const skip = (paginate?.page - 1) * paginate?.limit;
+    const [items, total] = await this.categoryRepository.findAndCount({
+      skip: skip,
+      take: paginate.limit,
+    });
+    return {
+      items,
+      page: paginate.page,
+      limit: paginate.limit,
+      total,
+    };
   }
 
   findOne(id: string) {

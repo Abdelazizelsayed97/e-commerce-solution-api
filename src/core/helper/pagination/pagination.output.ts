@@ -1,30 +1,21 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Type } from '@nestjs/common';
 
-@ObjectType()
-export class PaginationMeta {
-  @Field(() => Int)
-  totalItems: number;
+export function PaginatedType<T>(ItemType: Type<T>) {
+  @ObjectType({ isAbstract: true })
+  abstract class Paginated {
+    @Field(() => [ItemType])
+    items: T[];
 
-  @Field(() => Int)
-  itemCount: number;
+    @Field(() => Int)
+    total: number;
 
-  @Field(() => Int)
-  itemsPerPage: number;
+    @Field(() => Int)
+    page: number;
 
-  @Field(() => Int)
-  totalPages: number;
+    @Field(() => Int)
+    limit: number;
+  }
 
-  @Field(() => Int)
-  currentPage: number;
-}
-
-@ObjectType({
-  isAbstract: true
-})
-export class PaginatedResponse<T> {
-  @Field(() => [Object])
-  items: T[];
-
-  @Field(() => PaginationMeta)
-  PaginationMeta: PaginationMeta;
+  return Paginated;
 }

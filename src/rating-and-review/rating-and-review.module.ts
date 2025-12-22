@@ -6,12 +6,26 @@ import { RatingAndReview } from './entities/rating-and-review.entity';
 import { ProductModule } from 'src/product/product.module';
 import { UserModule } from 'src/user/user.module';
 import { Order } from 'src/order/entities/order.entity';
+import { RatingAndReviewLoader } from './loaders/rating-and-review.loader';
+import { ProductLoader } from 'src/product/loader/product.loader';
+import { UserLoader } from 'src/user/loader/users.loader';
+import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
+import { User } from 'src/user/entities/user.entity';
+import { Product } from 'src/product/entities/product.entity';
+import { Vendor } from 'src/vendor/entities/vendor.entity';
 
 @Module({
-  providers: [RatingAndReviewResolver, RatingAndReviewService],
+  providers: [
+    RatingAndReviewResolver,
+    RatingAndReviewService,
+    RatingAndReviewLoader,
+    ProductLoader,
+    UserLoader,
+    VendorLoader,
+  ],
   exports: [RatingAndReviewService],
   imports: [
-    TypeOrmModule.forFeature([RatingAndReview, Order]),
+    TypeOrmModule.forFeature([RatingAndReview, Order, User, Product, Vendor]),
     ProductModule,
     UserModule,
   ],

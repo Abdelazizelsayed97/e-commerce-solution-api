@@ -18,25 +18,19 @@ import { User } from 'src/user/entities/user.entity';
 import DataLoader from 'dataloader';
 import { Product } from 'src/product/entities/product.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
-import { DataSource } from 'typeorm';
-import { productLoader } from 'src/product/loader/product.loader';
+import { ProductLoader } from 'src/product/loader/product.loader';
 import { UserLoader } from 'src/user/loader/users.loader';
 import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
 import { PaginatedReview } from './entities/paginated-review';
 
 @Resolver(() => RatingAndReview)
 export class RatingAndReviewResolver {
-  productLoader: DataLoader<string, Product>;
-  userLoader: DataLoader<string, User>;
-  vendorLoader: DataLoader<string, Vendor | null>;
   constructor(
     private readonly ratingAndReviewService: RatingAndReviewService,
-    dataSource: DataSource,
-  ) {
-    this.productLoader = productLoader(dataSource);
-    this.userLoader = UserLoader(dataSource.getRepository(User));
-    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
-  }
+    private readonly productLoader: ProductLoader,
+    private readonly userLoader: UserLoader,
+    private readonly vendorLoader: VendorLoader,
+  ) {}
 
   @Mutation(() => RatingAndReview)
   createRatingAndReview(
@@ -53,7 +47,7 @@ export class RatingAndReviewResolver {
   }
 
   @Query(() => PaginatedReview, { name: 'ratingAndReview', nullable: true })
-  findAll(
+  findAllReviews(
     @Args('productId', { type: () => String }) productId: string,
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate?: PaginationInput,
@@ -84,17 +78,17 @@ export class RatingAndReviewResolver {
   @ResolveField(() => Product)
   async product(@Parent() review: RatingAndReview) {
     if (!review.product) return null;
-    return this.productLoader.load(review.product.id);
+    return this.productLoader.loader().load(review.product.id);
   }
 
   @ResolveField(() => User)
   async user(@Parent() review: RatingAndReview) {
     if (!review.user) return null;
-    return this.userLoader.load(review.user.id);
+    return this.userLoader.loader().load(review.user.id);
   }
   @ResolveField(() => Vendor, { nullable: true })
   async vendor(@Parent() review: RatingAndReview) {
     if (!review.product.vendor) return null;
-    return this.vendorLoader.load(review.product.vendor.id);
+    return this.vendorLoader.loader().load(review.product.vendor.id);
   }
 }

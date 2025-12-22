@@ -12,7 +12,6 @@ export class EmailService {
   async sendStatusNotification(
     user: any,
     entityName: string,
-
     newStatus: string,
   ) {
     await this.queueService.addEmail('statusNotification', {

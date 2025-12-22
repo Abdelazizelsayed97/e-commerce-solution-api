@@ -8,6 +8,7 @@ import { RolesGuard } from 'src/auth/guards/role.guard';
 
 import { RoleEnum } from 'src/core/enums/role.enum';
 import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
+import { PaginationTransaction } from './entities/transaction.pagination';
 
 @Roles(RoleEnum.superAdmin)
 @UseGuards(RolesGuard)
@@ -23,9 +24,11 @@ export class TransactionResolver {
     return this.transactionService.create(createTransactionInput);
   }
 
-  @Query(() => [Transaction], { name: 'transaction' })
-  async findAll(@Args('paginationInput') paginationInput: PaginationInput) {
-    return this.transactionService.findAll(paginationInput);
+  @Query(() => PaginationTransaction, { name: 'transaction' })
+  async findAllTransactions(
+    @Args('paginationInput') paginationInput: PaginationInput,
+  ) {
+    return this.transactionService.findAllTransactions(paginationInput);
   }
 
   @Query(() => Transaction, { name: 'transaction' })

@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { LoginInput } from './dto/login-input';
 import { RegisterInput } from './dto/register.input';
 import { UserService } from 'src/user/user.service';
-import { Device } from 'src/core/enums/device.type';
-import { S } from 'node_modules/graphql-ws/dist/server-CrZ4ip-g.cjs';
+import { Profile } from 'passport-google-oauth20';
 
 @Injectable()
 export class AuthService {
@@ -24,5 +23,11 @@ export class AuthService {
   }
   async resendOtpCode(email: string) {
     return this.userService.sendVerificationOtp(email);
+  }
+  async loginGoogle(profile: Profile) {
+    return await this.userService.loginWithGoogle(profile);
+  }
+  async findUser(id:string) {
+    return await this.userService.findOneById(id)
   }
 }

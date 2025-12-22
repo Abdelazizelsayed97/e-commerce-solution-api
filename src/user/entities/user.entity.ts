@@ -55,7 +55,7 @@ export class User extends BasicClass {
   isVendor: boolean;
 
   @Field(() => [Follower])
-  @OneToMany(() => Follower, (follower) => follower.follower, {
+  @OneToMany(() => Follower, (follower) => follower.user, {
     nullable: true,
   })
   followers?: Follower[];

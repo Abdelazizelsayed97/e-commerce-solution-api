@@ -12,31 +12,23 @@ import { Cart } from './entities/cart.entity';
 import { CreateCartInput } from './dto/create-cart.input';
 import { RoleEnum } from 'src/core/enums/role.enum';
 import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
-import { UseGuards } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/user/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
-import DataLoader from 'dataloader';
-import { DataSource } from 'typeorm';
-import { cartLoader } from './loaders/cart.loader';
 import { User } from 'src/user/entities/user.entity';
 import { UserLoader } from 'src/user/loader/users.loader';
 import { CartItem } from 'src/cart-item/entities/cart-item.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-import { cartItemLoader } from 'src/cart-item/loaders/cart.items.loader';
+import { CartItemLoader } from 'src/cart-item/loaders/cart.items.loader';
+import { PaginatedCartResponse } from './entities/paginated.cart.response';
 
 @Resolver(() => Cart)
 export class CartResolver {
-  cartLoader: DataLoader<string, Cart>;
-  userLoader: DataLoader<string, User>;
-  cartItemLoader: DataLoader<string, CartItem>;
   constructor(
     private readonly cartService: CartService,
-    dataSource: DataSource,
-  ) {
-    this.cartLoader = cartLoader(dataSource);
-    this.userLoader = UserLoader(dataSource.getRepository(User));
-    this.cartItemLoader = cartItemLoader(dataSource);
-  }
+    @Inject(UserLoader) private readonly userLoader: UserLoader,
+    private readonly cartItemLoader: CartItemLoader,
+  ) {}
 
   @Roles(RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
@@ -56,14 +48,12 @@ export class CartResolver {
   }
   @Roles(RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
-  @Query(() => [Cart], { name: 'allCarts', nullable: true })
-  async findAll(
+  @Query(() => PaginatedCartResponse, { name: 'allCarts', nullable: true })
+  async findAllCarts(
     @Args('paginate', { nullable: true }) paginate: PaginationInput,
   ) {
-    return await this.cartService.findAll(paginate);
+    return await this.cartService.findAllCarts(paginate);
   }
-
-
 
   @Mutation(() => Cart)
   async removeCart(@Args('id', { type: () => String }) id: string) {
@@ -73,7 +63,7 @@ export class CartResolver {
   async user(@Parent() cart: Cart) {
     console.log('UserUserUser', cart);
     if (!cart.user_id) return null;
-    return this.userLoader.load(cart.user_id);
+    return this.userLoader.loader().load(cart.user_id);
   }
   @ResolveField(() => CartItem, { nullable: true })
   async cartItems(@Parent() cart: Cart) {
@@ -83,6 +73,8 @@ export class CartResolver {
     const cartItems = cart.cartItems.filter((item) => item.id !== null);
 
     if (!cartItems || cartItems.length === 0) return null;
-    return this.cartItemLoader.loadMany(cartItems.map((item) => item.id));
+    return this.cartItemLoader
+      .loader()
+      .loadMany(cartItems.map((item) => item.id));
   }
 }

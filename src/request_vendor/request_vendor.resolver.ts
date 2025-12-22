@@ -18,19 +18,15 @@ import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
 import { AuthGuard } from 'src/user/guard/auth.guard';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import DataLoader from 'dataloader';
-import { DataSource } from 'typeorm';
 import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
 import { RequestVendorEnum } from 'src/core/enums/request.vendor.status';
 
 @Resolver(() => RequestVendor)
 export class RequestVendorResolver {
-  vendorLoader: DataLoader<string, Vendor>;
   constructor(
     private readonly requestVendorService: RequestVendorService,
-    dataSource: DataSource,
-  ) {
-    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
-  }
+    private readonly vendorLoader: VendorLoader,
+  ) {}
 
   @Roles(RoleEnum.client)
   @UseGuards(AuthGuard, RolesGuard)
@@ -71,13 +67,15 @@ export class RequestVendorResolver {
     })
     filterBy: RequestVendorEnum,
   ) {
-    return this.requestVendorService.findAll(paginate, filterBy);
+    return this.requestVendorService.findAllVendorRequests(paginate, filterBy);
   }
 
   @ResolveField(() => Vendor)
   async vendor(@Parent() requestVendor: RequestVendor) {
     console.log('requestVendorrequestVendor', requestVendor);
-    const vendor = await this.vendorLoader.load(requestVendor.vendorId);
+    const vendor = await this.vendorLoader
+      .loader()
+      .load(requestVendor.vendorId);
     console.log('vendorvendorvendor', vendor);
     return vendor;
   }

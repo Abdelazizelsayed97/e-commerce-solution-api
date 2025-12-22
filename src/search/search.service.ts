@@ -51,13 +51,9 @@ export class SearchService {
 
     return {
       items: paginatedItems,
-      pagination: {
-        totalItems: totalItemsCount,
-        itemCount: paginatedItems.length,
-        itemsPerPage: limit,
-        totalPages: Math.ceil(totalItemsCount / limit),
-        currentPage: page,
-      },
+      limit: limit,
+      page: page,
+      total: totalItemsCount,
     };
   }
 }

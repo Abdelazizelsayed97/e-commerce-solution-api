@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { CreateRatingAndReviewInput } from './dto/create-rating-and-review.input';
 import { UpdateRatingAndReviewInput } from './dto/update-rating-and-review.input';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,7 +12,6 @@ import { ProductService } from 'src/product/product.service';
 import { UserService } from 'src/user/user.service';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Order } from 'src/order/entities/order.entity';
-import { PaginatedReview } from './entities/paginated-review';
 
 @Injectable()
 export class RatingAndReviewService {
@@ -21,35 +24,39 @@ export class RatingAndReviewService {
     private productsService: ProductService,
   ) {}
 
-
-  private async verifyUserPurchase(userId: string, productId: string): Promise<boolean> {
+  private async verifyUserPurchase(
+    userId: string,
+    productId: string,
+  ): Promise<boolean> {
     const order = await this.ordersRepository.findOne({
       where: {
         client: { id: userId },
-        orderItems: { product: { id: productId } }
+        orderItems: { product: { id: productId } },
       },
-      relations: ['orderItems', 'orderItems.product']
+      relations: ['orderItems', 'orderItems.product'],
     });
     return !!order;
   }
 
   async addReview(
     userId: string,
-    productId: string,  
+    productId: string,
     createReviewDto: CreateRatingAndReviewInput,
   ): Promise<RatingAndReview> {
     const user = await this.usersService.findOneById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
- console.log('userId',userId)
+    console.log('userId', userId);
     const product = await this.productsService.findOne(productId);
     if (!product) {
       throw new NotFoundException('Product not found');
     }
     const hasPurchased = await this.verifyUserPurchase(userId, productId);
     if (!hasPurchased) {
-      throw new ForbiddenException('You can only review products you have purchased');
+      throw new ForbiddenException(
+        'You can only review products you have purchased',
+      );
     }
 
     const review = this.reviewsRepository.create({
@@ -95,10 +102,7 @@ export class RatingAndReviewService {
     await this.reviewsRepository.remove(review);
   }
 
-  async getProductReviews(
-    productId: string,
-    paginate?: PaginationInput,
-  ): Promise<PaginatedReview> {
+  async getProductReviews(productId: string, paginate?: PaginationInput) {
     const skip = (paginate!.page - 1) * paginate!.limit;
     const take = paginate?.limit;
     const [items, totalItems] = await this.reviewsRepository.findAndCount({
@@ -108,14 +112,10 @@ export class RatingAndReviewService {
       take,
     });
     return {
-      items,
-      pagination: {
-        totalItems,
-        itemCount: items.length,
-        itemsPerPage: paginate!.limit,
-        totalPages: Math.ceil(totalItems / paginate!.limit),
-        currentPage: paginate!.page,
-      },
+      items: items,
+      total: totalItems,
+      page: paginate?.page,
+      limit: paginate?.limit,
     };
   }
 }

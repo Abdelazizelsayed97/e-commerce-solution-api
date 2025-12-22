@@ -14,23 +14,17 @@ import { CreateVendorInput } from './dto/create-vendor.input';
 import { UpdateVendorInput } from './dto/update-vendor.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import DataLoader from 'dataloader';
-import { DataSource } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { UserLoader } from 'src/user/loader/users.loader';
 import { VendorLoader } from './loaders/vendor.loader';
 
 @Resolver(() => Vendor)
 export class VendorResolver {
-  vendorLoader: DataLoader<string, Vendor | null>;
-  userLoader: DataLoader<string, User | null>;
-
   constructor(
     private readonly vendorService: VendorService,
-    dataSource: DataSource,
-  ) {
-    this.userLoader = UserLoader(dataSource.getRepository(User));
-    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
-  }
+    private readonly userLoader: UserLoader,
+    private readonly vendorLoader: VendorLoader,
+  ) {}
 
   @Mutation(() => Vendor)
   createVendor(
@@ -74,6 +68,6 @@ export class VendorResolver {
   user(@Parent() vendor: Vendor) {
     if (!vendor.user) return null;
 
-    return this.userLoader.load(vendor.user.id);
+    return this.userLoader.loader().load(vendor.user.id);
   }
 }

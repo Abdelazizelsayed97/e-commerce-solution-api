@@ -31,6 +31,10 @@ import { CategoryModule } from './category/category.module';
 import * as express from 'express';
 import { UploadFileModule } from './upload-file/upload-file.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import session from 'express-session';
+import { PassportModule } from '@nestjs/passport';
+import { I18nModule, I18nJsonLoader } from 'nestjs-i18n';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -82,6 +86,17 @@ import { ThrottlerModule } from '@nestjs/throttler';
       ],
     }),
 
+    PassportModule.register({ session: true }),
+    // I18nModule.forRoot({
+    //   fallbackLanguage: 'en',
+
+    //   loaderOptions: {
+    //     path: path.join(__dirname, '/i18n/'),
+    //     watch: true,
+    //   },
+
+    // }),
+
     AuthModule,
     EmailModule,
     NotificationModule,
@@ -112,6 +127,20 @@ export class AppModule implements NestModule {
     consumer.apply(UserInjectorInterceptor).forRoutes('*');
     consumer
       .apply(express.raw({ type: 'application/json' }))
-      .forRoutes('webhooks/stripe');
+      .forRoutes('webhooks/stripe', 'refund');
+    consumer
+      .apply(
+        session({
+          secret: process.env.JWT_SECRET || 'your-secret-key',
+          resave: false,
+          saveUninitialized: false,
+          cookie: {
+            secure: false,
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000,
+          },
+        }),
+      )
+      .forRoutes('*');
   }
 }

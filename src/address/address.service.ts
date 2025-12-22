@@ -46,12 +46,17 @@ export class AddressService {
         user: true,
       },
     });
-    return { items, totalCount };
+    return {
+      items: items,
+      limit: paginated.limit,
+      page: paginated.page,
+      total: totalCount,
+    };
   }
 
-  async findAll(
+  async findAllAddresses(
     paginated: PaginationInput,
-    user: User,
+    user?: User,
   ): Promise<PaginatedAddress> {
     const skip = (paginated.page - 1) * paginated.limit;
 
@@ -59,11 +64,14 @@ export class AddressService {
       skip,
       take: paginated.limit,
 
-      where: {
-        user_id: user.id,
-      },
+      where: user ? { user_id: user.id } : {},
     });
-    return { items, totalCount };
+    return {
+      items: items,
+      limit: paginated.limit,
+      page: paginated.page,
+      total: totalCount,
+    };
   }
 
   async findOne(id: string) {

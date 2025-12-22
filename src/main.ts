@@ -41,6 +41,10 @@ async function bootstrap() {
 
   app.use('/payment/webhook', express.raw({ type: 'application/json' }));
   app.use('/payment/refund', express.raw({ type: 'application/json' }));
+  app.use('/auth/google/redirect', express.raw({ type: 'application/json' }));
+  app.use('/auth/google/login', express.raw({ type: 'application/json' }));
+
+
 
   await app.listen(process.env.PORT ?? 3000);
 }

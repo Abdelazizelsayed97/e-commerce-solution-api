@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Fcm } from './entities/fcm.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-import { PaginatedResponse } from 'src/core/helper/pagination/pagination.output';
+import { PaginatedFcm } from './entities/paginated.fcm';
 
 @Injectable()
 export class FcmService {
@@ -34,9 +34,7 @@ export class FcmService {
     return fcm;
   }
 
-  async findAll(
-    paginateInput: PaginationInput,
-  ): Promise<PaginatedResponse<Fcm>> {
+  async findAllFcm(paginateInput: PaginationInput): Promise<PaginatedFcm> {
     const [items, itemCount] = await this.fcmRepository.findAndCount({
       skip: (paginateInput.page - 1) * paginateInput.limit,
       take: paginateInput.limit,
@@ -47,13 +45,9 @@ export class FcmService {
 
     return {
       items: items,
-      PaginationMeta: {
-        totalItems: itemCount,
-        itemCount: items.length,
-        itemsPerPage: paginateInput.limit,
-        totalPages: Math.ceil(itemCount / paginateInput.limit),
-        currentPage: paginateInput.page,
-      },
+      limit: paginateInput.limit,
+      page: paginateInput.page,
+      total: itemCount,
     };
   }
 

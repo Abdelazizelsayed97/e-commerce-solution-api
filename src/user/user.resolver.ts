@@ -11,34 +11,30 @@ import { User } from './entities/user.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
-import { PaginatedUsers } from './entities/paginated.user';
+import { PaginatedUser } from './entities/paginated.user';
 import { UseGuards } from '@nestjs/common';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { RoleEnum } from 'src/core/enums/role.enum';
 import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
 import { AuthGuard } from './guard/auth.guard';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
-import DataLoader from 'dataloader';
-import { DataSource } from 'typeorm';
+
 import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
 
 @Resolver(() => User)
 export class UserResolver {
-  vendorLoader: DataLoader<string, Vendor | null>;
   constructor(
     private readonly userService: UserService,
-    dataSource: DataSource,
-  ) {
-    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
-  }
+    private readonly vendorLoader: VendorLoader,
+  ) {}
 
-  @Query(() => PaginatedUsers, { name: 'users' })
-  findAll(
+  @Query(() => PaginatedUser, { name: 'users' })
+  findAllUsers(
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,
   ) {
     console.log('paginate', paginate);
-    return this.userService.findAll(paginate);
+    return this.userService.findAllUsers(paginate);
   }
 
   @Query(() => User, { name: 'user' })
@@ -69,7 +65,7 @@ export class UserResolver {
   async vendor(@Parent() user: User) {
     console.log('useruseruseruser', user);
     if (!user.vendor) return null;
-    const vendor = await this.vendorLoader.load(user.vendor?.id ?? '');
+    const vendor = await this.vendorLoader.loader().load(user.vendor?.id ?? '');
     return vendor;
   }
 }

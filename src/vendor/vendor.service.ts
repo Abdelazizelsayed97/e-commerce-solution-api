@@ -6,8 +6,8 @@ import { Repository, In } from 'typeorm';
 import { Vendor } from './entities/vendor.entity';
 import { UserService } from 'src/user/user.service';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-import { VendorPaginated } from './entities/vendor.paginated';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
+import { VendorPaginated } from './entities/vendor.paginated';
 
 @Injectable({
   scope: Scope.REQUEST,
@@ -50,25 +50,12 @@ export class VendorService {
     const [vendors, total] = await this.vendorRepository.findAndCount({
       skip: skip,
       take: paginate.limit,
-      join: {
-        alias: 'vendor',
-        innerJoinAndSelect: {
-          user: 'vendor.user',
-        },
-        leftJoinAndSelect: {
-          products: 'vendor.products',
-        },
-      },
     });
     return {
       items: vendors,
-      pagination: {
-        currentPage: paginate.page,
-        itemCount: total,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(total / paginate.limit),
-        totalItems: total,
-      },
+      limit: paginate.limit,
+      page: paginate.page,
+      total: total,
     };
   }
 

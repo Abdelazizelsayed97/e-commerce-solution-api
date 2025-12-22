@@ -13,45 +13,29 @@ import { UpdateProductInput } from './dto/update-product.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
 import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
 import { RoleEnum } from 'src/core/enums/role.enum';
-import { NotFoundException, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { AuthGuard } from 'src/user/guard/auth.guard';
-
 import { PaginatedProduct } from './entities/paginated.product';
 import { User } from 'src/user/entities/user.entity';
-
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
-import DataLoader from 'dataloader';
-import { DataSource } from 'typeorm';
 import { UserLoader } from 'src/user/loader/users.loader';
-import { productLoader } from './loader/product.loader';
 import { RatingAndReviewLoader } from 'src/rating-and-review/loaders/rating-and-review.loader';
 import { RatingAndReview } from 'src/rating-and-review/entities/rating-and-review.entity';
 import { Category } from 'src/category/entities/category.entity';
-import { categoryLoader } from 'src/category/loaders/category.loader';
+import { CategoryLoader } from 'src/category/loaders/category.loader';
 
 @Resolver(() => Product)
 export class ProductResolver {
-  vendorLoader: DataLoader<string, Vendor | null>;
-  productLoader: DataLoader<string, Product>;
-  userLoader: DataLoader<string, User>;
-  reviewLoader: DataLoader<string, RatingAndReview>;
-  categoryLoader: DataLoader<string, Category>;
   constructor(
     private readonly productService: ProductService,
-
-    dataSource: DataSource,
-  ) {
-    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
-    this.userLoader = UserLoader(dataSource.getRepository(User));
-    this.productLoader = productLoader(dataSource);
-    this.reviewLoader = RatingAndReviewLoader(
-      dataSource.getRepository(RatingAndReview),
-    );
-    this.categoryLoader = categoryLoader(dataSource);
-  }
+    private readonly vendorLoader: VendorLoader,
+    private readonly userLoader: UserLoader,
+    private readonly reviewLoader: RatingAndReviewLoader,
+    private readonly categoryLoader: CategoryLoader,
+  ) {}
 
   @Roles(RoleEnum.vendor, RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
@@ -63,13 +47,13 @@ export class ProductResolver {
   }
 
   @Query(() => PaginatedProduct, { name: 'products' })
-  findAll(
+  findAllProducts(
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,
     @Args('filter', { type: () => Boolean, nullable: true })
     SortByPurchuse?: boolean,
-  ): Promise<PaginatedProduct> {
-    return this.productService.findAll(paginate, SortByPurchuse);
+  ) {
+    return this.productService.findAllProducts(paginate, SortByPurchuse);
   }
 
   @UseGuards(AuthGuard)
@@ -125,20 +109,20 @@ export class ProductResolver {
     if (!product.vendor) return null;
 
     console.log('productproductproduct', product);
-    return this.vendorLoader.load(product.vendor.id);
+    return this.vendorLoader.loader().load(product.vendor.id);
   }
   @ResolveField(() => User, { nullable: true })
   async user(@Parent() product: Product) {
     if (!product.vendor) return null;
 
-    return this.userLoader.load(product.vendor.user.id);
+    return this.userLoader.loader().load(product.vendor.user.id);
   }
   @ResolveField(() => RatingAndReview, { nullable: true })
   async reviews(@Parent() product: Product) {
-    return this.reviewLoader.load(product.id);
+    return this.reviewLoader.loader().load(product.id);
   }
   @ResolveField(() => Category, { nullable: true })
   async category(@Parent() product: Product) {
-    return this.categoryLoader.load(product.categoryId);
+    return this.categoryLoader.loader().load(product.categoryId);
   }
 }

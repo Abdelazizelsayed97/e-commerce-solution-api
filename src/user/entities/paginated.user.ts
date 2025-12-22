@@ -1,13 +1,6 @@
-import { Field, ObjectType } from "@nestjs/graphql";
-import { PaginationMeta } from "src/core/helper/pagination/pagination.output";
-import { User } from "./user.entity";
+import { Field, ObjectType } from '@nestjs/graphql';
+import { PaginatedType } from 'src/core/helper/pagination/pagination.output';
+import { User } from './user.entity';
 
 @ObjectType()
-export class PaginatedUsers {
-   @Field(() => [User])
-   items: User[]
-   @Field(() => PaginationMeta)
-   pagination: PaginationMeta
-
-
-}
+export class PaginatedUser extends PaginatedType(User) {}

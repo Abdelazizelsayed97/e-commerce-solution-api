@@ -4,7 +4,6 @@ import { Address } from './entities/address.entity';
 import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/user/guard/auth.guard';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
@@ -28,13 +27,13 @@ export class AddressResolver {
 
   @UseGuards(AuthGuard)
   @Query(() => PaginatedAddress, { name: 'getAllUserAddresses' })
-  findAll(
+  findAllAddresses(
     @Args('paginate', { type: () => PaginationInput, nullable: true })
     paginate: PaginationInput,
     @CurrentUser() user: User,
   ) {
     console.log('Current User:', user);
-    return this.addressService.findAll(paginate, user);
+    return this.addressService.findAllAddresses(paginate, user);
   }
   @Roles(RoleEnum.superAdmin)
   @UseGuards(AuthGuard, RolesGuard)
@@ -45,7 +44,7 @@ export class AddressResolver {
     @CurrentUser() user: User,
   ) {
     console.log('Current User:', user);
-    return this.addressService.findAll(paginate, user);
+    return this.addressService.findAllAddresses(paginate, user);
   }
 
   @Query(() => Address, { name: 'address' })

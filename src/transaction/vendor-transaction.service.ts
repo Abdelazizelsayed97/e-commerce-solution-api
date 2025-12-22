@@ -5,7 +5,8 @@ import { VendorTransaction } from './entities/vendor-transaction.entity';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { PaginationInput } from 'src/core/helper/pagination/paginatoin-input';
-import { PaginatedResponse } from 'src/core/helper/pagination/pagination.output';
+
+import { PaginatedVendorTransactoin } from './entities/vendor.transcation.paginated';
 
 @Injectable()
 export class VendorTransactionService {
@@ -18,9 +19,9 @@ export class VendorTransactionService {
     private orderRepository: Repository<Order>,
   ) {}
 
-  async findAll(
+  async findAllVendorTransactions(
     paginationInput: PaginationInput,
-  ): Promise<PaginatedResponse<VendorTransaction>> {
+  ): Promise<PaginatedVendorTransactoin> {
     const [items, itemCount] =
       await this.vendorTransactionRepository.findAndCount({
         skip: (paginationInput.page - 1) * paginationInput.limit,
@@ -32,20 +33,16 @@ export class VendorTransactionService {
       });
     return {
       items: items,
-      PaginationMeta: {
-        itemCount,
-        itemsPerPage: paginationInput.limit,
-        totalItems: itemCount,
-        totalPages: Math.ceil(itemCount / paginationInput.limit),
-        currentPage: paginationInput.page,
-      },
+      page: paginationInput.page,
+      total: itemCount,
+      limit: paginationInput.limit,
     };
   }
 
   async findByVendor(
     vendorId: string,
     paginationInput: PaginationInput,
-  ): Promise<PaginatedResponse<VendorTransaction>> {
+  ): Promise<PaginatedVendorTransactoin> {
     const vendor = await this.vendorRepository.findOne({
       where: { id: vendorId },
     });
@@ -65,31 +62,38 @@ export class VendorTransactionService {
       });
     return {
       items: items,
-      PaginationMeta: {
-        itemCount,
-        itemsPerPage: paginationInput.limit,
-        totalItems: itemCount,
-        totalPages: Math.ceil(itemCount / paginationInput.limit),
-        currentPage: paginationInput.page,
-      },
+      page: paginationInput.page,
+      total: itemCount,
+      limit: paginationInput.limit,
     };
   }
 
-  async findByOrder(orderId: string): Promise<VendorTransaction[]> {
-    const order = await this.orderRepository.findOne({
+  async findByOrder(
+    orderId: string,
+    paginationInput: PaginationInput,
+  ): Promise<PaginatedVendorTransactoin> {
+    const orders = await this.orderRepository.findOne({
       where: { id: orderId },
     });
-    if (!order) {
+    if (!orders) {
       throw new Error('Order not found');
     }
 
-    return await this.vendorTransactionRepository.find({
-      where: { order: { id: orderId } },
-      relations: ['vendor', 'order'],
-      order: {
-        createdAt: 'DESC',
-      },
-    });
+    const [items, itemCount] =
+      await this.vendorTransactionRepository.findAndCount({
+        where: { order: { id: orderId } },
+        relations: ['vendor', 'order'],
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+
+    return {
+      items: items,
+      total: itemCount,
+      limit: paginationInput.limit,
+      page: paginationInput.page,
+    };
   }
 
   async findOne(id: string): Promise<VendorTransaction> {

@@ -10,37 +10,32 @@ import { CartItemService } from './cart-item.service';
 import { CartItem } from './entities/cart-item.entity';
 import { CreateCartItemInput } from './dto/create-cart_item.input';
 import { UpdateCartItemInput } from './dto/update-cart_item.input';
-import { cartLoader } from 'src/cart/loaders/cart.loader';
-import DataLoader from 'dataloader';
+import { CartLoader } from 'src/cart/loaders/cart.loader';
 import { Cart } from 'src/cart/entities/cart.entity';
-import { DataSource } from 'typeorm';
-import { cartItemLoader } from './loaders/cart.items.loader';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { UserResponseInterceptor } from 'src/core/helper/interceptors/user.responce.interceptor';
 import { Product } from 'src/product/entities/product.entity';
-import { productLoader } from 'src/product/loader/product.loader';
+import { ProductLoader } from 'src/product/loader/product.loader';
 import { AuthGuard } from 'src/user/guard/auth.guard';
 import { Vendor } from 'src/vendor/entities/vendor.entity';
 import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
 import { CurrentUser } from 'src/core/helper/decorators/current.user';
 import { User } from 'src/user/entities/user.entity';
+import { CartItemLoader } from './loaders/cart.items.loader';
+import { Roles } from 'src/core/helper/decorators/role.mata.decorator';
+import { RoleEnum } from 'src/core/enums/role.enum';
+import { RolesGuard } from 'src/auth/guards/role.guard';
 
 @UseInterceptors(UserResponseInterceptor)
 @Resolver(() => CartItem)
 export class CartItemResolver {
-  cartLoader: DataLoader<string, Cart>;
-  cartItemLoader: DataLoader<string, CartItem>;
-  productLoader: DataLoader<string, Product>;
-  vendorLoader: DataLoader<string, Vendor | null>;
   constructor(
     private readonly cartItemService: CartItemService,
-    private dataSource: DataSource,
-  ) {
-    this.cartLoader = cartLoader(dataSource);
-    this.cartItemLoader = cartItemLoader(dataSource);
-    this.productLoader = productLoader(dataSource);
-    this.vendorLoader = VendorLoader(dataSource.getRepository(Vendor));
-  }
+    private readonly cartLoader: CartLoader,
+    private readonly productLoader: ProductLoader,
+    private readonly vendorLoader: VendorLoader,
+    private readonly cartItemLoader: CartItemLoader,
+  ) {}
 
   @Mutation(() => CartItem)
   @UseGuards(AuthGuard)
@@ -50,10 +45,11 @@ export class CartItemResolver {
   ) {
     return this.cartItemService.addItemToCart(createCartItemInput, user);
   }
-
+  @Roles(RoleEnum.client, RoleEnum.superAdmin)
+  @UseGuards(AuthGuard, RolesGuard)
   @Query(() => [CartItem], { name: 'cartItems' })
-  findAll(@CurrentUser() user: User) {
-    return this.cartItemService.findAll(user);
+  findAllCartItems(@CurrentUser() user: User) {
+    return this.cartItemService.findAllCartItems(user);
   }
 
   @Query(() => CartItem, { name: 'cartItem' })
@@ -62,7 +58,8 @@ export class CartItemResolver {
   }
 
   @Mutation(() => CartItem)
-  @UseGuards(AuthGuard)
+  @Roles(RoleEnum.client, RoleEnum.superAdmin)
+  @UseGuards(AuthGuard, RolesGuard)
   updateCartItem(
     @Args('id', { type: () => String }) id: string,
     @Args('updateCartItemInput') updateCartItemInput: UpdateCartItemInput,
@@ -84,24 +81,24 @@ export class CartItemResolver {
   @ResolveField(() => CartItem, { nullable: true })
   cartItem(@Parent() cartItem: CartItem) {
     if (!cartItem.id) return null;
-    return this.cartItemLoader.load(cartItem.id);
+    return this.cartItemLoader.loader().load(cartItem.id);
   }
 
   @ResolveField(() => Cart, { nullable: true })
   cart(@Parent() cartItem: CartItem) {
     if (!cartItem.cart) return null;
-    return this.cartLoader.load(cartItem.cart.id);
+    return this.cartLoader.loader().load(cartItem.cart.id);
   }
 
   @ResolveField(() => Product, { nullable: true })
   product(@Parent() cartItem: CartItem) {
     if (!cartItem.product) return null;
-    return this.productLoader.load(cartItem.product.id);
+    return this.productLoader.loader().load(cartItem.product.id);
   }
 
   @ResolveField(() => Vendor, { nullable: true })
   vendor(@Parent() cartItem: CartItem) {
     if (!cartItem.product.vendor) return null;
-    return this.vendorLoader.load(cartItem.product.vendor.id);
+    return this.vendorLoader.loader().load(cartItem.product.vendor.id);
   }
 }

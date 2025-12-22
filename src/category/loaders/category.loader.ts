@@ -1,17 +1,25 @@
 import DataLoader from 'dataloader';
-import { DataSource, In } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Category } from '../entities/category.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RequestScoped } from 'src/core/loader.decorator';
 
-export const categoryLoader = (dataSource: DataSource) => {
-  return new DataLoader<string, Category>(async (ids: string[]) => {
-    const data = await dataSource
-      .getRepository(Category)
-      .find({ where: { id: In(ids) } });
+@RequestScoped()
+export class CategoryLoader {
+  constructor(
+    @InjectRepository(Category)
+    private readonly categoryRepo: Repository<Category>,
+  ) {}
 
-    const catrgoryMap = new Map<string, Category>();
-    data.forEach((category) => {
-      catrgoryMap.set(category.id, category);
+  loader() {
+    return new DataLoader<string, Category>(async (ids: string[]) => {
+      const data = await this.categoryRepo.find({ where: { id: In(ids) } });
+
+      const catrgoryMap = new Map<string, Category>();
+      data.forEach((category) => {
+        catrgoryMap.set(category.id, category);
+      });
+      return ids.map((id) => catrgoryMap.get(id)!);
     });
-    return ids.map((id) => catrgoryMap.get(id)!);
-  });
-};
+  }
+}

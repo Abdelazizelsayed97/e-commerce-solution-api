@@ -11,10 +11,11 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
 import { Fcm } from 'src/fcm/entities/fcm.entity';
 import { RoleEnum } from 'src/core/enums/role.enum';
-import { PaginatedUsers } from './entities/paginated.user';
 import { CartService } from 'src/cart/cart.service';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { ISendOtpResponse } from 'src/auth/dto/send.otp.type';
+import { Profile } from 'passport-google-oauth20';
+import { PaginatedUser } from './entities/paginated.user';
 
 @Injectable()
 export class UserService {
@@ -24,7 +25,7 @@ export class UserService {
     @InjectRepository(Fcm)
     private fcmRepository: Repository<Fcm>,
     @InjectRepository(Wallet)
-    private walletRepository: Repository<Wallet>,
+    private readonly walletRepository: Repository<Wallet>,
     private jwtService: JwtService,
     private emailService: EmailService,
     private cartService: CartService,
@@ -82,7 +83,7 @@ export class UserService {
     return user;
   }
 
-  async findAll(paginate: PaginationInput): Promise<PaginatedUsers> {
+  async findAllUsers(paginate: PaginationInput): Promise<PaginatedUser> {
     const limit = paginate.limit;
     const page = (paginate.page - 1) * limit;
     const [[token, ...users], totalItems] =
@@ -91,14 +92,12 @@ export class UserService {
         take: limit,
       });
     return {
+      total: totalItems,
+
+      limit: paginate.limit,
+
       items: users,
-      pagination: {
-        currentPage: paginate.page,
-        totalItems: totalItems,
-        itemCount: paginate.limit,
-        itemsPerPage: paginate.limit,
-        totalPages: Math.ceil(totalItems / paginate.limit),
-      },
+      page: paginate.page,
     };
   }
 
@@ -192,7 +191,7 @@ export class UserService {
     user.OtpCode = code;
     await this.usersRepository.save(user);
     return {
-     id : user.id,
+      id: user.id,
       message: 'Otp has been sent successfully',
     };
   }
@@ -217,4 +216,30 @@ export class UserService {
       await this.sendNotificationToNewUserWithVerificationCode(isExist);
     return code;
   }
+
+  async loginWithGoogle(profile: Profile) {
+    console.log('profile', profile);
+    let user = await this.findByEmail(profile.email);
+    if (user) return user;
+    user = await this.create({
+      device: profile.platform.name,
+      email: profile.email,
+      name: profile.name,
+      password: profile.id,
+      phoneNumber: profile.id,
+      token: profile.id,
+    });
+    user.token = await this.generateToken(user.id);
+    await this.usersRepository.save(user);
+    return user;
+  }
 }
+
+//  this.usersRepository.create({
+//       email: profile.email,
+//       name: profile.name,
+//       role: RoleEnum.client,
+//       password: hashSync(profile.id, 10),
+//       isVerified: true,
+//       OtpCode: undefined,
+//     });

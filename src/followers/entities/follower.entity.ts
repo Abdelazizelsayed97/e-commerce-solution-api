@@ -23,7 +23,7 @@ export class Follower extends BasicClass {
     name: 'follower_id',
     referencedColumnName: 'id',
   })
-  follower: User;
+  user: User;
 
   @Column()
   follower_id: string;

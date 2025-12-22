@@ -9,12 +9,15 @@ import { CartModule } from 'src/cart/cart.module';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
 import { WishList } from 'src/product/entities/wish.list.entity';
 import { TempUser } from './entities/temp.user';
+import { UserLoader } from './loader/users.loader';
+import { VendorLoader } from 'src/vendor/loaders/vendor.loader';
+import { Vendor } from 'src/vendor/entities/vendor.entity';
 
 @Module({
-  providers: [UserResolver, UserService],
-  exports: [UserService],
+  providers: [UserResolver, UserService, UserLoader, VendorLoader],
+  exports: [UserService, UserLoader],
   imports: [
-    TypeOrmModule.forFeature([User, TempUser, Fcm, Wallet, WishList]),
+    TypeOrmModule.forFeature([User, TempUser, Fcm, Wallet, WishList, Vendor]),
     EmailModule,
     CartModule,
   ],
